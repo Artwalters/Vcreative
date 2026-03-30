@@ -320,7 +320,7 @@ const TextDemo = () => {
         if (isInHero) {
           gsap.to(t.material.uniforms.uReveal, {
             value: 1,
-            duration: 2.5,
+            duration: 3.5,
             delay: 0.3,
             ease: 'power2.inOut',
             onUpdate: () => { needsRender = true },
@@ -328,12 +328,12 @@ const TextDemo = () => {
         } else {
           gsap.to(t.material.uniforms.uReveal, {
             value: 1,
-            duration: 2.5,
+            duration: 3.5,
             ease: 'power2.inOut',
             onUpdate: () => { needsRender = true },
             scrollTrigger: {
               trigger: t.element,
-              start: 'top 80%',
+              start: 'top bottom+=300',
               toggleActions: 'play none none none',
             },
           })
@@ -717,10 +717,10 @@ const TextDemo = () => {
           </div>
         </section>
         <section className={styles.aanpakSection}>
-          <p className={styles.aanpakLabel}>Mijn aanpak</p>
-          <p className={styles.aanpakBody}>
-            Het begint met luisteren. Ik leer jouw merk, doelgroep en ambities kennen. Vanuit daar bouw ik een strategie, maak ik de content en zorg ik dat alles op het juiste moment live staat. Geen losse flodders, maar een doordacht plan dat groeit met jouw bedrijf.
+          <p data-animation="webgl-text" className={styles.aanpakBody}>
+            Het begint met luisteren. Vanuit jouw merk bouw ik een strategie, maak ik de content en zorg ik dat alles op het juiste moment live staat.
           </p>
+          <a href="/cases" className={styles.aanpakLink}>Lees hoe ik dit toepas</a>
         </section>
 
         <section className={styles.projectenSection}>
