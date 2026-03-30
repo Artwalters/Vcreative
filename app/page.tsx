@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback, useRef } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import styles from '@/app/styles/text-demo.module.css'
 import type * as THREE from 'three'
 
@@ -150,7 +150,7 @@ interface TextEntry {
   bounds: DOMRect
   y: number
   isVisible: boolean
-  isOilText: boolean
+
 }
 
 interface ImageEntry {
@@ -163,12 +163,9 @@ interface ImageEntry {
   top: number
   left: number
   depth: number
-  isOilImage: boolean
+
 }
 
-// Shared drag state between OilSection and WebGL render loop
-let oilDragX = 0
-let oilDragDirty = false
 
 const TextDemo = () => {
   const [webglEnabled, setWebglEnabled] = useState(true)
@@ -311,8 +308,7 @@ const TextDemo = () => {
         element.style.color = 'transparent'
         restoreElements.push({el: element, prop: 'color', val: ''})
 
-        const isOilText = !!element.closest('[data-oil-section]')
-        texts.push({mesh, element, material, bounds, y, isVisible: false, isOilText})
+        texts.push({mesh, element, material, bounds, y, isVisible: false})
       })
 
       /* ── Noise reveal animations ── */
@@ -420,7 +416,7 @@ const TextDemo = () => {
           top: bounds.top + lenis.actualScroll,
           left: bounds.left,
           depth,
-          isOilImage: img.hasAttribute('data-oil-image'),
+
         })
       }
 
@@ -547,12 +543,7 @@ const TextDemo = () => {
       /* ── Render loop ── */
 
       const update = () => {
-        if (oilDragDirty) {
-          needsRender = true
-          oilDragDirty = false
-        }
         if (needsRender) {
-          const oilTextFade = 1 - Math.min(1, Math.max(0, (oilDragX - 50) / 250))
 
           texts.forEach((t) => {
             if (t.isVisible) {
@@ -564,16 +555,12 @@ const TextDemo = () => {
                 screen.height / 2 -
                 t.bounds.height / 2
 
-              if (t.isOilText) {
-                t.material.uniforms.uReveal.value = oilTextFade
-              }
             }
           })
 
           images.forEach((img) => {
-            const dragOffset = img.isOilImage ? oilDragX : 0
             img.mesh.position.x =
-              img.left - screen.width / 2 + img.width / 2 - dragOffset
+              img.left - screen.width / 2 + img.width / 2
 
             const parallaxFactor = 1 + img.depth * 0.0004
             img.mesh.position.y =
@@ -589,13 +576,11 @@ const TextDemo = () => {
               img.mesh.position.y += img.height * shrink * 8.0
             }
 
-            if (!img.isOilImage) {
-              const screenY = img.mesh.position.y
-              const t = Math.max(0, Math.min(1,
-                (screenY + screen.height * 0.5) / (screen.height * 1.5)
-              ))
-              img.material.uniforms.u_innerScale.value = 1.0 + (1 - t) * 0.12
-            }
+            const screenY = img.mesh.position.y
+            const t = Math.max(0, Math.min(1,
+              (screenY + screen.height * 0.5) / (screen.height * 1.5)
+            ))
+            img.material.uniforms.u_innerScale.value = 1.0 + (1 - t) * 0.12
 
             const depthScale = DIST / (DIST - img.depth)
             img.mesh.scale.set(
@@ -704,13 +689,13 @@ const TextDemo = () => {
         </figure>
         <section className={styles.dienstenSection}>
           <div className={styles.dienstenLeft}>
-            <h2 data-animation="webgl-text" className={styles.dienstenHeading}>MIJN DIENSTEN</h2>
-            <p data-animation="webgl-text" className={styles.dienstenBody}>
+            <h2 className={styles.dienstenHeading}>MIJN DIENSTEN</h2>
+            <p className={styles.dienstenBody}>
               Ik sta voor sterke, persoonlijke content. Al meer dan 3 jaar werk ik aan mooie projecten voor o.a Hair by Kim, Falcon Ink, Hal XIII en andere toffe merken. Met liefde voor het vak en een creatieve blik maak ik ideeën en doelen werkelijk. Let&apos;s boost your brand!
             </p>
           </div>
           <div className={styles.dienstenRight}>
-            <h2 data-animation="webgl-text" className={styles.skillsHeading}>SKILLS</h2>
+            <h2 className={styles.skillsHeading}>SKILLS</h2>
             <ul className={styles.skillsList}>
               <li>Content</li>
               <li>videografie</li>
@@ -722,7 +707,7 @@ const TextDemo = () => {
         </section>
 
         <section className={styles.klantenSection}>
-          <h2 data-animation="webgl-text" className={styles.klantenHeading}>MIJN KLANTEN</h2>
+          <h2 className={styles.klantenHeading}>MIJN KLANTEN</h2>
           <div className={styles.klantenGrid}>
             <div className={styles.klantenLogo} />
             <div className={styles.klantenLogo} />
@@ -731,192 +716,114 @@ const TextDemo = () => {
             <div className={styles.klantenLogo} />
           </div>
         </section>
-        <div className={styles.figurePair}>
-          <figure className={styles.figureHalf}>
-            <img
-              data-webgl-media
-              data-webgl-effect="bend"
-              src="/images/body-oil-dramatic.webp"
-              alt="Body Oil dramatisch licht"
-              className={styles.gridImage}
-            />
-          </figure>
-          <figure className={styles.figureHalf}>
-            <img
-              data-webgl-media
-              data-webgl-effect="bend"
-              src="/images/body-oil-dark-mood.webp"
-              alt="Body Oil donkere sfeer"
-              className={styles.gridImage}
-            />
-          </figure>
-        </div>
-        <figure className={styles.figure}>
-          <img
-            data-webgl-media
-            data-webgl-effect="bend"
-            src="/images/face-mist-duo-marble.webp"
-            alt="Face Mist duo op marmer"
-            className={styles.gridImage}
-          />
-        </figure>
+        <section className={styles.aanpakSection}>
+          <p className={styles.aanpakLabel}>Mijn aanpak</p>
+          <p className={styles.aanpakBody}>
+            Het begint met luisteren. Ik leer jouw merk, doelgroep en ambities kennen. Vanuit daar bouw ik een strategie, maak ik de content en zorg ik dat alles op het juiste moment live staat. Geen losse flodders, maar een doordacht plan dat groeit met jouw bedrijf.
+          </p>
+        </section>
+
+        <section className={styles.projectenSection}>
+          <div className={`${styles.projectItem} ${styles.projectLeft}`}>
+            <figure className={styles.projectFigure}>
+              <img
+                data-webgl-media
+                data-webgl-effect="bend"
+                src="/images/body-oil-dramatic.webp"
+                alt="Hair by Kim — Social Media Beheer"
+                className={styles.projectImage}
+              />
+            </figure>
+            <p className={styles.projectCaption}>
+              Social media beheer voor Hair by Kim.<br />
+              Strategie, fotografie en contentcreatie<br />
+              die het merk laat groeien.
+            </p>
+          </div>
+
+          <div className={`${styles.projectItem} ${styles.projectRight}`}>
+            <figure className={styles.projectFigure}>
+              <img
+                data-webgl-media
+                data-webgl-effect="bend"
+                src="/images/body-oil-dark-mood.webp"
+                alt="Falcon Ink — Content Creatie"
+                className={styles.projectImage}
+              />
+            </figure>
+            <p className={styles.projectCaption}>
+              Content creatie voor Falcon Ink.<br />
+              Van concept tot publicatie,<br />
+              altijd in de juiste sfeer.
+            </p>
+          </div>
+
+          <div className={`${styles.projectItem} ${styles.projectLeft}`}>
+            <figure className={styles.projectFigure}>
+              <img
+                data-webgl-media
+                data-webgl-effect="bend"
+                src="/images/face-mist-duo-marble.webp"
+                alt="Hal XIII — Social Media Beheer"
+                className={styles.projectImage}
+              />
+            </figure>
+            <p className={styles.projectCaption}>
+              Maandelijks beheer voor Hal XIII.<br />
+              Energie en kracht vertaald<br />
+              naar beeld en video.
+            </p>
+          </div>
+
+          <div className={`${styles.projectItem} ${styles.projectCenter}`}>
+            <figure className={styles.projectFigure}>
+              <img
+                data-webgl-media
+                data-webgl-effect="bend"
+                src="/images/face-mist-sunlight.webp"
+                alt="Beautysalon Glow — Contentdag"
+                className={styles.projectImage}
+              />
+            </figure>
+            <p className={styles.projectCaption}>
+              Eenmalige contentdag voor Beautysalon Glow.<br />
+              Een dag shooten, een maand<br />
+              aan content.
+            </p>
+          </div>
+        </section>
+
+        <section className={styles.overSection}>
+          <p data-animation="webgl-text" className={styles.overText}>
+            Ik ben Viënna, het gezicht achter V-Creative. Al van jongs af aan was ik die ene vriendin met de camera zonder dat het toen al werk was. Wat begon als een hobby groeide uit tot iets veel groters.
+          </p>
+          <div className={styles.overGrid}>
+            <div className={styles.overLogoWrap}>
+              <img data-webgl-media data-webgl-effect="none" data-webgl-depth="-30" src="/logo/logopatch.png" alt="V-Creative logo" className={styles.overLogo} />
+            </div>
+            <div className={styles.overRow}>
+              <div className={styles.overImgWrap}>
+                <img data-webgl-media data-webgl-effect="none" data-webgl-depth="25" src="/images/body-oil-dramatic.webp" alt="Viënna aan het werk" className={styles.overImg} />
+              </div>
+              <div className={styles.overImgWrap}>
+                <img data-webgl-media data-webgl-effect="none" data-webgl-depth="-40" src="/images/body-oil-dark-mood.webp" alt="Behind the scenes" className={styles.overImg} />
+              </div>
+              <div className={styles.overImgWrap}>
+                <img data-webgl-media data-webgl-effect="none" data-webgl-depth="35" src="/images/face-mist-duo-marble.webp" alt="Op locatie" className={styles.overImg} />
+              </div>
+            </div>
+            <div className={styles.overRowBottom}>
+              <div className={styles.overImgWrap}>
+                <img data-webgl-media data-webgl-effect="none" data-webgl-depth="-55" src="/images/body-oil-painting-backdrop.webp" alt="Content creatie" className={styles.overImg} />
+              </div>
+              <div className={`${styles.overImgWrap} ${styles.overImgLarge}`}>
+                <img data-webgl-media data-webgl-effect="none" data-webgl-depth="40" src="/images/face-mist-sunlight.webp" alt="Viënna met camera" className={styles.overImg} />
+              </div>
+            </div>
+          </div>
+        </section>
       </section>
-
-      <OilSection />
     </div>
-  )
-}
-
-const OilSection = () => {
-  const sectionRef = useRef<HTMLElement>(null)
-  const textRef = useRef<HTMLDivElement>(null)
-  const imagesRef = useRef<HTMLDivElement>(null)
-  const dragRef = useRef({
-    active: false,
-    startX: 0,
-    startScroll: 0,
-    lastX: 0,
-    lastTime: 0,
-    velocity: 0,
-  })
-  const scrollXRef = useRef(0)
-  const gsapRef = useRef<any>(null)
-  const tweenTarget = useRef({x: 0})
-
-  const applyDrag = useCallback(() => {
-    const images = imagesRef.current
-    const text = textRef.current
-    const x = scrollXRef.current
-    oilDragX = x
-    oilDragDirty = true
-    if (images) {
-      images.style.transform = `translateX(${-x}px)`
-    }
-    if (text) {
-      const progress = Math.min(1, Math.max(0, (x - 50) / 250))
-      text.style.opacity = String(1 - progress)
-    }
-  }, [])
-
-  useEffect(() => {
-    import('gsap').then((mod) => {
-      gsapRef.current = mod.default
-    })
-  }, [])
-
-  useEffect(() => {
-    const section = sectionRef.current
-    if (!section) return
-
-    const onDown = (e: PointerEvent) => {
-      if (gsapRef.current) gsapRef.current.killTweensOf(tweenTarget.current)
-      dragRef.current.active = true
-      dragRef.current.startX = e.clientX
-      dragRef.current.startScroll = scrollXRef.current
-      dragRef.current.lastX = e.clientX
-      dragRef.current.lastTime = Date.now()
-      dragRef.current.velocity = 0
-      section.setPointerCapture(e.pointerId)
-    }
-
-    const onMove = (e: PointerEvent) => {
-      if (!dragRef.current.active) return
-      e.preventDefault()
-      const now = Date.now()
-      const dt = now - dragRef.current.lastTime
-      if (dt > 4 && dt < 200) {
-        const instantV = (e.clientX - dragRef.current.lastX) / dt * 1000
-        dragRef.current.velocity = dragRef.current.velocity * 0.7 + instantV * 0.3
-      }
-      dragRef.current.lastX = e.clientX
-      dragRef.current.lastTime = now
-
-      const dx = e.clientX - dragRef.current.startX
-      scrollXRef.current = Math.max(0, dragRef.current.startScroll - dx)
-      applyDrag()
-    }
-
-    const onUp = () => {
-      if (!dragRef.current.active) return
-      dragRef.current.active = false
-
-      const gsap = gsapRef.current
-      if (!gsap) return
-
-      const v = Math.max(-2000, Math.min(2000, dragRef.current.velocity))
-      const target = Math.max(0, scrollXRef.current - v * 0.3)
-      tweenTarget.current.x = scrollXRef.current
-
-      gsap.to(tweenTarget.current, {
-        x: target,
-        duration: Math.max(0.4, Math.min(1.2, Math.abs(v) / 1500)),
-        ease: 'power3.out',
-        onUpdate: () => {
-          scrollXRef.current = tweenTarget.current.x
-          applyDrag()
-        },
-      })
-    }
-
-    section.addEventListener('pointerdown', onDown)
-    section.addEventListener('pointermove', onMove)
-    section.addEventListener('pointerup', onUp)
-    section.addEventListener('pointercancel', onUp)
-    section.addEventListener('lostpointercapture', onUp)
-
-    return () => {
-      section.removeEventListener('pointerdown', onDown)
-      section.removeEventListener('pointermove', onMove)
-      section.removeEventListener('pointerup', onUp)
-      section.removeEventListener('pointercancel', onUp)
-      section.removeEventListener('lostpointercapture', onUp)
-    }
-  }, [applyDrag])
-
-  return (
-    <section
-      ref={sectionRef}
-      className={styles.oilSection}
-      data-oil-section
-    >
-      <div ref={textRef} className={styles.oilText}>
-        <h2 data-animation="webgl-text" className={styles.oilHeading}>
-          What makes this oil work
-        </h2>
-        <p data-animation="webgl-text" className={styles.oilBody}>
-          Crafted with rare botanicals, our luxurious face oils nurture your
-          skin&rsquo;s natural radiance. These exquisite blends deliver
-          unparalleled healing, repair, and nourishment for a revitalized
-          complexion.
-        </p>
-      </div>
-      <div ref={imagesRef} className={styles.oilImages}>
-        <div className={styles.oilImageCol}>
-          <img data-webgl-media data-webgl-effect="none" data-webgl-depth="25" data-oil-image src="/images/body-oil-dark-mood.webp" alt="" className={`${styles.oilImg} ${styles.oilImgLg}`} />
-          <img data-webgl-media data-webgl-effect="none" data-webgl-depth="-40" data-oil-image src="/images/face-mist-detail-gold.webp" alt="" className={`${styles.oilImg} ${styles.oilImgSm}`} />
-        </div>
-        <div className={`${styles.oilImageCol} ${styles.oilImageColOffset}`}>
-          <img data-webgl-media data-webgl-effect="none" data-webgl-depth="-55" data-oil-image src="/images/body-oil-face-mist-duo.webp" alt="" className={`${styles.oilImg} ${styles.oilImgWide}`} />
-          <img data-webgl-media data-webgl-effect="none" data-webgl-depth="40" data-oil-image src="/images/face-mist-sepia.webp" alt="" className={`${styles.oilImg} ${styles.oilImgMd}`} />
-        </div>
-        <div className={styles.oilImageCol}>
-          <img data-webgl-media data-webgl-effect="none" data-webgl-depth="-30" data-oil-image src="/images/body-oil-tilted-closeup.webp" alt="" className={`${styles.oilImg} ${styles.oilImgMd}`} />
-          <img data-webgl-media data-webgl-effect="none" data-webgl-depth="50" data-oil-image src="/images/body-oil-painting-backdrop.webp" alt="" className={`${styles.oilImg} ${styles.oilImgWide}`} />
-        </div>
-        <div className={`${styles.oilImageCol} ${styles.oilImageColOffset}`}>
-          <img data-webgl-media data-webgl-effect="none" data-webgl-depth="-65" data-oil-image src="/images/face-mist-glowing.webp" alt="" className={`${styles.oilImg} ${styles.oilImgLg}`} />
-          <img data-webgl-media data-webgl-effect="none" data-webgl-depth="15" data-oil-image src="/images/body-oil-warm-closeup.webp" alt="" className={`${styles.oilImg} ${styles.oilImgSm}`} />
-        </div>
-        <div className={styles.oilImageCol}>
-          <img data-webgl-media data-webgl-effect="none" data-webgl-depth="35" data-oil-image src="/images/body-oil-dramatic.webp" alt="" className={`${styles.oilImg} ${styles.oilImgWide}`} />
-          <img data-webgl-media data-webgl-effect="none" data-webgl-depth="-45" data-oil-image src="/images/face-mist-sunlight.webp" alt="" className={`${styles.oilImg} ${styles.oilImgMd}`} />
-        </div>
-        <div className={`${styles.oilImageCol} ${styles.oilImageColOffset}`}>
-          <img data-webgl-media data-webgl-effect="none" data-webgl-depth="-20" data-oil-image src="/images/face-mist-duo-marble.webp" alt="" className={`${styles.oilImg} ${styles.oilImgMd}`} />
-          <img data-webgl-media data-webgl-effect="none" data-webgl-depth="45" data-oil-image src="/images/body-oil-dramatic-alt.webp" alt="" className={`${styles.oilImg} ${styles.oilImgLg}`} />
-        </div>
-      </div>
-    </section>
   )
 }
 

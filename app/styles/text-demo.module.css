@@ -151,7 +151,9 @@
 
 .klantenSection {
   padding: 5em 0;
-  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .klantenHeading {
@@ -165,7 +167,7 @@
 
 .klantenGrid {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   gap: 2em;
 }
 
@@ -236,131 +238,156 @@
   object-fit: cover;
 }
 
-/* Oil Section */
+/* Aanpak Section */
 
-.oilSection {
-  position: relative;
-  min-height: 100vh;
+.aanpakSection {
+  padding: 5em 0;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  padding: 6rem 6vw;
-  overflow: hidden;
-  cursor: grab;
-  user-select: none;
-  touch-action: pan-y;
+  text-align: center;
 }
 
-.oilSection:active {
-  cursor: grabbing;
-}
-
-.oilText {
-  position: absolute;
-  left: 6vw;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 28%;
-  z-index: 2;
-  transition: opacity 0.1s ease-out;
-  pointer-events: none;
-}
-
-.oilHeading {
+.aanpakLabel {
   font-family: var(--font-primary);
-  font-size: clamp(1.5rem, 2.5vw, 2.25rem);
+  font-style: italic;
+  font-size: 1em;
   font-weight: 400;
-  color: #1a1a1a;
-  margin: 0 0 1.25em;
-  line-height: 1.2;
+  color: var(--color-navy);
+  margin: 0 0 1.5em;
 }
 
-.oilBody {
+.aanpakBody {
   font-family: var(--font-primary);
-  font-size: clamp(0.9375rem, 1.1vw, 1.0625rem);
+  font-size: 1.25em;
   font-weight: 400;
-  color: #444;
+  color: var(--color-navy);
   line-height: 1.7;
+  margin: 0;
+  max-width: 45%;
+}
+
+/* Projecten Section */
+
+.projectenSection {
+  display: flex;
+  flex-direction: column;
+  gap: 8em;
+  padding: 5em 0;
+}
+
+.projectItem {
+  max-width: 45%;
+}
+
+.projectLeft {
+  align-self: flex-start;
+}
+
+.projectRight {
+  align-self: flex-end;
+}
+
+.projectCenter {
+  align-self: center;
+}
+
+.projectFigure {
   margin: 0;
 }
 
-.oilImages {
-  display: flex;
-  gap: 7vw;
-  align-items: flex-start;
-  margin-left: 36%;
-  z-index: 3;
-  position: relative;
-  will-change: transform;
+.projectImage {
+  width: 100%;
+  height: auto;
+  display: block;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
 }
 
-.oilImageCol {
+.projectCaption {
+  font-family: var(--font-primary);
+  font-size: 1em;
+  font-weight: 400;
+  color: var(--color-navy);
+  line-height: 1.6;
+  margin: 1em 0 0;
+}
+
+/* Over Section */
+
+.overSection {
+  padding: 12em 8vw;
+}
+
+.overText {
+  font-family: var(--font-primary);
+  font-size: clamp(1.5rem, 2.5vw, 2.25rem);
+  font-weight: 400;
+  color: var(--color-navy);
+  text-align: center;
+  max-width: 30em;
+  margin: 0 auto 10em;
+  line-height: 1.4;
+}
+
+.overGrid {
   display: flex;
   flex-direction: column;
-  gap: 10vh;
-  flex-shrink: 0;
+  gap: 10em;
+  position: relative;
 }
 
-.oilImageColOffset {
-  margin-top: 14vh;
+.overRow {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr 1fr;
+  gap: 3em;
+  align-items: start;
+  position: relative;
+  z-index: 3;
 }
 
-.oilImg {
-  object-fit: cover;
-  border-radius: 0.25rem;
-  flex-shrink: 0;
-  pointer-events: none;
+.overRowBottom {
+  display: grid;
+  grid-template-columns: 1fr 1.3fr;
+  gap: 3em;
+  padding: 0 8vw;
+  position: relative;
+  z-index: 1;
+}
+
+.overImgWrap {
+  overflow: hidden;
+  position: relative;
+}
+
+.overImg {
+  width: 100%;
+  height: auto;
   display: block;
-}
-
-.oilImgSm {
-  width: 18vw;
   aspect-ratio: 4 / 3;
+  object-fit: cover;
 }
 
-.oilImgMd {
-  width: 18vw;
-  aspect-ratio: 4 / 3;
+.overLogoWrap {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+  pointer-events: none;
 }
 
-.oilImgLg {
-  width: 18vw;
-  aspect-ratio: 4 / 3;
+.overLogo {
+  width: 14em;
+  height: calc(14em * 669 / 517);
 }
 
-.oilImgWide {
-  width: 18vw;
-  aspect-ratio: 4 / 3;
+.overImgLarge {
+  aspect-ratio: auto;
 }
 
-@media (max-width: 767px) {
-  .oilText {
-    position: relative;
-    left: 0;
-    top: 0;
-    transform: none;
-    width: 100%;
-    margin-bottom: 2rem;
-  }
-
-  .oilImages {
-    margin-left: 0;
-  }
-
-  .oilImgSm {
-    width: 30vw;
-  }
-
-  .oilImgMd {
-    width: 38vw;
-  }
-
-  .oilImgLg {
-    width: 45vw;
-  }
-
-  .oilImgWide {
-    width: 34vw;
-  }
+.overImgLarge .overImg {
+  aspect-ratio: 3 / 2;
 }
 
 /* WebGL toggle */
