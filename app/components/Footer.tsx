@@ -5,7 +5,7 @@ import styles from '@/app/components/Footer.module.css'
 const Footer = () => {
   return (
     <footer className={styles.footer}>
-      <h2 className={styles.heading}>
+      <h2 data-animation="webgl-text" className={styles.heading}>
         Ik ontzorg jouw hele bedrijf en neem jouw sociale media over.
       </h2>
       <Link href="/contact" className={styles.avatar}>

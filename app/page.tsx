@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from 'react'
 import styles from '@/app/styles/text-demo.module.css'
+import Footer from '@/app/components/Footer'
 import type * as THREE from 'three'
 
 const FONT_DEFAULT = '/fonts/PSTimesTrial-Regular.otf'
@@ -328,13 +329,13 @@ const TextDemo = () => {
         } else {
           gsap.to(t.material.uniforms.uReveal, {
             value: 1,
-            duration: 3.5,
             ease: 'power2.inOut',
             onUpdate: () => { needsRender = true },
             scrollTrigger: {
               trigger: t.element,
               start: 'top bottom+=300',
-              toggleActions: 'play none none none',
+              end: 'top 40%',
+              scrub: 1,
             },
           })
         }
@@ -834,6 +835,7 @@ const TextDemo = () => {
           />
         </figure>
       </section>
+      <Footer />
     </div>
   )
 }
