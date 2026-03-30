@@ -1,0 +1,32 @@
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5em 2em;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 50;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+}
+
+.menuButton {
+  position: absolute;
+  right: 2em;
+  font-family: var(--font-primary);
+  font-size: 1em;
+  color: var(--color-navy);
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.menuButton:hover {
+  opacity: 0.6;
+}

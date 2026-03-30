@@ -1,5 +1,5 @@
 .page {
-  background: #fff;
+  background: var(--color-cream);
   min-height: 300vh;
 }
 
@@ -7,19 +7,19 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: calc(100vh - 3em);
-  padding: 4em 2em;
+  min-height: auto;
+  padding: 25em 2em 5em;
 }
 
 .heroText {
   font-family: var(--font-primary);
-  font-size: clamp(4rem, 12vw, 12rem);
+  font-size: clamp(1.5rem, 2.8vw, 2.75rem);
   font-weight: 400;
-  color: #1a1a1a;
+  color: var(--color-navy);
   text-align: center;
   margin: 0 auto;
-  max-width: 900px;
-  line-height: 0.95;
+  max-width: 20em;
+  line-height: 1.35;
 }
 
 .content {
@@ -96,6 +96,86 @@
   max-width: 2.4em;
 }
 
+/* Diensten Section */
+
+.dienstenSection {
+  display: flex;
+  justify-content: space-between;
+  padding: 5em 0;
+}
+
+.dienstenLeft {
+  max-width: 45%;
+}
+
+.dienstenHeading {
+  font-family: var(--font-primary);
+  font-size: 2.5em;
+  font-weight: 400;
+  color: var(--color-navy);
+  margin: 0 0 1.5em;
+  letter-spacing: 0.05em;
+}
+
+.dienstenBody {
+  font-family: var(--font-primary);
+  font-size: 1.25em;
+  font-weight: 400;
+  color: var(--color-navy);
+  line-height: 1.7;
+  margin: 0;
+}
+
+.dienstenRight {
+  text-align: right;
+}
+
+.skillsHeading {
+  font-family: var(--font-primary);
+  font-size: 2.5em;
+  font-weight: 400;
+  color: var(--color-navy);
+  margin: 0 0 1.5em;
+  letter-spacing: 0.05em;
+}
+
+.skillsList {
+  list-style: none;
+  font-family: var(--font-primary);
+  font-size: 1.25em;
+  color: var(--color-navy);
+  line-height: 1.7;
+}
+
+/* Klanten Section */
+
+.klantenSection {
+  padding: 5em 0;
+  text-align: center;
+}
+
+.klantenHeading {
+  font-family: var(--font-primary);
+  font-size: 2.5em;
+  font-weight: 400;
+  color: var(--color-navy);
+  margin: 0 0 2em;
+  letter-spacing: 0.05em;
+}
+
+.klantenGrid {
+  display: flex;
+  justify-content: space-between;
+  gap: 2em;
+}
+
+.klantenLogo {
+  width: 10em;
+  height: 6em;
+  background: #d9d9d9;
+  border-radius: 0.25em;
+}
+
 .approachSection {
   display: flex;
   flex-direction: column;
@@ -129,7 +209,7 @@
   display: flex;
   flex-direction: column;
   gap: 10rem;
-  padding: 4rem 14vw;
+  padding: 0 16vw;
 }
 
 .figure {

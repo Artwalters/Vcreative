@@ -1,9 +1,923 @@
-const Home = () => {
+'use client'
+
+import { useEffect, useState, useCallback, useRef } from 'react'
+import styles from '@/app/styles/text-demo.module.css'
+import type * as THREE from 'three'
+
+const FONT_DEFAULT = '/fonts/PSTimesTrial-Regular.otf'
+const FONT_ITALIC = '/fonts/PSTimesTrial-Regular.otf'
+
+/* ── Text Shaders ── */
+
+const textVertShader = /* glsl */ `
+varying vec2 vUv;
+
+void main() {
+  vUv = uv;
+  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+}
+`
+
+const textFragShader = /* glsl */ `
+uniform float uReveal;
+uniform float uOpacity;
+uniform vec3 uColor;
+varying vec2 vUv;
+
+float hash(vec2 p) {
+  return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
+}
+
+float noise(vec2 p) {
+  vec2 i = floor(p);
+  vec2 f = fract(p);
+  vec2 u = f * f * (3.0 - 2.0 * f);
+  float a = hash(i);
+  float b = hash(i + vec2(1.0, 0.0));
+  float c = hash(i + vec2(0.0, 1.0));
+  float d = hash(i + vec2(1.0, 1.0));
+  return mix(mix(a, b, u.x), mix(c, d, u.x), u.y);
+}
+
+float fbm(vec2 p) {
+  float value = 0.0;
+  float amp = 0.5;
+  for (int i = 0; i < 5; i++) {
+    value += amp * noise(p);
+    p *= 2.0;
+    amp *= 0.5;
+  }
+  return value;
+}
+
+void main() {
+  float n = fbm(vUv * 6.0);
+  float expandedReveal = uReveal * 1.6 - 0.3;
+  float mask = smoothstep(expandedReveal - 0.3, expandedReveal + 0.3, n);
+  float alpha = 1.0 - mask;
+  alpha *= uOpacity;
+  if (alpha < 0.01) discard;
+  gl_FragColor = vec4(uColor, alpha);
+}
+`
+
+/* ── Image Shaders ── */
+
+const imgVertShader = /* glsl */ `
+varying vec2 vUv;
+varying vec2 ssCoords;
+
+uniform vec2 uTextureSize;
+uniform vec2 uQuadSize;
+uniform float u_progress;
+uniform bool u_enableBend;
+
+void main() {
+  vec3 pos = position;
+
+  mat4 MVPM = projectionMatrix * modelViewMatrix;
+  vec4 originalPosition = MVPM * vec4(position, 1.0);
+  ssCoords = vec2(originalPosition.xy / originalPosition.w);
+
+  if (u_enableBend) {
+    float startAt = uv.y - 0.5;
+    float finishAt = uv.y;
+    float bend = smoothstep(startAt, finishAt, 1.0 - u_progress);
+    pos.x *= 1.0 + (bend * 0.04) * abs(ssCoords.x);
+    pos.z += bend * 7.0;
+  }
+
+  vUv = uv;
+  gl_Position = MVPM * vec4(pos, 1.0);
+}
+`
+
+const imgFragShader = /* glsl */ `
+precision highp float;
+
+uniform sampler2D uTexture;
+uniform vec2 uTextureSize;
+uniform vec2 uQuadSize;
+uniform float u_opacity;
+uniform float u_innerScale;
+uniform float u_innerY;
+uniform float u_edgeFade;
+
+varying vec2 vUv;
+varying vec2 ssCoords;
+
+vec2 getCoverUv(vec2 uv, vec2 textureSize, vec2 quadSize) {
+  vec2 ratio = vec2(
+    min((quadSize.x / quadSize.y) / (textureSize.x / textureSize.y), 1.0),
+    min((quadSize.y / quadSize.x) / (textureSize.y / textureSize.x), 1.0)
+  );
+  return vec2(
+    uv.x * ratio.x + (1.0 - ratio.x) * 0.5,
+    uv.y * ratio.y + (1.0 - ratio.y) * 0.5
+  );
+}
+
+void main() {
+  vec2 uv = getCoverUv(vUv, uTextureSize, uQuadSize);
+
+  vec2 scaleOrigin = vec2(0.5);
+  uv = (uv - scaleOrigin) / u_innerScale + scaleOrigin;
+  uv.y += u_innerY;
+
+  vec4 color = texture2D(uTexture, uv);
+
+  float thresholdLeft = smoothstep(-0.85, -1.0, ssCoords.x) * u_edgeFade;
+  float thresholdRight = smoothstep(0.85, 1.0, ssCoords.x) * u_edgeFade;
+  float thresholdTop = smoothstep(0.85, 1.0, ssCoords.y) * u_edgeFade;
+  float thresholdBottom = smoothstep(-0.85, -1.0, ssCoords.y) * u_edgeFade;
+  float threshold = thresholdLeft + thresholdRight + thresholdBottom + thresholdTop;
+
+  float colorShiftR = texture2D(uTexture, uv + vec2(0.0, 0.003)).r;
+  float colorShiftG = texture2D(uTexture, uv - vec2(0.0, 0.003)).g;
+  color.r = mix(color.r, colorShiftR, threshold);
+  color.g = mix(color.g, colorShiftG, threshold);
+
+  gl_FragColor = vec4(color.rgb, color.a * u_opacity);
+}
+`
+
+/* ── Types ── */
+
+interface TextEntry {
+  mesh: any
+  element: HTMLElement
+  material: THREE.ShaderMaterial
+  bounds: DOMRect
+  y: number
+  isVisible: boolean
+  isOilText: boolean
+}
+
+interface ImageEntry {
+  mesh: THREE.Mesh
+  element: HTMLImageElement
+  material: THREE.ShaderMaterial
+  effect: string
+  width: number
+  height: number
+  top: number
+  left: number
+  depth: number
+  isOilImage: boolean
+}
+
+// Shared drag state between OilSection and WebGL render loop
+let oilDragX = 0
+let oilDragDirty = false
+
+const TextDemo = () => {
+  const [webglEnabled, setWebglEnabled] = useState(true)
+
+  useEffect(() => {
+    if (!webglEnabled) {
+      document.body.classList.remove('webgl-active')
+      return
+    }
+
+    document.body.classList.add('webgl-active')
+
+    let animationId: number
+    let resizeHandler: (() => void) | undefined
+    let canvas: HTMLCanvasElement | undefined
+    let cancelled = false
+    let needsRender = true
+
+    const restoreElements: Array<{el: HTMLElement, prop: string, val: string}> = []
+
+    const init = async () => {
+      await document.fonts.ready
+
+      const isMobile = window.innerWidth < 768
+
+      const {configureTextBuilder} = await import('troika-three-text')
+      configureTextBuilder({useWorker: false})
+
+      const THREE = await import('three')
+      const {Text} = await import('troika-three-text')
+      const {getLenisInstance} = await import('@/app/lib/lenis')
+      const gsap = (await import('gsap')).default
+      const {ScrollTrigger} = await import('gsap/ScrollTrigger')
+      let EffectComposer: any, RenderPass: any, ShaderPass: any
+      if (!isMobile) {
+        ;({EffectComposer} = await import(
+          'three/examples/jsm/postprocessing/EffectComposer.js'
+        ))
+        ;({RenderPass} = await import(
+          'three/examples/jsm/postprocessing/RenderPass.js'
+        ))
+        ;({ShaderPass} = await import(
+          'three/examples/jsm/postprocessing/ShaderPass.js'
+        ))
+      }
+
+      gsap.registerPlugin(ScrollTrigger)
+
+      if (cancelled) return
+
+      const lenis = getLenisInstance()
+      if (!lenis) {
+        console.warn('Lenis instance not found')
+        return
+      }
+
+      lenis.on('scroll', () => { needsRender = true })
+      const screen = {
+        width: window.innerWidth,
+        height: window.innerHeight,
+      }
+      const DIST = 500
+
+      const fov =
+        2 * Math.atan(screen.height / 2 / DIST) * (180 / Math.PI)
+
+      const camera = new THREE.PerspectiveCamera(
+        fov,
+        screen.width / screen.height,
+        10,
+        1000,
+      )
+      camera.position.z = DIST
+
+      /* ── Renderer ── */
+
+      const renderer = new THREE.WebGLRenderer({
+        alpha: true,
+        antialias: !isMobile,
+      })
+      renderer.setSize(screen.width, screen.height)
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1.5 : 2))
+
+      canvas = renderer.domElement
+      canvas.style.cssText =
+        'position:fixed;top:0;left:0;width:100vw;height:100vh;pointer-events:none;z-index:10;'
+      document.body.appendChild(canvas)
+
+      /* ── Scene ── */
+
+      const scene = new THREE.Scene()
+
+      /* ── WebGL texts ── */
+
+      const textElements = document.querySelectorAll<HTMLElement>(
+        '[data-animation="webgl-text"]',
+      )
+      const texts: TextEntry[] = []
+
+      textElements.forEach((element) => {
+        const computed = window.getComputedStyle(element)
+        const bounds = element.getBoundingClientRect()
+        const y = bounds.top + lenis.actualScroll
+        const fontSizeNum = parseFloat(computed.fontSize)
+        const color = new THREE.Color(computed.color)
+
+        const material = new THREE.ShaderMaterial({
+          fragmentShader: textFragShader,
+          vertexShader: textVertShader,
+          transparent: true,
+          uniforms: {
+            uReveal: new THREE.Uniform(0),
+            uOpacity: new THREE.Uniform(1),
+            uColor: new THREE.Uniform(color),
+          },
+        })
+
+        const isItalic = computed.fontStyle === 'italic'
+        const fontUrl = isItalic ? FONT_ITALIC : FONT_DEFAULT
+
+        const mesh = new Text()
+        mesh.text = element.innerText
+        mesh.font = fontUrl
+        mesh.anchorX = '0%'
+        mesh.anchorY = '50%'
+        mesh.material = material
+        mesh.fontSize = fontSizeNum
+        mesh.textAlign = computed.textAlign
+
+        const ls = parseFloat(computed.letterSpacing)
+        mesh.letterSpacing = isNaN(ls) ? 0 : ls / fontSizeNum
+
+        const lh = parseFloat(computed.lineHeight)
+        mesh.lineHeight = isNaN(lh) ? 1.2 : lh / fontSizeNum
+
+        mesh.maxWidth = bounds.width
+        mesh.whiteSpace = computed.whiteSpace
+
+        scene.add(mesh)
+        element.style.color = 'transparent'
+        restoreElements.push({el: element, prop: 'color', val: ''})
+
+        const isOilText = !!element.closest('[data-oil-section]')
+        texts.push({mesh, element, material, bounds, y, isVisible: false, isOilText})
+      })
+
+      /* ── Noise reveal animations ── */
+
+      texts.forEach((t) => {
+        t.isVisible = true
+        const isInHero = t.element.closest(`.${styles.hero}`)
+
+        if (isInHero) {
+          gsap.to(t.material.uniforms.uReveal, {
+            value: 1,
+            duration: 2.5,
+            delay: 0.3,
+            ease: 'power2.inOut',
+            onUpdate: () => { needsRender = true },
+          })
+        } else {
+          gsap.to(t.material.uniforms.uReveal, {
+            value: 1,
+            duration: 2.5,
+            ease: 'power2.inOut',
+            onUpdate: () => { needsRender = true },
+            scrollTrigger: {
+              trigger: t.element,
+              start: 'top 80%',
+              toggleActions: 'play none none none',
+            },
+          })
+        }
+      })
+
+      /* ── WebGL images (desktop only) ── */
+
+      const mediaElements = isMobile
+        ? []
+        : Array.from(document.querySelectorAll<HTMLImageElement>('[data-webgl-media]'))
+      const images: ImageEntry[] = []
+      const imageGeometry = new THREE.PlaneGeometry(1, 1, 32, 32)
+      const textureLoader = new THREE.TextureLoader()
+
+      await Promise.all(
+        Array.from(mediaElements).map(
+          (img) =>
+            new Promise<void>((resolve) => {
+              if (img.complete && img.naturalWidth > 0) {
+                resolve()
+              } else {
+                img.onload = () => resolve()
+                img.onerror = () => resolve()
+              }
+            }),
+        ),
+      )
+
+      if (cancelled) return
+
+      for (const img of mediaElements) {
+        const texture = await textureLoader.loadAsync(img.src)
+        const bounds = img.getBoundingClientRect()
+        const effect = img.dataset.webglEffect || 'none'
+        const depth = parseFloat(img.dataset.webglDepth || '0')
+
+        const hasBend = effect === 'bend' || effect === 'distort'
+        const hasParallax = effect === 'parallax'
+        const hasDistort = effect === 'distort'
+
+        const imgMaterial = new THREE.ShaderMaterial({
+          vertexShader: imgVertShader,
+          fragmentShader: imgFragShader,
+          transparent: true,
+          uniforms: {
+            uTexture: {value: texture},
+            uTextureSize: {
+              value: new THREE.Vector2(
+                texture.image.width,
+                texture.image.height,
+              ),
+            },
+            uQuadSize: {
+              value: new THREE.Vector2(bounds.width, bounds.height),
+            },
+            u_progress: {value: 0},
+            u_enableBend: {value: hasBend},
+            u_innerScale: {value: 1.0},
+            u_innerY: {value: hasParallax ? -0.04 : 0.0},
+            u_opacity: {value: 1},
+            u_edgeFade: {value: hasDistort ? 1.0 : 0.0},
+          },
+        })
+
+        const imgMesh = new THREE.Mesh(imageGeometry, imgMaterial)
+        imgMesh.scale.set(bounds.width, bounds.height, 1)
+        scene.add(imgMesh)
+
+        img.style.visibility = 'hidden'
+        restoreElements.push({el: img, prop: 'visibility', val: ''})
+
+        images.push({
+          mesh: imgMesh,
+          element: img,
+          material: imgMaterial,
+          effect,
+          width: bounds.width,
+          height: bounds.height,
+          top: bounds.top + lenis.actualScroll,
+          left: bounds.left,
+          depth,
+          isOilImage: img.hasAttribute('data-oil-image'),
+        })
+      }
+
+      /* ── ScrollTrigger animations per image ── */
+
+      images.forEach((img) => {
+        const {effect} = img
+
+        if (effect === 'bend' || effect === 'distort') {
+          gsap.to(img.material.uniforms.u_progress, {
+            value: 1.5,
+            ease: 'sine.out',
+            scrollTrigger: {
+              trigger: img.element,
+              scrub: true,
+              start: 'top bottom',
+              end: 'bottom 70%',
+            },
+          })
+        }
+
+        if (effect === 'parallax') {
+          gsap.fromTo(
+            img.material.uniforms.u_innerY,
+            {value: -0.04},
+            {
+              value: 0.04,
+              ease: 'none',
+              scrollTrigger: {
+                trigger: img.element,
+                scrub: true,
+                start: 'top bottom',
+                end: 'bottom top',
+              },
+            },
+          )
+          gsap.fromTo(
+            img.material.uniforms.u_innerScale,
+            {value: 1.03},
+            {
+              value: 1.0,
+              ease: 'none',
+              scrollTrigger: {
+                trigger: img.element,
+                scrub: true,
+                start: 'top bottom',
+                end: 'bottom top',
+              },
+            },
+          )
+        }
+
+        if (effect === 'distort') {
+          gsap.fromTo(
+            img.material.uniforms.u_innerScale,
+            {value: 1.03},
+            {
+              value: 1.0,
+              ease: 'none',
+              scrollTrigger: {
+                trigger: img.element,
+                scrub: true,
+                start: 'top bottom',
+                end: 'bottom top',
+              },
+            },
+          )
+        }
+      })
+
+      /* ── Barrel distortion post-processing ── */
+
+      const barrelShader = {
+        uniforms: {
+          tDiffuse: {value: null},
+          u_bendAmount: {value: -0.03},
+          u_maxDistort: {value: 0.1},
+        },
+        vertexShader: /* glsl */ `
+          varying vec2 vUv;
+          void main() {
+            vUv = uv;
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+          }
+        `,
+        fragmentShader: /* glsl */ `
+          precision highp float;
+          uniform sampler2D tDiffuse;
+          uniform float u_bendAmount;
+          uniform float u_maxDistort;
+          varying vec2 vUv;
+
+          vec2 barrelDistort(vec2 coord, float amt) {
+            vec2 cc = coord - 0.5;
+            float dist = dot(cc, cc);
+            return coord + cc * dist * amt;
+          }
+
+          void main() {
+            vec2 uv = vUv;
+            float rDist = u_maxDistort * u_bendAmount;
+            float gDist = u_maxDistort * u_bendAmount * 0.7;
+            float bDist = u_maxDistort * u_bendAmount * 0.4;
+
+            float r = texture2D(tDiffuse, barrelDistort(uv, rDist)).r;
+            float g = texture2D(tDiffuse, barrelDistort(uv, gDist)).g;
+            float b = texture2D(tDiffuse, barrelDistort(uv, bDist)).b;
+            float a = texture2D(tDiffuse, barrelDistort(uv, gDist)).a;
+
+            gl_FragColor = vec4(r, g, b, a);
+          }
+        `,
+      }
+
+      let composer: any = null
+      if (!isMobile && EffectComposer) {
+        composer = new EffectComposer(renderer)
+        composer.addPass(new RenderPass(scene, camera))
+        const barrelPass = new ShaderPass(barrelShader)
+        barrelPass.renderToScreen = true
+        composer.addPass(barrelPass)
+      }
+
+      /* ── Render loop ── */
+
+      const update = () => {
+        if (oilDragDirty) {
+          needsRender = true
+          oilDragDirty = false
+        }
+        if (needsRender) {
+          const oilTextFade = 1 - Math.min(1, Math.max(0, (oilDragX - 50) / 250))
+
+          texts.forEach((t) => {
+            if (t.isVisible) {
+              t.mesh.position.x =
+                t.bounds.left - screen.width / 2
+              t.mesh.position.y =
+                -t.y +
+                lenis.animatedScroll +
+                screen.height / 2 -
+                t.bounds.height / 2
+
+              if (t.isOilText) {
+                t.material.uniforms.uReveal.value = oilTextFade
+              }
+            }
+          })
+
+          images.forEach((img) => {
+            const dragOffset = img.isOilImage ? oilDragX : 0
+            img.mesh.position.x =
+              img.left - screen.width / 2 + img.width / 2 - dragOffset
+
+            const parallaxFactor = 1 + img.depth * 0.0004
+            img.mesh.position.y =
+              -img.top +
+              lenis.animatedScroll * parallaxFactor +
+              screen.height / 2 -
+              img.height / 2
+
+            img.mesh.position.z = img.depth
+
+            if (img.depth < 0) {
+              const shrink = 1 - DIST / (DIST - img.depth)
+              img.mesh.position.y += img.height * shrink * 8.0
+            }
+
+            if (!img.isOilImage) {
+              const screenY = img.mesh.position.y
+              const t = Math.max(0, Math.min(1,
+                (screenY + screen.height * 0.5) / (screen.height * 1.5)
+              ))
+              img.material.uniforms.u_innerScale.value = 1.0 + (1 - t) * 0.12
+            }
+
+            const depthScale = DIST / (DIST - img.depth)
+            img.mesh.scale.set(
+              img.width * depthScale,
+              img.height * depthScale,
+              1,
+            )
+          })
+
+          if (composer) {
+            composer.render()
+          } else {
+            renderer.render(scene, camera)
+          }
+          needsRender = false
+        }
+        animationId = requestAnimationFrame(update)
+      }
+
+      update()
+
+      /* ── Resize ── */
+
+      resizeHandler = () => {
+        screen.width = window.innerWidth
+        screen.height = window.innerHeight
+
+        renderer.setSize(screen.width, screen.height)
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1.5 : 2))
+
+        camera.fov =
+          2 * Math.atan(screen.height / 2 / DIST) * (180 / Math.PI)
+        camera.aspect = screen.width / screen.height
+        camera.updateProjectionMatrix()
+
+        texts.forEach((t) => {
+          const computed = window.getComputedStyle(t.element)
+          t.bounds = t.element.getBoundingClientRect()
+          t.y = t.bounds.top + lenis.actualScroll
+          const fs = parseFloat(computed.fontSize)
+          t.mesh.fontSize = fs
+          const ls = parseFloat(computed.letterSpacing)
+          t.mesh.letterSpacing = isNaN(ls) ? 0 : ls / fs
+          const lh = parseFloat(computed.lineHeight)
+          t.mesh.lineHeight = isNaN(lh) ? 1.2 : lh / fs
+          t.mesh.maxWidth = t.bounds.width
+        })
+
+        images.forEach((img) => {
+          const bounds = img.element.getBoundingClientRect()
+          img.mesh.scale.set(bounds.width, bounds.height, 1)
+          img.width = bounds.width
+          img.height = bounds.height
+          img.top = bounds.top + lenis.actualScroll
+          img.left = bounds.left
+          img.material.uniforms.uQuadSize.value.set(
+            bounds.width,
+            bounds.height,
+          )
+        })
+
+        if (composer) composer.setSize(screen.width, screen.height)
+        needsRender = true
+      }
+
+      window.addEventListener('resize', resizeHandler)
+    }
+
+    init()
+
+    return () => {
+      cancelled = true
+      if (animationId) cancelAnimationFrame(animationId)
+      if (resizeHandler) window.removeEventListener('resize', resizeHandler)
+      if (canvas) canvas.remove()
+      document.body.classList.remove('webgl-active')
+      restoreElements.forEach(({el, prop, val}) => {
+        el.style.setProperty(prop, val)
+      })
+    }
+  }, [webglEnabled])
+
   return (
-    <main>
-      <h1>Vienna</h1>
-    </main>
+    <div className={styles.page}>
+      <button
+        className={styles.toggle}
+        onClick={() => setWebglEnabled((v) => !v)}
+      >
+        <span className={`${styles.toggleDot} ${!webglEnabled ? styles.toggleDotOff : ''}`} />
+        {webglEnabled ? 'WebGL on' : 'WebGL off'}
+      </button>
+      <section className={styles.hero}>
+        <h2 data-animation="webgl-text" className={styles.heroText}>
+          Social media content creatie voor ondernemers die zichtbaar willen zijn, professioneel, persoonlijk en zonder gedoe.
+        </h2>
+      </section>
+      <section className={styles.imageGrid}>
+        <figure className={styles.figure}>
+          <img
+            data-webgl-media
+            data-webgl-effect="bend"
+            src="/images/face-mist-sunlight.webp"
+            alt="Face Mist in zonlicht"
+            className={styles.gridImage}
+          />
+        </figure>
+        <section className={styles.dienstenSection}>
+          <div className={styles.dienstenLeft}>
+            <h2 data-animation="webgl-text" className={styles.dienstenHeading}>MIJN DIENSTEN</h2>
+            <p data-animation="webgl-text" className={styles.dienstenBody}>
+              Ik sta voor sterke, persoonlijke content. Al meer dan 3 jaar werk ik aan mooie projecten voor o.a Hair by Kim, Falcon Ink, Hal XIII en andere toffe merken. Met liefde voor het vak en een creatieve blik maak ik ideeën en doelen werkelijk. Let&apos;s boost your brand!
+            </p>
+          </div>
+          <div className={styles.dienstenRight}>
+            <h2 data-animation="webgl-text" className={styles.skillsHeading}>SKILLS</h2>
+            <ul className={styles.skillsList}>
+              <li>Content</li>
+              <li>videografie</li>
+              <li>editing</li>
+              <li>contact</li>
+              <li>trends</li>
+            </ul>
+          </div>
+        </section>
+
+        <section className={styles.klantenSection}>
+          <h2 data-animation="webgl-text" className={styles.klantenHeading}>MIJN KLANTEN</h2>
+          <div className={styles.klantenGrid}>
+            <div className={styles.klantenLogo} />
+            <div className={styles.klantenLogo} />
+            <div className={styles.klantenLogo} />
+            <div className={styles.klantenLogo} />
+            <div className={styles.klantenLogo} />
+          </div>
+        </section>
+        <div className={styles.figurePair}>
+          <figure className={styles.figureHalf}>
+            <img
+              data-webgl-media
+              data-webgl-effect="bend"
+              src="/images/body-oil-dramatic.webp"
+              alt="Body Oil dramatisch licht"
+              className={styles.gridImage}
+            />
+          </figure>
+          <figure className={styles.figureHalf}>
+            <img
+              data-webgl-media
+              data-webgl-effect="bend"
+              src="/images/body-oil-dark-mood.webp"
+              alt="Body Oil donkere sfeer"
+              className={styles.gridImage}
+            />
+          </figure>
+        </div>
+        <figure className={styles.figure}>
+          <img
+            data-webgl-media
+            data-webgl-effect="bend"
+            src="/images/face-mist-duo-marble.webp"
+            alt="Face Mist duo op marmer"
+            className={styles.gridImage}
+          />
+        </figure>
+      </section>
+
+      <OilSection />
+    </div>
   )
 }
 
-export default Home
+const OilSection = () => {
+  const sectionRef = useRef<HTMLElement>(null)
+  const textRef = useRef<HTMLDivElement>(null)
+  const imagesRef = useRef<HTMLDivElement>(null)
+  const dragRef = useRef({
+    active: false,
+    startX: 0,
+    startScroll: 0,
+    lastX: 0,
+    lastTime: 0,
+    velocity: 0,
+  })
+  const scrollXRef = useRef(0)
+  const gsapRef = useRef<any>(null)
+  const tweenTarget = useRef({x: 0})
+
+  const applyDrag = useCallback(() => {
+    const images = imagesRef.current
+    const text = textRef.current
+    const x = scrollXRef.current
+    oilDragX = x
+    oilDragDirty = true
+    if (images) {
+      images.style.transform = `translateX(${-x}px)`
+    }
+    if (text) {
+      const progress = Math.min(1, Math.max(0, (x - 50) / 250))
+      text.style.opacity = String(1 - progress)
+    }
+  }, [])
+
+  useEffect(() => {
+    import('gsap').then((mod) => {
+      gsapRef.current = mod.default
+    })
+  }, [])
+
+  useEffect(() => {
+    const section = sectionRef.current
+    if (!section) return
+
+    const onDown = (e: PointerEvent) => {
+      if (gsapRef.current) gsapRef.current.killTweensOf(tweenTarget.current)
+      dragRef.current.active = true
+      dragRef.current.startX = e.clientX
+      dragRef.current.startScroll = scrollXRef.current
+      dragRef.current.lastX = e.clientX
+      dragRef.current.lastTime = Date.now()
+      dragRef.current.velocity = 0
+      section.setPointerCapture(e.pointerId)
+    }
+
+    const onMove = (e: PointerEvent) => {
+      if (!dragRef.current.active) return
+      e.preventDefault()
+      const now = Date.now()
+      const dt = now - dragRef.current.lastTime
+      if (dt > 4 && dt < 200) {
+        const instantV = (e.clientX - dragRef.current.lastX) / dt * 1000
+        dragRef.current.velocity = dragRef.current.velocity * 0.7 + instantV * 0.3
+      }
+      dragRef.current.lastX = e.clientX
+      dragRef.current.lastTime = now
+
+      const dx = e.clientX - dragRef.current.startX
+      scrollXRef.current = Math.max(0, dragRef.current.startScroll - dx)
+      applyDrag()
+    }
+
+    const onUp = () => {
+      if (!dragRef.current.active) return
+      dragRef.current.active = false
+
+      const gsap = gsapRef.current
+      if (!gsap) return
+
+      const v = Math.max(-2000, Math.min(2000, dragRef.current.velocity))
+      const target = Math.max(0, scrollXRef.current - v * 0.3)
+      tweenTarget.current.x = scrollXRef.current
+
+      gsap.to(tweenTarget.current, {
+        x: target,
+        duration: Math.max(0.4, Math.min(1.2, Math.abs(v) / 1500)),
+        ease: 'power3.out',
+        onUpdate: () => {
+          scrollXRef.current = tweenTarget.current.x
+          applyDrag()
+        },
+      })
+    }
+
+    section.addEventListener('pointerdown', onDown)
+    section.addEventListener('pointermove', onMove)
+    section.addEventListener('pointerup', onUp)
+    section.addEventListener('pointercancel', onUp)
+    section.addEventListener('lostpointercapture', onUp)
+
+    return () => {
+      section.removeEventListener('pointerdown', onDown)
+      section.removeEventListener('pointermove', onMove)
+      section.removeEventListener('pointerup', onUp)
+      section.removeEventListener('pointercancel', onUp)
+      section.removeEventListener('lostpointercapture', onUp)
+    }
+  }, [applyDrag])
+
+  return (
+    <section
+      ref={sectionRef}
+      className={styles.oilSection}
+      data-oil-section
+    >
+      <div ref={textRef} className={styles.oilText}>
+        <h2 data-animation="webgl-text" className={styles.oilHeading}>
+          What makes this oil work
+        </h2>
+        <p data-animation="webgl-text" className={styles.oilBody}>
+          Crafted with rare botanicals, our luxurious face oils nurture your
+          skin&rsquo;s natural radiance. These exquisite blends deliver
+          unparalleled healing, repair, and nourishment for a revitalized
+          complexion.
+        </p>
+      </div>
+      <div ref={imagesRef} className={styles.oilImages}>
+        <div className={styles.oilImageCol}>
+          <img data-webgl-media data-webgl-effect="none" data-webgl-depth="25" data-oil-image src="/images/body-oil-dark-mood.webp" alt="" className={`${styles.oilImg} ${styles.oilImgLg}`} />
+          <img data-webgl-media data-webgl-effect="none" data-webgl-depth="-40" data-oil-image src="/images/face-mist-detail-gold.webp" alt="" className={`${styles.oilImg} ${styles.oilImgSm}`} />
+        </div>
+        <div className={`${styles.oilImageCol} ${styles.oilImageColOffset}`}>
+          <img data-webgl-media data-webgl-effect="none" data-webgl-depth="-55" data-oil-image src="/images/body-oil-face-mist-duo.webp" alt="" className={`${styles.oilImg} ${styles.oilImgWide}`} />
+          <img data-webgl-media data-webgl-effect="none" data-webgl-depth="40" data-oil-image src="/images/face-mist-sepia.webp" alt="" className={`${styles.oilImg} ${styles.oilImgMd}`} />
+        </div>
+        <div className={styles.oilImageCol}>
+          <img data-webgl-media data-webgl-effect="none" data-webgl-depth="-30" data-oil-image src="/images/body-oil-tilted-closeup.webp" alt="" className={`${styles.oilImg} ${styles.oilImgMd}`} />
+          <img data-webgl-media data-webgl-effect="none" data-webgl-depth="50" data-oil-image src="/images/body-oil-painting-backdrop.webp" alt="" className={`${styles.oilImg} ${styles.oilImgWide}`} />
+        </div>
+        <div className={`${styles.oilImageCol} ${styles.oilImageColOffset}`}>
+          <img data-webgl-media data-webgl-effect="none" data-webgl-depth="-65" data-oil-image src="/images/face-mist-glowing.webp" alt="" className={`${styles.oilImg} ${styles.oilImgLg}`} />
+          <img data-webgl-media data-webgl-effect="none" data-webgl-depth="15" data-oil-image src="/images/body-oil-warm-closeup.webp" alt="" className={`${styles.oilImg} ${styles.oilImgSm}`} />
+        </div>
+        <div className={styles.oilImageCol}>
+          <img data-webgl-media data-webgl-effect="none" data-webgl-depth="35" data-oil-image src="/images/body-oil-dramatic.webp" alt="" className={`${styles.oilImg} ${styles.oilImgWide}`} />
+          <img data-webgl-media data-webgl-effect="none" data-webgl-depth="-45" data-oil-image src="/images/face-mist-sunlight.webp" alt="" className={`${styles.oilImg} ${styles.oilImgMd}`} />
+        </div>
+        <div className={`${styles.oilImageCol} ${styles.oilImageColOffset}`}>
+          <img data-webgl-media data-webgl-effect="none" data-webgl-depth="-20" data-oil-image src="/images/face-mist-duo-marble.webp" alt="" className={`${styles.oilImg} ${styles.oilImgMd}`} />
+          <img data-webgl-media data-webgl-effect="none" data-webgl-depth="45" data-oil-image src="/images/body-oil-dramatic-alt.webp" alt="" className={`${styles.oilImg} ${styles.oilImgLg}`} />
+        </div>
+      </div>
+    </section>
+  )
+}
+
+export default TextDemo
