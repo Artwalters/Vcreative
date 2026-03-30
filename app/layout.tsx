@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import "./globals.css"
 import LenisScroll from "@/app/components/LenisScroll"
 import Header from "@/app/components/Header"
+import Footer from "@/app/components/Footer"
 
 export const metadata: Metadata = {
   title: "Vienna",
@@ -19,6 +20,7 @@ const RootLayout = ({
           <LenisScroll />
           <Header />
           {children}
+          <Footer />
         </body>
     </html>
   )

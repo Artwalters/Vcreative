@@ -673,6 +673,7 @@ const TextDemo = () => {
         {webglEnabled ? 'WebGL on' : 'WebGL off'}
       </button>
       <section className={styles.hero}>
+        <img src="/logo/logomain.svg" alt="V-Creative" className={styles.heroLogo} />
         <h2 data-animation="webgl-text" className={styles.heroText}>
           Social media content creatie voor ondernemers die zichtbaar willen zijn, professioneel, persoonlijk en zonder gedoe.
         </h2>
@@ -822,6 +823,16 @@ const TextDemo = () => {
             </div>
           </div>
         </section>
+
+        <figure className={styles.figure}>
+          <img
+            data-webgl-media
+            data-webgl-effect="bend"
+            src="/images/body-oil-tilted-closeup.webp"
+            alt="V-Creative behind the scenes"
+            className={styles.gridImage}
+          />
+        </figure>
       </section>
     </div>
   )
