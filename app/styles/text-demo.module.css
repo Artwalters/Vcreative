@@ -453,3 +453,125 @@
 .toggleDotOff {
   background: #f87171;
 }
+
+/* ── Mobile ── */
+
+@media (max-width: 767px) {
+  .hero {
+    min-height: 70vh;
+    padding: 10em 1.5em 4em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .heroLogo {
+    width: 5em;
+    top: 1em;
+  }
+
+  .imageGrid {
+    padding: 0 1.5em;
+    gap: 8em;
+  }
+
+  .imageGrid > .figure:first-child {
+    margin: 0 -1.5em;
+  }
+
+  .imageGrid > .figure:first-child .gridImage {
+    width: 100%;
+  }
+
+  .dienstenSection {
+    flex-direction: column;
+    gap: 3em;
+    padding: 6em 0;
+  }
+
+  .dienstenLeft {
+    max-width: 100%;
+  }
+
+  .dienstenRight {
+    text-align: left;
+  }
+
+  .dienstenHeading,
+  .skillsHeading,
+  .klantenHeading {
+    font-size: 1.5em;
+  }
+
+  .dienstenBody,
+  .skillsList {
+    font-size: 1em;
+  }
+
+  .klantenSection {
+    margin-top: -1em;
+  }
+
+  .klantenGrid {
+    flex-wrap: wrap;
+    gap: 1em;
+  }
+
+  .klantenLogo {
+    flex: 0 0 calc(33% - 0.7em);
+    height: 4em;
+  }
+
+  .aanpakSection {
+    min-height: auto;
+    padding: 8em 1.5em;
+  }
+
+  .aanpakLink {
+    margin-top: 2em;
+  }
+
+  .projectenSection {
+    gap: 8em;
+    padding: 6em 0;
+  }
+
+  .projectItem {
+    max-width: 75%;
+  }
+
+  .overSection {
+    padding: 8em 1.5em;
+  }
+
+  .overText {
+    margin: 0 auto 6em;
+  }
+
+  .overGrid {
+    gap: 2em;
+  }
+
+  .overRow {
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5em;
+  }
+
+  .overRow > :last-child {
+    display: none;
+  }
+
+  .overRowBottom {
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5em;
+    padding: 0;
+  }
+
+  .overLogoWrap {
+    display: none;
+  }
+
+  .overLogo {
+    width: 8em;
+  }
+}
