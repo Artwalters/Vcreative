@@ -15,6 +15,9 @@ const RootLayout = ({
 }>) => {
   return (
     <html lang="nl">
+      <head>
+        <meta name="format-detection" content="telephone=no, date=no, email=no, address=no" />
+      </head>
       <body>
           <LenisScroll />
           <Header />

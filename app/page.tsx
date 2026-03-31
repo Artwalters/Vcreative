@@ -1,16 +1,14 @@
 'use client'
 
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState } from 'react'
 import styles from '@/app/styles/text-demo.module.css'
 import Footer from '@/app/components/Footer'
 import type * as THREE from 'three'
 
-const FONT_DEFAULT = '/fonts/PSTimesTrial-Regular.otf'
-const FONT_ITALIC = '/fonts/PSTimesTrial-Regular.otf'
-
-/* ── Text Shaders ── */
+/* ── Text Overlay Shader (background-colored mask that dissolves to reveal DOM text) ── */
 
 const textVertShader = /* glsl */ `
+precision highp float;
 varying vec2 vUv;
 
 void main() {
@@ -20,8 +18,8 @@ void main() {
 `
 
 const textFragShader = /* glsl */ `
+precision highp float;
 uniform float uReveal;
-uniform float uOpacity;
 uniform vec3 uColor;
 varying vec2 vUv;
 
@@ -55,16 +53,15 @@ void main() {
   float n = fbm(vUv * 6.0);
   float expandedReveal = uReveal * 1.6 - 0.3;
   float mask = smoothstep(expandedReveal - 0.3, expandedReveal + 0.3, n);
-  float alpha = 1.0 - mask;
-  alpha *= uOpacity;
-  if (alpha < 0.01) discard;
-  gl_FragColor = vec4(uColor, alpha);
+  if (mask < 0.01) discard;
+  gl_FragColor = vec4(uColor, mask);
 }
 `
 
 /* ── Image Shaders ── */
 
 const imgVertShader = /* glsl */ `
+precision highp float;
 varying vec2 vUv;
 varying vec2 ssCoords;
 
@@ -145,13 +142,12 @@ void main() {
 /* ── Types ── */
 
 interface TextEntry {
-  mesh: any
+  mesh: THREE.Mesh
   element: HTMLElement
   material: THREE.ShaderMaterial
   bounds: DOMRect
   y: number
   isVisible: boolean
-
 }
 
 interface ImageEntry {
@@ -164,7 +160,6 @@ interface ImageEntry {
   top: number
   left: number
   depth: number
-
 }
 
 
@@ -181,6 +176,7 @@ const TextDemo = () => {
 
     let animationId: number
     let resizeHandler: (() => void) | undefined
+    let scrollHandler: (() => void) | undefined
     let canvas: HTMLCanvasElement | undefined
     let cancelled = false
     let needsRender = true
@@ -190,40 +186,39 @@ const TextDemo = () => {
     const init = async () => {
       await document.fonts.ready
 
-      const isMobile = window.innerWidth < 768
-
-      const {configureTextBuilder} = await import('troika-three-text')
-      configureTextBuilder({useWorker: false})
-
       const THREE = await import('three')
-      const {Text} = await import('troika-three-text')
       const {getLenisInstance} = await import('@/app/lib/lenis')
       const gsap = (await import('gsap')).default
       const {ScrollTrigger} = await import('gsap/ScrollTrigger')
-      let EffectComposer: any, RenderPass: any, ShaderPass: any
-      if (!isMobile) {
-        ;({EffectComposer} = await import(
-          'three/examples/jsm/postprocessing/EffectComposer.js'
-        ))
-        ;({RenderPass} = await import(
-          'three/examples/jsm/postprocessing/RenderPass.js'
-        ))
-        ;({ShaderPass} = await import(
-          'three/examples/jsm/postprocessing/ShaderPass.js'
-        ))
-      }
+      const {EffectComposer} = await import('three/examples/jsm/postprocessing/EffectComposer.js')
+      const {RenderPass} = await import('three/examples/jsm/postprocessing/RenderPass.js')
+      const {ShaderPass} = await import('three/examples/jsm/postprocessing/ShaderPass.js')
 
       gsap.registerPlugin(ScrollTrigger)
 
       if (cancelled) return
 
-      const lenis = getLenisInstance()
+      /* Scroll: use Lenis if available, fallback to native */
+      let lenis = getLenisInstance()
       if (!lenis) {
-        console.warn('Lenis instance not found')
-        return
+        for (let i = 0; i < 40; i++) {
+          await new Promise((r) => setTimeout(r, 50))
+          if (cancelled) return
+          lenis = getLenisInstance()
+          if (lenis) break
+        }
       }
 
-      lenis.on('scroll', () => { needsRender = true })
+      const getScroll = () => lenis ? lenis.animatedScroll : window.scrollY
+      const getScrollRaw = () => lenis ? lenis.actualScroll : window.scrollY
+
+      scrollHandler = () => { needsRender = true }
+      if (lenis) {
+        lenis.on('scroll', scrollHandler)
+      } else {
+        window.addEventListener('scroll', scrollHandler, { passive: true })
+      }
+
       const screen = {
         width: window.innerWidth,
         height: window.innerHeight,
@@ -245,10 +240,12 @@ const TextDemo = () => {
 
       const renderer = new THREE.WebGLRenderer({
         alpha: true,
-        antialias: !isMobile,
+        antialias: true,
+        powerPreference: 'default',
       })
       renderer.setSize(screen.width, screen.height)
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1.5 : 2))
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+      renderer.outputColorSpace = THREE.LinearSRGBColorSpace
 
       canvas = renderer.domElement
       canvas.style.cssText =
@@ -258,22 +255,19 @@ const TextDemo = () => {
       /* ── Scene ── */
 
       const scene = new THREE.Scene()
+      const textGeometry = new THREE.PlaneGeometry(1, 1)
 
-      /* ── WebGL texts ── */
+      /* ── Text overlays (background mask that dissolves to reveal DOM text) ── */
 
       const textElements = document.querySelectorAll<HTMLElement>(
         '[data-animation="webgl-text"]',
       )
       const texts: TextEntry[] = []
+      const bgColor = new THREE.Vector3(0xf2 / 255, 0xeb / 255, 0xd9 / 255)
 
       textElements.forEach((element) => {
-        const computed = window.getComputedStyle(element)
         const bounds = element.getBoundingClientRect()
-        const y = bounds.top + lenis.actualScroll
-        const fontSizeNum = parseFloat(computed.fontSize)
-        const rootStyle = getComputedStyle(document.documentElement)
-        const navy = rootStyle.getPropertyValue('--color-navy').trim()
-        const color = new THREE.Color(navy || computed.color)
+        const y = bounds.top + getScrollRaw()
 
         const material = new THREE.ShaderMaterial({
           fragmentShader: textFragShader,
@@ -281,35 +275,13 @@ const TextDemo = () => {
           transparent: true,
           uniforms: {
             uReveal: new THREE.Uniform(0),
-            uOpacity: new THREE.Uniform(1),
-            uColor: new THREE.Uniform(color),
+            uColor: {value: bgColor},
           },
         })
 
-        const isItalic = computed.fontStyle === 'italic'
-        const fontUrl = isItalic ? FONT_ITALIC : FONT_DEFAULT
-
-        const mesh = new Text()
-        mesh.text = element.innerText
-        mesh.font = fontUrl
-        mesh.anchorX = '0%'
-        mesh.anchorY = '50%'
-        mesh.material = material
-        mesh.fontSize = fontSizeNum
-        mesh.textAlign = computed.textAlign
-
-        const ls = parseFloat(computed.letterSpacing)
-        mesh.letterSpacing = isNaN(ls) ? 0 : ls / fontSizeNum
-
-        const lh = parseFloat(computed.lineHeight)
-        mesh.lineHeight = isNaN(lh) ? 1.2 : lh / fontSizeNum
-
-        mesh.maxWidth = bounds.width
-        mesh.whiteSpace = computed.whiteSpace
-
+        const mesh = new THREE.Mesh(textGeometry, material)
+        mesh.scale.set(bounds.width, bounds.height, 1)
         scene.add(mesh)
-        element.style.color = 'transparent'
-        restoreElements.push({el: element, prop: 'color', val: ''})
 
         texts.push({mesh, element, material, bounds, y, isVisible: false})
       })
@@ -343,17 +315,17 @@ const TextDemo = () => {
         }
       })
 
-      /* ── WebGL images (desktop only) ── */
+      /* ── WebGL images ── */
 
-      const mediaElements = isMobile
-        ? []
-        : Array.from(document.querySelectorAll<HTMLImageElement>('[data-webgl-media]'))
+      const mediaElements = Array.from(
+        document.querySelectorAll<HTMLImageElement>('[data-webgl-media]')
+      )
       const images: ImageEntry[] = []
       const imageGeometry = new THREE.PlaneGeometry(1, 1, 32, 32)
       const textureLoader = new THREE.TextureLoader()
 
       await Promise.all(
-        Array.from(mediaElements).map(
+        mediaElements.map(
           (img) =>
             new Promise<void>((resolve) => {
               if (img.complete && img.naturalWidth > 0) {
@@ -416,10 +388,9 @@ const TextDemo = () => {
           effect,
           width: bounds.width,
           height: bounds.height,
-          top: bounds.top + lenis.actualScroll,
+          top: bounds.top + getScrollRaw(),
           left: bounds.left,
           depth,
-
         })
       }
 
@@ -534,30 +505,27 @@ const TextDemo = () => {
         `,
       }
 
-      let composer: any = null
-      if (!isMobile && EffectComposer) {
-        composer = new EffectComposer(renderer)
-        composer.addPass(new RenderPass(scene, camera))
-        const barrelPass = new ShaderPass(barrelShader)
-        barrelPass.renderToScreen = true
-        composer.addPass(barrelPass)
-      }
+      const composer = new EffectComposer(renderer)
+      composer.addPass(new RenderPass(scene, camera))
+      const barrelPass = new ShaderPass(barrelShader)
+      barrelPass.renderToScreen = true
+      composer.addPass(barrelPass)
 
       /* ── Render loop ── */
 
       const update = () => {
         if (needsRender) {
+          const scrollY = getScroll()
 
           texts.forEach((t) => {
             if (t.isVisible) {
               t.mesh.position.x =
-                t.bounds.left - screen.width / 2
+                t.bounds.left - screen.width / 2 + t.bounds.width / 2
               t.mesh.position.y =
                 -t.y +
-                lenis.animatedScroll +
+                scrollY +
                 screen.height / 2 -
                 t.bounds.height / 2
-
             }
           })
 
@@ -568,7 +536,7 @@ const TextDemo = () => {
             const parallaxFactor = 1 + img.depth * 0.0004
             img.mesh.position.y =
               -img.top +
-              lenis.animatedScroll * parallaxFactor +
+              scrollY * parallaxFactor +
               screen.height / 2 -
               img.height / 2
 
@@ -579,9 +547,9 @@ const TextDemo = () => {
               img.mesh.position.y += img.height * shrink * 8.0
             }
 
-            const screenY = img.mesh.position.y
+            const screenYPos = img.mesh.position.y
             const t = Math.max(0, Math.min(1,
-              (screenY + screen.height * 0.5) / (screen.height * 1.5)
+              (screenYPos + screen.height * 0.5) / (screen.height * 1.5)
             ))
             img.material.uniforms.u_innerScale.value = 1.0 + (1 - t) * 0.12
 
@@ -593,11 +561,7 @@ const TextDemo = () => {
             )
           })
 
-          if (composer) {
-            composer.render()
-          } else {
-            renderer.render(scene, camera)
-          }
+          composer.render()
           needsRender = false
         }
         animationId = requestAnimationFrame(update)
@@ -612,7 +576,7 @@ const TextDemo = () => {
         screen.height = window.innerHeight
 
         renderer.setSize(screen.width, screen.height)
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1.5 : 2))
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 
         camera.fov =
           2 * Math.atan(screen.height / 2 / DIST) * (180 / Math.PI)
@@ -620,16 +584,9 @@ const TextDemo = () => {
         camera.updateProjectionMatrix()
 
         texts.forEach((t) => {
-          const computed = window.getComputedStyle(t.element)
           t.bounds = t.element.getBoundingClientRect()
-          t.y = t.bounds.top + lenis.actualScroll
-          const fs = parseFloat(computed.fontSize)
-          t.mesh.fontSize = fs
-          const ls = parseFloat(computed.letterSpacing)
-          t.mesh.letterSpacing = isNaN(ls) ? 0 : ls / fs
-          const lh = parseFloat(computed.lineHeight)
-          t.mesh.lineHeight = isNaN(lh) ? 1.2 : lh / fs
-          t.mesh.maxWidth = t.bounds.width
+          t.y = t.bounds.top + getScrollRaw()
+          t.mesh.scale.set(t.bounds.width, t.bounds.height, 1)
         })
 
         images.forEach((img) => {
@@ -637,7 +594,7 @@ const TextDemo = () => {
           img.mesh.scale.set(bounds.width, bounds.height, 1)
           img.width = bounds.width
           img.height = bounds.height
-          img.top = bounds.top + lenis.actualScroll
+          img.top = bounds.top + getScrollRaw()
           img.left = bounds.left
           img.material.uniforms.uQuadSize.value.set(
             bounds.width,
@@ -645,7 +602,7 @@ const TextDemo = () => {
           )
         })
 
-        if (composer) composer.setSize(screen.width, screen.height)
+        composer.setSize(screen.width, screen.height)
         needsRender = true
       }
 
@@ -658,6 +615,7 @@ const TextDemo = () => {
       cancelled = true
       if (animationId) cancelAnimationFrame(animationId)
       if (resizeHandler) window.removeEventListener('resize', resizeHandler)
+      if (scrollHandler) window.removeEventListener('scroll', scrollHandler)
       if (canvas) canvas.remove()
       document.body.classList.remove('webgl-active')
       restoreElements.forEach(({el, prop, val}) => {
