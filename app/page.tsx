@@ -253,7 +253,9 @@ const TextDemo = () => {
 
       canvas = renderer.domElement
       canvas.style.cssText =
-        'position:fixed;top:0;left:0;width:100vw;height:100vh;pointer-events:none;z-index:10;'
+        'position:fixed;top:0;left:0;pointer-events:none;z-index:10;'
+      canvas.style.width = window.innerWidth + 'px'
+      canvas.style.height = window.innerHeight + 'px'
       document.body.appendChild(canvas)
 
       /* ── Scene ── */
@@ -319,11 +321,11 @@ const TextDemo = () => {
         }
       })
 
-      /* ── WebGL images ── */
+      /* ── WebGL images (desktop only — too heavy for mobile GPU) ── */
 
-      const mediaElements = Array.from(
-        document.querySelectorAll<HTMLImageElement>('[data-webgl-media]')
-      )
+      const mediaElements = isTouch
+        ? []
+        : Array.from(document.querySelectorAll<HTMLImageElement>('[data-webgl-media]'))
       const images: ImageEntry[] = []
       const imageGeometry = new THREE.PlaneGeometry(1, 1, 32, 32)
       const textureLoader = new THREE.TextureLoader()
@@ -509,11 +511,14 @@ const TextDemo = () => {
         `,
       }
 
-      const composer = new EffectComposer(renderer)
-      composer.addPass(new RenderPass(scene, camera))
-      const barrelPass = new ShaderPass(barrelShader)
-      barrelPass.renderToScreen = true
-      composer.addPass(barrelPass)
+      let composer: InstanceType<typeof EffectComposer> | null = null
+      if (!isTouch) {
+        composer = new EffectComposer(renderer)
+        composer.addPass(new RenderPass(scene, camera))
+        const barrelPass = new ShaderPass(barrelShader)
+        barrelPass.renderToScreen = true
+        composer.addPass(barrelPass)
+      }
 
       /* ── Adaptive DPR: drop pixel ratio if FPS is too low ── */
 
@@ -535,10 +540,10 @@ const TextDemo = () => {
             const currentDpr = renderer.getPixelRatio()
             if (currentDpr > 1.5) {
               renderer.setPixelRatio(1.5)
-              composer.setPixelRatio(1.5)
+              if (composer) composer.setPixelRatio(1.5)
             } else if (currentDpr > 1) {
               renderer.setPixelRatio(1)
-              composer.setPixelRatio(1)
+              if (composer) composer.setPixelRatio(1)
             }
           }
         }
@@ -565,15 +570,26 @@ const TextDemo = () => {
         if (needsRender) {
           const scrollY = getScroll()
 
+          /* Update viewport + camera for iOS address bar changes */
+          const vw = window.innerWidth
+          const vh = window.innerHeight
+          if (vh !== screen.height || vw !== screen.width) {
+            screen.width = vw
+            screen.height = vh
+            camera.fov = 2 * Math.atan(vh / 2 / DIST) * (180 / Math.PI)
+            camera.aspect = vw / vh
+            camera.updateProjectionMatrix()
+            renderer.setSize(vw, vh)
+            canvas!.style.width = vw + 'px'
+            canvas!.style.height = vh + 'px'
+          }
+
           texts.forEach((t) => {
             if (t.isVisible) {
-              t.mesh.position.x =
-                t.bounds.left - screen.width / 2 + t.bounds.width / 2
-              t.mesh.position.y =
-                -t.y +
-                scrollY +
-                screen.height / 2 -
-                t.bounds.height / 2
+              const rect = t.element.getBoundingClientRect()
+              t.mesh.position.x = rect.left + rect.width / 2 - vw / 2
+              t.mesh.position.y = -(rect.top + rect.height / 2) + vh / 2
+              t.mesh.scale.set(rect.width, rect.height, 1)
             }
           })
 
@@ -609,7 +625,11 @@ const TextDemo = () => {
             )
           })
 
-          composer.render()
+          if (composer) {
+            composer.render()
+          } else {
+            renderer.render(scene, camera)
+          }
           needsRender = false
         }
         animationId = requestAnimationFrame(update)
@@ -656,7 +676,7 @@ const TextDemo = () => {
             )
           })
 
-          composer.setSize(screen.width, screen.height)
+          if (composer) composer.setSize(screen.width, screen.height)
           needsRender = true
         }, 150)
       }
