@@ -805,21 +805,21 @@ const TextDemo = () => {
             </div>
             <div className={styles.overRow}>
               <div className={styles.overImgWrap}>
-                <img data-webgl-media data-webgl-effect="none" data-webgl-depth="25" src="/images/body-oil-dramatic.webp" alt="Viënna aan het werk" className={styles.overImg} />
+                <img data-webgl-media data-webgl-effect="none" data-webgl-depth="25" src="/images/vienna-portrait-chair.webp" alt="Viënna portret zittend op stoel" className={styles.overImg} />
               </div>
               <div className={styles.overImgWrap}>
-                <img data-webgl-media data-webgl-effect="none" data-webgl-depth="-40" src="/images/body-oil-dark-mood.webp" alt="Behind the scenes" className={styles.overImg} />
+                <img data-webgl-media data-webgl-effect="none" data-webgl-depth="-40" src="/images/vienna-photographer-camera-stairs.webp" alt="Viënna met camera op trap" className={styles.overImg} />
               </div>
               <div className={styles.overImgWrap}>
-                <img data-webgl-media data-webgl-effect="none" data-webgl-depth="35" src="/images/face-mist-duo-marble.webp" alt="Op locatie" className={styles.overImg} />
+                <img data-webgl-media data-webgl-effect="none" data-webgl-depth="35" src="/images/vienna-working-desk.webp" alt="Viënna aan het werk achter bureau" className={styles.overImg} />
               </div>
             </div>
             <div className={styles.overRowBottom}>
               <div className={styles.overImgWrap}>
-                <img data-webgl-media data-webgl-effect="none" data-webgl-depth="-55" src="/images/body-oil-painting-backdrop.webp" alt="Content creatie" className={styles.overImg} />
+                <img data-webgl-media data-webgl-effect="none" data-webgl-depth="-55" src="/images/vienna-editing-photos-laptop.webp" alt="Viënna bewerkt foto's op laptop" className={styles.overImg} />
               </div>
               <div className={`${styles.overImgWrap} ${styles.overImgLarge}`}>
-                <img data-webgl-media data-webgl-effect="none" data-webgl-depth="40" src="/images/face-mist-sunlight.webp" alt="Viënna met camera" className={styles.overImg} />
+                <img data-webgl-media data-webgl-effect="none" data-webgl-depth="40" src="/images/vienna-photographer-portrait.webp" alt="Viënna portret met camera" className={styles.overImg} />
               </div>
             </div>
           </div>
