@@ -831,37 +831,25 @@ const TextDemo = () => {
             data-webgl-media
             data-webgl-effect="bend"
             src="/images/face-mist-sunlight.webp"
-            alt="Face Mist in zonlicht"
+            alt="V-Creative hero"
             className={styles.gridImage}
           />
         </figure>
         <section className={styles.dienstenSection}>
-          <div className={styles.dienstenLeft}>
-            <h2 className={styles.dienstenHeading}>MIJN DIENSTEN</h2>
-            <p className={styles.dienstenBody}>
-              Ik sta voor sterke, persoonlijke content. Al meer dan 3 jaar werk ik aan mooie projecten voor o.a Hair by Kim, Falcon Ink, Hal XIII en andere toffe merken. Met liefde voor het vak en een creatieve blik maak ik ideeën en doelen werkelijk. Let&apos;s boost your brand!
+          <div className={styles.dienstenImage}>
+            <img
+              data-webgl-media
+              data-webgl-effect="bend"
+              src="/images/body-oil-dramatic.webp"
+              alt="V-Creative diensten"
+              className={styles.dienstenImg}
+            />
+          </div>
+          <div className={styles.dienstenContent}>
+            <p data-animation="webgl-text" className={styles.dienstenBody}>
+              Jouw merk verdient beter dan een snelle post. Ik maak content die raakt. Strategie, fotografie, video en editing in één. Alles om zichtbaar te zijn en professioneel over te komen. Geen standaard werk, wel eerlijk vakwerk dat bij jou past.
             </p>
-          </div>
-          <div className={styles.dienstenRight}>
-            <h2 className={styles.skillsHeading}>SKILLS</h2>
-            <ul className={styles.skillsList}>
-              <li>Content</li>
-              <li>videografie</li>
-              <li>editing</li>
-              <li>contact</li>
-              <li>trends</li>
-            </ul>
-          </div>
-        </section>
-
-        <section className={styles.klantenSection}>
-          <h2 className={styles.klantenHeading}>MIJN KLANTEN</h2>
-          <div className={styles.klantenGrid}>
-            <div className={styles.klantenLogo} />
-            <div className={styles.klantenLogo} />
-            <div className={styles.klantenLogo} />
-            <div className={styles.klantenLogo} />
-            <div className={styles.klantenLogo} />
+            <a href="/contact" className={styles.dienstenLink}>Start nu →</a>
           </div>
         </section>
         <section className={styles.aanpakSection}>
@@ -928,7 +916,7 @@ const TextDemo = () => {
               <img
                 data-webgl-media
                 data-webgl-effect="bend"
-                src="/images/face-mist-sunlight.webp"
+                src="/images/body-oil-tilted-closeup.webp"
                 alt="Beautysalon Glow — Contentdag"
                 className={styles.projectImage}
               />
@@ -975,7 +963,7 @@ const TextDemo = () => {
           <img
             data-webgl-media
             data-webgl-effect="bend"
-            src="/images/body-oil-tilted-closeup.webp"
+            src="/images/body-oil-painting-backdrop.webp"
             alt="V-Creative behind the scenes"
             className={styles.gridImage}
           />

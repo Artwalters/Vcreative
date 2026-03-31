@@ -109,52 +109,65 @@
 /* Diensten Section */
 
 .dienstenSection {
-  display: flex;
-  justify-content: space-between;
-  padding: 5em 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4em;
+  align-items: center;
+  padding: 6em 0;
 }
 
-.dienstenLeft {
-  max-width: 45%;
+.dienstenImage {
+  position: relative;
+  overflow: hidden;
+}
+
+.dienstenImg {
+  width: 100%;
+  height: auto;
+  display: block;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+}
+
+.dienstenContent {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5em;
 }
 
 .dienstenHeading {
   font-family: var(--font-primary);
-  font-size: 2.5em;
+  font-size: 3.5em;
   font-weight: 400;
   color: var(--color-navy);
-  margin: 0 0 1.5em;
-  letter-spacing: 0.05em;
+  margin: 0;
+  letter-spacing: 0.02em;
 }
 
 .dienstenBody {
   font-family: var(--font-primary);
-  font-size: 1.25em;
+  font-size: 1.5em;
   font-weight: 400;
   color: var(--color-navy);
-  line-height: 1.7;
+  line-height: 1.8;
   margin: 0;
 }
 
-.dienstenRight {
-  text-align: right;
+.dienstenLink {
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-size: 0.875em;
+  color: var(--color-cream);
+  background: var(--color-navy);
+  border-radius: 2em;
+  padding: 0.75em 2em;
+  display: inline-block;
+  width: fit-content;
+  margin-top: 0.5em;
+  transition: opacity 0.2s;
 }
 
-.skillsHeading {
-  font-family: var(--font-primary);
-  font-size: 2.5em;
-  font-weight: 400;
-  color: var(--color-navy);
-  margin: 0 0 1.5em;
-  letter-spacing: 0.05em;
-}
-
-.skillsList {
-  list-style: none;
-  font-family: var(--font-primary);
-  font-size: 1.25em;
-  color: var(--color-navy);
-  line-height: 1.7;
+.dienstenLink:hover {
+  opacity: 0.8;
 }
 
 /* Klanten Section */
@@ -223,7 +236,7 @@
   display: flex;
   flex-direction: column;
   gap: 10rem;
-  padding: 0 16vw;
+  padding: 0 8vw;
 }
 
 .figure {
@@ -485,23 +498,13 @@
   }
 
   .dienstenSection {
-    flex-direction: column;
-    gap: 3em;
-    padding: 6em 0;
+    grid-template-columns: 1fr;
+    gap: 2em;
+    padding: 4em 0;
   }
 
-  .dienstenLeft {
-    max-width: 100%;
-  }
-
-  .dienstenRight {
-    text-align: left;
-  }
-
-  .dienstenHeading,
-  .skillsHeading,
-  .klantenHeading {
-    font-size: 1.5em;
+  .dienstenHeading {
+    font-size: 1.75em;
   }
 
   .dienstenBody,
