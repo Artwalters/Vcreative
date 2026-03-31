@@ -21,6 +21,7 @@ const textFragShader = /* glsl */ `
 precision highp float;
 uniform float uReveal;
 uniform vec3 uColor;
+uniform vec2 uAspect;
 varying vec2 vUv;
 
 float hash(vec2 p) {
@@ -50,9 +51,28 @@ float fbm(vec2 p) {
 }
 
 void main() {
-  float n = fbm(vUv * 6.0);
-  float expandedReveal = uReveal * 1.6 - 0.3;
-  float mask = smoothstep(expandedReveal - 0.3, expandedReveal + 0.3, n);
+  /* Aspect-corrected UV so noise isn't stretched */
+  vec2 uv = vUv * uAspect * 8.0;
+
+  /* First warp: swirly base */
+  float n1 = fbm(uv);
+  float n1b = fbm(uv + vec2(5.2, 1.3));
+  vec2 warped = uv + vec2(n1, n1b) * 0.4;
+
+  /* Second warp: more complexity */
+  float n2 = fbm(warped + vec2(1.7, 9.2));
+  float n2b = fbm(warped + vec2(8.3, 2.8));
+  vec2 warped2 = warped + vec2(n2, n2b) * 0.4;
+
+  float n3 = fbm(warped2);
+
+  /* Fine grain on top */
+  float fine = fbm(vUv * 28.0 + vec2(n2, n3) * 0.2);
+
+  float n = n3 * 0.55 + fine * 0.45;
+
+  float progress = uReveal * 1.5 - 0.25;
+  float mask = smoothstep(progress - 0.15, progress + 0.15, n);
   if (mask < 0.01) discard;
   gl_FragColor = vec4(uColor, mask);
 }
@@ -301,6 +321,7 @@ const TextDemo = () => {
           const elScene = new THREE.Scene()
           const bgColor = new THREE.Vector3(0xf2 / 255, 0xeb / 255, 0xd9 / 255)
 
+          const aspect = bounds.width / bounds.height
           const elMaterial = new THREE.ShaderMaterial({
             fragmentShader: textFragShader,
             vertexShader: textVertShader,
@@ -308,6 +329,7 @@ const TextDemo = () => {
             uniforms: {
               uReveal: new THREE.Uniform(0),
               uColor: {value: bgColor},
+              uAspect: {value: new THREE.Vector2(aspect, 1.0)},
             },
           })
 
@@ -326,29 +348,27 @@ const TextDemo = () => {
           if (isInHero) {
             gsap.to(elMaterial.uniforms.uReveal, {
               value: 1,
-              duration: 4,
+              duration: 6,
               delay: 0.3,
               ease: 'power2.inOut',
               onUpdate: renderEl,
               onComplete: () => elCanvas.remove(),
             })
           } else {
-            ScrollTrigger.create({
-              trigger: element,
-              start: 'top 80%',
-              once: true,
-              onEnter: () => {
-                gsap.to(elMaterial.uniforms.uReveal, {
-                  value: 1,
-                  duration: 3,
-                  ease: 'power2.inOut',
-                  onUpdate: renderEl,
-                  onComplete: () => {
-                    elCanvas.remove()
-                    elRenderer.dispose()
-                    elMaterial.dispose()
-                  },
-                })
+            gsap.to(elMaterial.uniforms.uReveal, {
+              value: 1,
+              ease: 'none',
+              onUpdate: renderEl,
+              onComplete: () => {
+                elCanvas.remove()
+                elRenderer.dispose()
+                elMaterial.dispose()
+              },
+              scrollTrigger: {
+                trigger: element,
+                start: 'top 85%',
+                end: 'top 25%',
+                scrub: 0.5,
               },
             })
           }
@@ -361,6 +381,7 @@ const TextDemo = () => {
           const bounds = element.getBoundingClientRect()
           const y = bounds.top + getScrollRaw()
 
+          const aspect = bounds.width / bounds.height
           const material = new THREE.ShaderMaterial({
             fragmentShader: textFragShader,
             vertexShader: textVertShader,
@@ -368,6 +389,7 @@ const TextDemo = () => {
             uniforms: {
               uReveal: new THREE.Uniform(0),
               uColor: {value: bgColor},
+              uAspect: {value: new THREE.Vector2(aspect, 1.0)},
             },
           })
 
@@ -386,23 +408,21 @@ const TextDemo = () => {
           if (isInHero) {
             gsap.to(t.material.uniforms.uReveal, {
               value: 1,
-              duration: 4,
+              duration: 6,
               delay: 0.3,
               ease: 'power2.inOut',
               onUpdate: () => { needsRender = true },
             })
           } else {
-            ScrollTrigger.create({
-              trigger: t.element,
-              start: 'top 80%',
-              once: true,
-              onEnter: () => {
-                gsap.to(t.material.uniforms.uReveal, {
-                  value: 1,
-                  duration: 3,
-                  ease: 'power2.inOut',
-                  onUpdate: () => { needsRender = true },
-                })
+            gsap.to(t.material.uniforms.uReveal, {
+              value: 1,
+              ease: 'none',
+              onUpdate: () => { needsRender = true },
+              scrollTrigger: {
+                trigger: t.element,
+                start: 'top 85%',
+                end: 'top 25%',
+                scrub: 0.5,
               },
             })
           }
