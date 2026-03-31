@@ -271,7 +271,9 @@ const TextDemo = () => {
         const bounds = element.getBoundingClientRect()
         const y = bounds.top + lenis.actualScroll
         const fontSizeNum = parseFloat(computed.fontSize)
-        const color = new THREE.Color(computed.color)
+        const rootStyle = getComputedStyle(document.documentElement)
+        const navy = rootStyle.getPropertyValue('--color-navy').trim()
+        const color = new THREE.Color(navy || computed.color)
 
         const material = new THREE.ShaderMaterial({
           fragmentShader: textFragShader,
@@ -321,7 +323,7 @@ const TextDemo = () => {
         if (isInHero) {
           gsap.to(t.material.uniforms.uReveal, {
             value: 1,
-            duration: 3.5,
+            duration: 4,
             delay: 0.3,
             ease: 'power2.inOut',
             onUpdate: () => { needsRender = true },
@@ -333,8 +335,8 @@ const TextDemo = () => {
             onUpdate: () => { needsRender = true },
             scrollTrigger: {
               trigger: t.element,
-              start: 'top bottom+=300',
-              end: 'top 40%',
+              start: 'top bottom+=500',
+              end: 'top 20%',
               scrub: 1,
             },
           })
@@ -674,7 +676,6 @@ const TextDemo = () => {
         {webglEnabled ? 'WebGL on' : 'WebGL off'}
       </button>
       <section className={styles.hero}>
-        <img src="/logo/logomain.svg" alt="V-Creative" className={styles.heroLogo} />
         <h2 data-animation="webgl-text" className={styles.heroText}>
           Social media content creatie voor ondernemers die zichtbaar willen zijn, professioneel, persoonlijk en zonder gedoe.
         </h2>
