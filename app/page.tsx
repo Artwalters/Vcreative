@@ -263,63 +263,151 @@ const TextDemo = () => {
       const scene = new THREE.Scene()
       const textGeometry = new THREE.PlaneGeometry(1, 1)
 
-      /* ── Text overlays (background mask that dissolves to reveal DOM text) ── */
+      /* ── Text overlays ── */
 
       const textElements = document.querySelectorAll<HTMLElement>(
         '[data-animation="webgl-text"]',
       )
       const texts: TextEntry[] = []
-      const bgColor = new THREE.Vector3(0xf2 / 255, 0xeb / 255, 0xd9 / 255)
 
-      textElements.forEach((element) => {
-        const bounds = element.getBoundingClientRect()
-        const y = bounds.top + getScrollRaw()
+      if (isTouch) {
+        /* ── Mobile: per-element WebGL canvas (scrolls with DOM, no jitter) ── */
+        textElements.forEach((element) => {
+          element.style.position = 'relative'
+          restoreElements.push({el: element, prop: 'position', val: ''})
 
-        const material = new THREE.ShaderMaterial({
-          fragmentShader: textFragShader,
-          vertexShader: textVertShader,
-          transparent: true,
-          uniforms: {
-            uReveal: new THREE.Uniform(0),
-            uColor: {value: bgColor},
-          },
-        })
+          const bounds = element.getBoundingClientRect()
+          const elDpr = Math.min(window.devicePixelRatio, 1.5)
 
-        const mesh = new THREE.Mesh(textGeometry, material)
-        mesh.scale.set(bounds.width, bounds.height, 1)
-        scene.add(mesh)
-
-        texts.push({mesh, element, material, bounds, y, isVisible: false})
-      })
-
-      /* ── Noise reveal animations ── */
-
-      texts.forEach((t) => {
-        t.isVisible = true
-        const isInHero = t.element.closest(`.${styles.hero}`)
-
-        if (isInHero) {
-          gsap.to(t.material.uniforms.uReveal, {
-            value: 1,
-            duration: 4,
-            delay: 0.3,
-            ease: 'power2.inOut',
-            onUpdate: () => { needsRender = true },
+          /* Create a small WebGL renderer per text element */
+          const elRenderer = new THREE.WebGLRenderer({
+            alpha: true,
+            antialias: false,
+            powerPreference: 'low-power',
           })
-        } else {
-          gsap.to(t.material.uniforms.uReveal, {
-            value: 1,
-            ease: 'power2.inOut',
-            onUpdate: () => { needsRender = true },
-            scrollTrigger: {
-              trigger: t.element,
-              start: 'top bottom+=500',
-              end: 'top 20%',
-              scrub: 1,
+          elRenderer.setSize(bounds.width, bounds.height)
+          elRenderer.setPixelRatio(elDpr)
+          elRenderer.outputColorSpace = THREE.LinearSRGBColorSpace
+
+          const elCanvas = elRenderer.domElement
+          elCanvas.style.cssText = 'position:absolute;inset:0;z-index:1;pointer-events:none;width:100%;height:100%;'
+          element.appendChild(elCanvas)
+          restoreElements.push({el: elCanvas, prop: '__remove', val: ''})
+
+          /* Ortho camera for flat 2D overlay */
+          const elCamera = new THREE.OrthographicCamera(-0.5, 0.5, 0.5, -0.5, 0.1, 10)
+          elCamera.position.z = 1
+
+          const elScene = new THREE.Scene()
+          const bgColor = new THREE.Vector3(0xf2 / 255, 0xeb / 255, 0xd9 / 255)
+
+          const elMaterial = new THREE.ShaderMaterial({
+            fragmentShader: textFragShader,
+            vertexShader: textVertShader,
+            transparent: true,
+            uniforms: {
+              uReveal: new THREE.Uniform(0),
+              uColor: {value: bgColor},
             },
           })
-        }
-      })
+
+          const elMesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), elMaterial)
+          elScene.add(elMesh)
+
+          /* Initial render (fully covered) */
+          elRenderer.render(elScene, elCamera)
+
+          const isInHero = element.closest(`.${styles.hero}`)
+
+          const renderEl = () => {
+            elRenderer.render(elScene, elCamera)
+          }
+
+          if (isInHero) {
+            gsap.to(elMaterial.uniforms.uReveal, {
+              value: 1,
+              duration: 4,
+              delay: 0.3,
+              ease: 'power2.inOut',
+              onUpdate: renderEl,
+              onComplete: () => elCanvas.remove(),
+            })
+          } else {
+            ScrollTrigger.create({
+              trigger: element,
+              start: 'top 80%',
+              once: true,
+              onEnter: () => {
+                gsap.to(elMaterial.uniforms.uReveal, {
+                  value: 1,
+                  duration: 3,
+                  ease: 'power2.inOut',
+                  onUpdate: renderEl,
+                  onComplete: () => {
+                    elCanvas.remove()
+                    elRenderer.dispose()
+                    elMaterial.dispose()
+                  },
+                })
+              },
+            })
+          }
+        })
+      } else {
+        /* ── Desktop: WebGL overlay (smooth with Lenis) ── */
+        const bgColor = new THREE.Vector3(0xf2 / 255, 0xeb / 255, 0xd9 / 255)
+
+        textElements.forEach((element) => {
+          const bounds = element.getBoundingClientRect()
+          const y = bounds.top + getScrollRaw()
+
+          const material = new THREE.ShaderMaterial({
+            fragmentShader: textFragShader,
+            vertexShader: textVertShader,
+            transparent: true,
+            uniforms: {
+              uReveal: new THREE.Uniform(0),
+              uColor: {value: bgColor},
+            },
+          })
+
+          const mesh = new THREE.Mesh(textGeometry, material)
+          mesh.scale.set(bounds.width, bounds.height, 1)
+          scene.add(mesh)
+
+          texts.push({mesh, element, material, bounds, y, isVisible: false})
+        })
+
+        /* Noise reveal animations */
+        texts.forEach((t) => {
+          t.isVisible = true
+          const isInHero = t.element.closest(`.${styles.hero}`)
+
+          if (isInHero) {
+            gsap.to(t.material.uniforms.uReveal, {
+              value: 1,
+              duration: 4,
+              delay: 0.3,
+              ease: 'power2.inOut',
+              onUpdate: () => { needsRender = true },
+            })
+          } else {
+            ScrollTrigger.create({
+              trigger: t.element,
+              start: 'top 80%',
+              once: true,
+              onEnter: () => {
+                gsap.to(t.material.uniforms.uReveal, {
+                  value: 1,
+                  duration: 3,
+                  ease: 'power2.inOut',
+                  onUpdate: () => { needsRender = true },
+                })
+              },
+            })
+          }
+        })
+      }
 
       /* ── WebGL images (desktop only — too heavy for mobile GPU) ── */
 
@@ -586,10 +674,10 @@ const TextDemo = () => {
 
           texts.forEach((t) => {
             if (t.isVisible) {
-              const rect = t.element.getBoundingClientRect()
-              t.mesh.position.x = rect.left + rect.width / 2 - vw / 2
-              t.mesh.position.y = -(rect.top + rect.height / 2) + vh / 2
-              t.mesh.scale.set(rect.width, rect.height, 1)
+              t.mesh.position.x =
+                t.bounds.left - vw / 2 + t.bounds.width / 2
+              t.mesh.position.y =
+                -t.y + scrollY + vh / 2 - t.bounds.height / 2
             }
           })
 
@@ -694,7 +782,11 @@ const TextDemo = () => {
       if (canvas) canvas.remove()
       document.body.classList.remove('webgl-active')
       restoreElements.forEach(({el, prop, val}) => {
-        el.style.setProperty(prop, val)
+        if (prop === '__remove') {
+          el.remove()
+        } else {
+          el.style.setProperty(prop, val)
+        }
       })
     }
   }, [webglEnabled])
