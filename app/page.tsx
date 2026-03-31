@@ -236,15 +236,19 @@ const TextDemo = () => {
       )
       camera.position.z = DIST
 
-      /* ── Renderer ── */
+      /* ── Renderer (antialias off, stencil off — lighter on GPU) ── */
+
+      const isTouch = 'ontouchstart' in document.documentElement
+      const dpr = Math.min(window.devicePixelRatio, 2)
 
       const renderer = new THREE.WebGLRenderer({
         alpha: true,
-        antialias: true,
-        powerPreference: 'default',
+        antialias: false,
+        stencil: false,
+        powerPreference: 'high-performance',
       })
       renderer.setSize(screen.width, screen.height)
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+      renderer.setPixelRatio(dpr)
       renderer.outputColorSpace = THREE.LinearSRGBColorSpace
 
       canvas = renderer.domElement
@@ -511,9 +515,53 @@ const TextDemo = () => {
       barrelPass.renderToScreen = true
       composer.addPass(barrelPass)
 
+      /* ── Adaptive DPR: drop pixel ratio if FPS is too low ── */
+
+      let fpsCheckCount = 0
+      let fpsFrames = 0
+      let fpsLastTime = performance.now()
+
+      const checkFPS = () => {
+        if (fpsCheckCount >= 10) return
+        fpsFrames++
+        const now = performance.now()
+        if (now - fpsLastTime >= 600) {
+          const fps = (fpsFrames / (now - fpsLastTime)) * 1000
+          fpsFrames = 0
+          fpsLastTime = now
+          fpsCheckCount++
+
+          if (fps < 30) {
+            const currentDpr = renderer.getPixelRatio()
+            if (currentDpr > 1.5) {
+              renderer.setPixelRatio(1.5)
+              composer.setPixelRatio(1.5)
+            } else if (currentDpr > 1) {
+              renderer.setPixelRatio(1)
+              composer.setPixelRatio(1)
+            }
+          }
+        }
+      }
+
+      /* ── Deferred texture uploads via requestIdleCallback ── */
+
+      const uploadTexture = (texture: THREE.Texture) => {
+        if ('requestIdleCallback' in window) {
+          requestIdleCallback(() => {
+            texture.needsUpdate = true
+            renderer.initTexture(texture)
+          }, {timeout: 1000})
+        }
+      }
+
+      images.forEach((img) => uploadTexture(img.material.uniforms.uTexture.value))
+
       /* ── Render loop ── */
 
       const update = () => {
+        checkFPS()
+
         if (needsRender) {
           const scrollY = getScroll()
 
@@ -571,39 +619,46 @@ const TextDemo = () => {
 
       /* ── Resize ── */
 
+      let resizeTimeout: ReturnType<typeof setTimeout>
       resizeHandler = () => {
-        screen.width = window.innerWidth
-        screen.height = window.innerHeight
+        clearTimeout(resizeTimeout)
+        resizeTimeout = setTimeout(() => {
+          /* iOS address bar: skip resize if only height changed */
+          if (isTouch && window.innerWidth === screen.width) return
 
-        renderer.setSize(screen.width, screen.height)
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+          screen.width = window.innerWidth
+          screen.height = window.innerHeight
 
-        camera.fov =
-          2 * Math.atan(screen.height / 2 / DIST) * (180 / Math.PI)
-        camera.aspect = screen.width / screen.height
-        camera.updateProjectionMatrix()
+          renderer.setSize(screen.width, screen.height)
+          renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 
-        texts.forEach((t) => {
-          t.bounds = t.element.getBoundingClientRect()
-          t.y = t.bounds.top + getScrollRaw()
-          t.mesh.scale.set(t.bounds.width, t.bounds.height, 1)
-        })
+          camera.fov =
+            2 * Math.atan(screen.height / 2 / DIST) * (180 / Math.PI)
+          camera.aspect = screen.width / screen.height
+          camera.updateProjectionMatrix()
 
-        images.forEach((img) => {
-          const bounds = img.element.getBoundingClientRect()
-          img.mesh.scale.set(bounds.width, bounds.height, 1)
-          img.width = bounds.width
-          img.height = bounds.height
-          img.top = bounds.top + getScrollRaw()
-          img.left = bounds.left
-          img.material.uniforms.uQuadSize.value.set(
-            bounds.width,
-            bounds.height,
-          )
-        })
+          texts.forEach((t) => {
+            t.bounds = t.element.getBoundingClientRect()
+            t.y = t.bounds.top + getScrollRaw()
+            t.mesh.scale.set(t.bounds.width, t.bounds.height, 1)
+          })
 
-        composer.setSize(screen.width, screen.height)
-        needsRender = true
+          images.forEach((img) => {
+            const bounds = img.element.getBoundingClientRect()
+            img.mesh.scale.set(bounds.width, bounds.height, 1)
+            img.width = bounds.width
+            img.height = bounds.height
+            img.top = bounds.top + getScrollRaw()
+            img.left = bounds.left
+            img.material.uniforms.uQuadSize.value.set(
+              bounds.width,
+              bounds.height,
+            )
+          })
+
+          composer.setSize(screen.width, screen.height)
+          needsRender = true
+        }, 150)
       }
 
       window.addEventListener('resize', resizeHandler)
