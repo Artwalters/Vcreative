@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import styles from '@/app/styles/text-demo.module.css'
 import Footer from '@/app/components/Footer'
+import LogoMarquee from '@/app/components/LogoMarquee'
 import type * as THREE from 'three'
 
 /* ── Text Overlay Shader (background-colored mask that dissolves to reveal DOM text) ── */
@@ -921,7 +922,7 @@ const TextDemo = () => {
           ik regel je socials
         </h1>
         <p className={styles.heroSubtitle}>
-          <span className={styles.heroSubtitleMain}>Media management</span>
+          <span className={styles.heroSubtitleMain}>Content en strategie</span>
           <span className={styles.heroSubtitleScript}>
             by <span className={styles.heroSubtitleV}>V</span>ienna
           </span>
@@ -936,11 +937,15 @@ const TextDemo = () => {
           className={styles.heroImage}
         />
       </figure>
+
+      <LogoMarquee />
       <section className={styles.imageGrid}>
         <section className={styles.projectenSection}>
           <header className={styles.projectenHeader}>
             <h2 className={styles.projectenTitle}>
-              Zakelijke <em>projecten</em>
+              <span className={styles.projectenTitleLine}>
+                <em>Z</em>akelijke projecten
+              </span>
               <span className={styles.projectenYears}>2008 — 2026</span>
             </h2>
             <ul className={styles.projectenCategories}>

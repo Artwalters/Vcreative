@@ -119,7 +119,7 @@
 .projectenSection {
   display: flex;
   flex-direction: column;
-  gap: 4em;
+  gap: 8em;
   padding: 8em 0 6em;
   max-width: 68em;
   width: 100%;
@@ -137,10 +137,11 @@
 
 .projectenTitle {
   font-family: var(--font-primary);
-  font-size: 3em;
+  font-style: italic;
+  font-size: 3.75em;
   font-weight: var(--weight-regular);
   color: var(--color-navy);
-  line-height: var(--leading-tight);
+  line-height: 0.95;
   letter-spacing: var(--tracking-tight);
   margin: 0;
   display: flex;
@@ -149,10 +150,15 @@
   gap: 0.35em;
 }
 
+.projectenTitleLine {
+  display: inline-block;
+  white-space: nowrap;
+}
+
 .projectenTitle em {
   font-family: var(--font-script);
   font-style: normal;
-  font-weight: var(--weight-regular);
+  font-weight: 700;
   text-transform: none;
 }
 
@@ -212,7 +218,7 @@
 .projectenRow {
   display: grid;
   grid-template-columns: 1fr 2fr;
-  gap: 1.5em;
+  gap: 4.5em;
   align-items: start;
 }
 
@@ -394,9 +400,10 @@
 
 .studioTagline {
   font-family: var(--font-primary);
+  font-style: italic;
   font-size: 2em;
   font-weight: var(--weight-regular);
-  line-height: var(--leading-snug);
+  line-height: 0.95;
   color: var(--brown--1);
   margin: 0;
   max-width: 20em;
@@ -405,7 +412,7 @@
 .studioTagline em {
   font-family: var(--font-script);
   font-style: normal;
-  font-weight: var(--weight-regular);
+  font-weight: 700;
   text-transform: none;
 }
 
@@ -638,9 +645,10 @@
 
 .werkwijzeTitle {
   font-family: var(--font-primary);
+  font-style: italic;
   font-size: 2.5em;
   font-weight: var(--weight-regular);
-  line-height: var(--leading-snug);
+  line-height: 0.95;
   margin: 0 0 3em;
   max-width: 14em;
 }
@@ -648,7 +656,7 @@
 .werkwijzeTitle em {
   font-family: var(--font-script);
   font-style: normal;
-  font-weight: var(--weight-regular);
+  font-weight: 700;
   text-transform: none;
 }
 
@@ -810,9 +818,10 @@
 
 .werkwijzeCtaText {
   font-family: var(--font-primary);
+  font-style: italic;
   font-size: 1.5em;
   font-weight: var(--weight-regular);
-  line-height: var(--leading-normal);
+  line-height: 0.95;
   margin: 0.5em 0 0;
   color: var(--color-navy);
 }
@@ -820,7 +829,7 @@
 .werkwijzeCtaText em {
   font-family: var(--font-script);
   font-style: normal;
-  font-weight: var(--weight-regular);
+  font-weight: 700;
   text-transform: none;
 }
 
