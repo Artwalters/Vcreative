@@ -188,7 +188,7 @@ const REVIEWS = [
   {
     logo: 'https://placehold.co/240x80/faf8f2/332f29/png?text=hair+by+kim&font=playfair',
     quote:
-      'Wat Viënna voor ons heeft neergezet is zoveel meer dan foto\u2019s en reels — ze heeft ons merk echt op de kaart gezet. Onze salon voelt nu ook online als onze salon.',
+      'Wat Viënna voor ons heeft neergezet is zoveel meer dan foto\u2019s en reels. Ze heeft ons merk echt op de kaart gezet. Onze salon voelt nu ook online als onze salon.',
     author: 'Kim van Dijk',
     role: 'Eigenaar Hair by Kim',
     caseHref: '/cases/hair-by-kim',
@@ -196,7 +196,7 @@ const REVIEWS = [
   {
     logo: 'https://placehold.co/240x80/faf8f2/332f29/png?text=falcon+ink&font=playfair',
     quote:
-      'Één contentdag met Viënna leverde meer op dan maandenlang losse posts. De sfeer, de ruwheid, de energie — alles klopt met wie we zijn als studio.',
+      'Één contentdag met Viënna leverde meer op dan maandenlang losse posts. De sfeer, de ruwheid, de energie, alles klopt met wie we zijn als studio.',
     author: 'Mark Jansen',
     role: 'Founder Falcon Ink',
     caseHref: '/cases/falcon-ink',
@@ -215,7 +215,7 @@ const WERKWIJZE_STEPS = [
   {
     title: 'Je neemt contact op, ik leer jouw merk kennen.',
     description:
-      'We gaan in gesprek — telefonisch, video of bij je op locatie. Ik wil jouw merk, doelgroep en ambities echt begrijpen voordat we beginnen.',
+      'We gaan in gesprek, telefonisch, via video of bij je op locatie. Ik wil jouw merk, doelgroep en ambities echt begrijpen voordat we beginnen.',
   },
   {
     title: 'Jij beoordeelt de offerte op mijn plan van aanpak.',
@@ -225,12 +225,12 @@ const WERKWIJZE_STEPS = [
   {
     title: 'Zijn we een match? We gaan aan de slag!',
     description:
-      'Zodra we beide tekenen plannen we de eerste contentdag in. Ik zorg voor de voorbereiding — jij hoeft alleen zelf op te komen dagen.',
+      'Zodra we beide tekenen plannen we de eerste contentdag in. Ik zorg voor de voorbereiding, jij hoeft alleen zelf op te komen dagen.',
   },
   {
     title: 'Ik vertaal jouw merk in content die bij je past.',
     description:
-      'Van conceptuele creatie tot strategische timing — ik maak content die jouw merk versterkt en jouw publiek raakt.',
+      'Van conceptuele creatie tot strategische timing. Ik maak content die jouw merk versterkt en jouw publiek raakt.',
   },
   {
     title: 'We brengen het live en blijven evalueren.',
@@ -276,16 +276,16 @@ const TextDemo = () => {
           scrollTrigger: {
             trigger: hero,
             start: 'top top',
-            end: '+=180%',
+            end: '+=130%',
             pin: true,
-            scrub: true,
+            scrub: 1,
             anticipatePin: 1,
             invalidateOnRefresh: true,
           },
         })
-        tl.to(bg, {opacity: 0, ease: 'none', duration: 0.3}, 0)
-        tl.to(card, {scale: 1, ease: 'none', duration: 0.5}, 0)
-        tl.to({}, {duration: 0.5}, 0.5)
+        tl.to(bg, {opacity: 0, ease: 'power2.out', duration: 0.35}, 0)
+        tl.to(card, {scale: 1, ease: 'power2.out', duration: 0.8}, 0)
+        tl.to({}, {duration: 0.2}, 0.8)
       })
     })()
 
@@ -639,22 +639,6 @@ const TextDemo = () => {
           },
         )
 
-        /* Every WebGL image: start zoomed-in (closer), settle at normal around viewport center */
-        gsap.fromTo(
-          img.material.uniforms.u_innerScale,
-          {value: 1.12},
-          {
-            value: 1.05,
-            ease: 'power1.out',
-            scrollTrigger: {
-              trigger: img.element,
-              scrub: true,
-              start: 'top bottom',
-              end: 'center center',
-            },
-          },
-        )
-
         /* Bend/distort add the scroll-linked curl on top of the pan */
         if (effect === 'bend' || effect === 'distort') {
           gsap.to(img.material.uniforms.u_progress, {
@@ -814,12 +798,6 @@ const TextDemo = () => {
               img.mesh.position.y += img.height * shrink * 8.0
             }
 
-            const screenYPos = img.mesh.position.y
-            const t = Math.max(0, Math.min(1,
-              (screenYPos + screen.height * 0.5) / (screen.height * 1.5)
-            ))
-            img.material.uniforms.u_innerScale.value = 1.0 + (1 - t) * 0.12
-
             const depthScale = DIST / (DIST - img.depth)
             img.mesh.scale.set(
               img.width * depthScale,
@@ -946,14 +924,14 @@ const TextDemo = () => {
               <span className={styles.projectenTitleLine}>
                 <em>Z</em>akelijke projecten
               </span>
-              <span className={styles.projectenYears}>2008 — 2026</span>
+              <span className={styles.projectenYears}>2008 / 2026</span>
             </h2>
             <ul className={styles.projectenCategories}>
+              <li className={styles.projectenCategory}>Beauty</li>
+              <li className={styles.projectenCategory}>Lifestyle</li>
               <li className={styles.projectenCategory}>Horeca</li>
-              <li className={styles.projectenCategory}>Onderwijs</li>
-              <li className={styles.projectenCategory}>Recreatie</li>
-              <li className={styles.projectenCategory}>Kantoor</li>
-              <li className={styles.projectenCategory}>Zorg</li>
+              <li className={styles.projectenCategory}>Retail</li>
+              <li className={styles.projectenCategory}>Wellness</li>
             </ul>
           </header>
 
@@ -1048,7 +1026,7 @@ const TextDemo = () => {
             <p className={styles.studioLabel}>Over V-Creative</p>
             <span className={styles.studioLogo} aria-hidden="true" />
             <h2 className={styles.studioTagline}>
-              Mijn missie is om jouw merk <em>écht zichtbaar</em> te maken.
+              <em>M</em>ijn missie is om jouw merk écht zichtbaar te maken.
             </h2>
             <p className={styles.studioScroll}>Blijf scrollen</p>
           </div>
@@ -1059,16 +1037,16 @@ const TextDemo = () => {
               &ldquo;Mijn studio richt zich op het creëren van content die jouw merk écht zichtbaar maakt en de verbinding met je doelgroep versterkt.&rdquo;
             </blockquote>
             <p className={styles.studioBody}>
-              Jouw content draagt jouw merk, jouw verhaal, jouw karakter — hoe je wilt dat mensen je zien en voelen. Een strategie met als resultaat beeld en video waar je trots op bent, en waarmee je met vertrouwen en energie je merk naar buiten brengt.
+              Jouw content draagt jouw merk, jouw verhaal, jouw karakter. Precies hoe je wilt dat mensen je zien en voelen. Een strategie met als resultaat beeld en video waar je trots op bent, en waarmee je met vertrouwen en energie je merk naar buiten brengt.
             </p>
             <blockquote className={styles.studioQuote}>
               &ldquo;Content is meer dan een mooie foto. Het bepaalt hoe jouw merk ervaren, herinnerd en vertrouwd wordt.&rdquo;
             </blockquote>
             <p className={styles.studioBody}>
-              Concept, fotografie, video, editing. Iedere stap vraagt om aandacht. Kleur, licht, compositie en timing bepalen samen hoe jouw merk online voelt. Alles wordt doordacht en op de juiste manier ingezet — zodat elk beeld een verlengstuk is van wie jij bent.
+              Concept, fotografie, video, editing. Iedere stap vraagt om aandacht. Kleur, licht, compositie en timing bepalen samen hoe jouw merk online voelt. Alles wordt doordacht en op de juiste manier ingezet, zodat elk beeld een verlengstuk is van wie jij bent.
             </p>
             <p className={styles.studioBody}>
-              Ieder project krijgt een eigen aanpak, zowel in strategie als in uitvoering. Ik werk vanuit een hecht netwerk aan creatieve partners en kan je adviseren over welke aanpak bij jouw merk past. Jij houdt de regie, ik zorg dat alles op het juiste moment klopt — van eerste idee tot laatste post.
+              Ieder project krijgt een eigen aanpak, zowel in strategie als in uitvoering. Ik werk vanuit een hecht netwerk aan creatieve partners en kan je adviseren over welke aanpak bij jouw merk past. Jij houdt de regie, ik zorg dat alles op het juiste moment klopt, van eerste idee tot laatste post.
             </p>
             <a href="/over-mij" className={styles.studioCta}>Het gezicht achter de studio</a>
           </div>
@@ -1078,11 +1056,11 @@ const TextDemo = () => {
       <section className={styles.werkwijzeSection}>
         <p className={styles.werkwijzeLabel}>Werkwijze</p>
         <h2 className={styles.werkwijzeTitle}>
-          In{' '}
+          <em>I</em>n{' '}
           <span className={styles.werkwijzeCount}>
-            {String(WERKWIJZE_STEPS.length).padStart(2, '0')}
+            ({String(WERKWIJZE_STEPS.length).padStart(2, '0')})
           </span>{' '}
-          stappen van jouw merk naar <em>content die raakt</em>.
+          stappen van jouw merk naar content die raakt.
         </h2>
 
         <ul className={styles.werkwijzeList}>
@@ -1132,7 +1110,7 @@ const TextDemo = () => {
             />
           </figure>
           <p className={styles.werkwijzeCtaText}>
-            Zet mij aan het werk met <em>jouw unieke merk</em>.
+            <em>Z</em>et mij aan het werk met jouw unieke merk.
           </p>
           <a href="/contact" className={styles.werkwijzeCtaButton}>
             Start jouw project

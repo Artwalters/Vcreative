@@ -17,7 +17,7 @@ const Footer = () => {
         </Link>
 
         <div className={styles.main}>
-          <h2 className={styles.heading}>Laat je jouw merk zien?</h2>
+          <h2 className={styles.heading}><em>L</em>aat je jouw merk zien?</h2>
           <Link href="/contact" className={styles.cta}>
             Start jouw project
             <span className={styles.ctaArrow} aria-hidden="true">→</span>
