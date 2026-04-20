@@ -82,14 +82,26 @@
   margin: 0;
   width: 100%;
   position: relative;
+  overflow: hidden;
+  aspect-ratio: 21 / 9;
 }
 
 .heroImage {
+  position: absolute;
+  inset: 0;
   width: 100%;
-  height: auto;
+  height: 150%;
+  top: -25%;
   display: block;
-  aspect-ratio: 21 / 9;
   object-fit: cover;
+}
+
+/* ── Universal parallax target (moves inside a trigger mask) ── */
+
+.parallaxTarget {
+  position: absolute;
+  inset: 0;
+  will-change: transform;
 }
 
 /* ── Image Grid Wrapper ── */
@@ -231,25 +243,29 @@
 .projectFigure {
   margin: 0;
   overflow: hidden;
+  position: relative;
+  aspect-ratio: 16 / 10;
 }
 
 .projectImage {
+  position: absolute;
+  inset: 0;
   width: 100%;
-  height: auto;
+  height: 150%;
+  top: -25%;
   display: block;
-  aspect-ratio: 16 / 10;
   object-fit: cover;
 }
 
-.projectFull .projectImage {
+.projectFull .projectFigure {
   aspect-ratio: 16 / 8;
 }
 
-.projectSmall .projectImage {
+.projectSmall .projectFigure {
   aspect-ratio: 4 / 3;
 }
 
-.projectLarge .projectImage {
+.projectLarge .projectFigure {
   aspect-ratio: 16 / 10;
 }
 
@@ -351,12 +367,16 @@
   position: absolute;
   inset: 0;
   z-index: 1;
+  overflow: hidden;
   will-change: opacity;
 }
 
 .studioBgImage {
+  position: absolute;
+  inset: 0;
   width: 100%;
-  height: 100%;
+  height: 150%;
+  top: -25%;
   object-fit: cover;
   filter: blur(2px);
 }
@@ -391,11 +411,9 @@
 
 .studioLogo {
   display: block;
-  width: 4em;
-  aspect-ratio: 88.92 / 104.29;
-  background-color: var(--brown--1);
-  -webkit-mask: url('/icons/SVG/main_logo_v.svg') no-repeat center / contain;
-  mask: url('/icons/SVG/main_logo_v.svg') no-repeat center / contain;
+  width: 24em;
+  aspect-ratio: 1289 / 1671;
+  background: url('/icons/SVG/biglogo%4010x.png') no-repeat center / contain;
   margin: auto 0;
 }
 
@@ -417,11 +435,18 @@
   text-transform: none;
 }
 
+.studioBottomGroup {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4em;
+}
+
 .studioScroll {
   font-family: var(--font-secondary);
-  font-size: 0.75em;
-  font-weight: var(--weight-medium);
-  letter-spacing: var(--tracking-widest);
+  font-size: 0.625em;
+  font-weight: var(--weight-regular);
+  letter-spacing: var(--tracking-wide);
   text-transform: uppercase;
   margin: 0;
   color: var(--brown--1);
@@ -797,13 +822,17 @@
   margin: 0;
   width: 100%;
   overflow: hidden;
+  position: relative;
+  aspect-ratio: 1 / 1;
 }
 
 .werkwijzeCtaImage {
+  position: absolute;
+  inset: 0;
   width: 100%;
-  height: auto;
+  height: 150%;
+  top: -25%;
   display: block;
-  aspect-ratio: 1 / 1;
   object-fit: cover;
 }
 
@@ -929,9 +958,9 @@
     gap: 3em;
   }
 
-  .projectFull .projectImage,
-  .projectSmall .projectImage,
-  .projectLarge .projectImage {
+  .projectFull .projectFigure,
+  .projectSmall .projectFigure,
+  .projectLarge .projectFigure {
     aspect-ratio: 4 / 3;
   }
 

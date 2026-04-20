@@ -173,7 +173,8 @@ interface TextEntry {
 
 interface ImageEntry {
   mesh: THREE.Mesh
-  element: HTMLImageElement
+  element: HTMLElement
+  imgElement: HTMLImageElement
   material: THREE.ShaderMaterial
   effect: string
   width: number
@@ -267,25 +268,119 @@ const TextDemo = () => {
         const hero = document.querySelector(`.${styles.studioHero}`) as HTMLElement | null
         const card = document.querySelector(`.${styles.studioCard}`) as HTMLElement | null
         const bg = document.querySelector(`.${styles.studioBg}`) as HTMLElement | null
+        const bgInner = bg?.querySelector(`.${styles.parallaxTarget}`) as HTMLElement | null
         if (!hero || !card || !bg) return
 
         gsap.set(card, {scale: 0.35, transformOrigin: 'center center'})
         gsap.set(bg, {opacity: 1})
 
+        /* Pin only — keeps the hero fixed through the scale animation */
+        ScrollTrigger.create({
+          trigger: hero,
+          start: 'top top',
+          end: '+=130%',
+          pin: true,
+          anticipatePin: 1,
+          invalidateOnRefresh: true,
+        })
+
+        /* Scale + fade timeline spans from viewport entry (top bottom)
+           through the end of the pin (+=230% = 100vh entry + 130% pin).
+           Split in two phases so the card fully settles before unpin:
+           - Entry (0 → 0.435 of timeline): linear warmup 0.35 → 0.5
+           - Pin growth (0.435 → 0.785): power2.out settle to 1.0
+           - Hold (0.785 → 1.0): stays at 1.0 until the pin releases. */
         const tl = gsap.timeline({
           scrollTrigger: {
             trigger: hero,
-            start: 'top top',
-            end: '+=130%',
-            pin: true,
+            start: 'top bottom',
+            end: '+=230%',
             scrub: 1,
-            anticipatePin: 1,
             invalidateOnRefresh: true,
           },
         })
-        tl.to(bg, {opacity: 0, ease: 'power2.out', duration: 0.35}, 0)
-        tl.to(card, {scale: 1, ease: 'power2.out', duration: 0.8}, 0)
-        tl.to({}, {duration: 0.2}, 0.8)
+        tl.fromTo(card, {scale: 0.35}, {scale: 0.5, ease: 'none', duration: 0.435}, 0)
+        tl.to(card, {scale: 1, ease: 'power2.out', duration: 0.35}, 0.435)
+        tl.to(bg, {opacity: 0, ease: 'power2.out', duration: 0.2}, 0.5)
+
+        /* Parallax drift on the studio bg — matches the scale timeline */
+        if (bgInner) {
+          gsap.fromTo(
+            bgInner,
+            {yPercent: -15},
+            {
+              yPercent: 15,
+              ease: 'none',
+              scrollTrigger: {
+                trigger: hero,
+                start: 'top bottom',
+                end: '+=230%',
+                scrub: true,
+              },
+            },
+          )
+        }
+      })
+    })()
+
+    return () => {
+      cancelled = true
+      if (ctx) ctx.revert()
+    }
+  }, [])
+
+  /* ── Global parallax: every [data-parallax="trigger"] pans its target ── */
+  useEffect(() => {
+    let ctx: ReturnType<typeof import('gsap')['default']['context']> | undefined
+    let cancelled = false
+
+    ;(async () => {
+      const gsap = (await import('gsap')).default
+      const {ScrollTrigger} = await import('gsap/ScrollTrigger')
+      gsap.registerPlugin(ScrollTrigger)
+      if (cancelled) return
+
+      ctx = gsap.context(() => {
+        document
+          .querySelectorAll<HTMLElement>('[data-parallax="trigger"]')
+          .forEach((trigger) => {
+            const target =
+              trigger.querySelector<HTMLElement>('[data-parallax="target"]') ||
+              trigger
+
+            const direction =
+              trigger.getAttribute('data-parallax-direction') || 'vertical'
+            const prop = direction === 'horizontal' ? 'xPercent' : 'yPercent'
+
+            const scrubAttr = trigger.getAttribute('data-parallax-scrub')
+            const scrub = scrubAttr ? parseFloat(scrubAttr) : true
+
+            const startAttr = trigger.getAttribute('data-parallax-start')
+            const startVal = startAttr !== null ? parseFloat(startAttr) : 15
+
+            const endAttr = trigger.getAttribute('data-parallax-end')
+            const endVal = endAttr !== null ? parseFloat(endAttr) : -15
+
+            const scrollStartRaw =
+              trigger.getAttribute('data-parallax-scroll-start') || 'top bottom'
+            const scrollEndRaw =
+              trigger.getAttribute('data-parallax-scroll-end') || 'bottom top'
+
+            gsap.fromTo(
+              target,
+              {[prop]: startVal},
+              {
+                [prop]: endVal,
+                ease: 'none',
+                scrollTrigger: {
+                  trigger,
+                  start: `clamp(${scrollStartRaw})`,
+                  end: `clamp(${scrollEndRaw})`,
+                  scrub,
+                },
+              },
+            )
+          })
       })
     })()
 
@@ -565,7 +660,9 @@ const TextDemo = () => {
 
       for (const img of mediaElements) {
         const texture = await textureLoader.loadAsync(img.src)
-        const bounds = img.getBoundingClientRect()
+        const maskEl =
+          (img.closest('[data-parallax="trigger"]') as HTMLElement | null) || img
+        const bounds = maskEl.getBoundingClientRect()
         const effect = img.dataset.webglEffect || 'none'
         const depth = parseFloat(img.dataset.webglDepth || '0')
 
@@ -590,9 +687,9 @@ const TextDemo = () => {
             },
             u_progress: {value: 0},
             u_enableBend: {value: hasBend},
-            /* Static slight zoom so the Y-pan stays within texture bounds */
-            u_innerScale: {value: 1.05},
-            u_innerY: {value: -0.025},
+            /* Static zoom so the Y-pan stays within texture bounds */
+            u_innerScale: {value: 1.2},
+            u_innerY: {value: -0.1},
             u_opacity: {value: 1},
             u_edgeFade: {value: hasDistort ? 1.0 : 0.0},
           },
@@ -607,7 +704,8 @@ const TextDemo = () => {
 
         images.push({
           mesh: imgMesh,
-          element: img,
+          element: maskEl,
+          imgElement: img,
           material: imgMaterial,
           effect,
           width: bounds.width,
@@ -623,12 +721,12 @@ const TextDemo = () => {
       images.forEach((img) => {
         const {effect} = img
 
-        /* Every WebGL image: subtle Y parallax pan */
+        /* Every WebGL image: Y parallax pan inside the texture */
         gsap.fromTo(
           img.material.uniforms.u_innerY,
-          {value: -0.025},
+          {value: -0.1},
           {
-            value: 0.025,
+            value: 0.1,
             ease: 'none',
             scrollTrigger: {
               trigger: img.element,
@@ -906,14 +1004,14 @@ const TextDemo = () => {
           </span>
         </p>
       </section>
-      <figure className={styles.heroFigure}>
-        <img
-          data-webgl-media
-          data-webgl-effect="bend"
-          src="https://picsum.photos/seed/vienna-hero/1920/823"
-          alt="V-Creative hero"
-          className={styles.heroImage}
-        />
+      <figure className={styles.heroFigure} data-parallax="trigger">
+        <div className={styles.parallaxTarget} data-parallax="target">
+          <img
+            src="https://picsum.photos/seed/vienna-hero/1920/823"
+            alt="V-Creative hero"
+            className={styles.heroImage}
+          />
+        </div>
       </figure>
 
       <LogoMarquee />
@@ -936,14 +1034,16 @@ const TextDemo = () => {
           </header>
 
           <article className={`${styles.projectItem} ${styles.projectFull}`}>
-            <figure className={styles.projectFigure}>
-              <img
-                data-webgl-media
-                data-webgl-effect="bend"
-                src="https://picsum.photos/seed/hair-by-kim/1400/700"
-                alt="Hair by Kim"
-                className={styles.projectImage}
-              />
+            <figure className={styles.projectFigure} data-parallax="trigger">
+              <div className={styles.parallaxTarget} data-parallax="target">
+                <img
+                  data-webgl-media
+                  data-webgl-effect="bend"
+                  src="https://picsum.photos/seed/hair-by-kim/1400/700"
+                  alt="Hair by Kim"
+                  className={styles.projectImage}
+                />
+              </div>
             </figure>
             <div className={styles.projectContent}>
               <h3 className={styles.projectTitle}>Hair by Kim</h3>
@@ -956,14 +1056,16 @@ const TextDemo = () => {
 
           <div className={styles.projectenRow}>
             <article className={`${styles.projectItem} ${styles.projectSmall}`}>
-              <figure className={styles.projectFigure}>
-                <img
-                  data-webgl-media
-                  data-webgl-effect="bend"
-                  src="https://picsum.photos/seed/falcon-ink/800/600"
-                  alt="Falcon Ink"
-                  className={styles.projectImage}
-                />
+              <figure className={styles.projectFigure} data-parallax="trigger">
+                <div className={styles.parallaxTarget} data-parallax="target">
+                  <img
+                    data-webgl-media
+                    data-webgl-effect="bend"
+                    src="https://picsum.photos/seed/falcon-ink/800/600"
+                    alt="Falcon Ink"
+                    className={styles.projectImage}
+                  />
+                </div>
               </figure>
               <div className={styles.projectContent}>
                 <h3 className={styles.projectTitle}>Falcon Ink</h3>
@@ -975,14 +1077,16 @@ const TextDemo = () => {
             </article>
 
             <article className={`${styles.projectItem} ${styles.projectLarge}`}>
-              <figure className={styles.projectFigure}>
-                <img
-                  data-webgl-media
-                  data-webgl-effect="bend"
-                  src="https://picsum.photos/seed/hal-xiii/1280/800"
-                  alt="Hal XIII"
-                  className={styles.projectImage}
-                />
+              <figure className={styles.projectFigure} data-parallax="trigger">
+                <div className={styles.parallaxTarget} data-parallax="target">
+                  <img
+                    data-webgl-media
+                    data-webgl-effect="bend"
+                    src="https://picsum.photos/seed/hal-xiii/1280/800"
+                    alt="Hal XIII"
+                    className={styles.projectImage}
+                  />
+                </div>
               </figure>
               <div className={styles.projectContent}>
                 <h3 className={styles.projectTitle}>Hal XIII</h3>
@@ -995,14 +1099,16 @@ const TextDemo = () => {
           </div>
 
           <article className={`${styles.projectItem} ${styles.projectFull}`}>
-            <figure className={styles.projectFigure}>
-              <img
-                data-webgl-media
-                data-webgl-effect="bend"
-                src="https://picsum.photos/seed/beautysalon-glow/1400/700"
-                alt="Beautysalon Glow"
-                className={styles.projectImage}
-              />
+            <figure className={styles.projectFigure} data-parallax="trigger">
+              <div className={styles.parallaxTarget} data-parallax="target">
+                <img
+                  data-webgl-media
+                  data-webgl-effect="bend"
+                  src="https://picsum.photos/seed/beautysalon-glow/1400/700"
+                  alt="Beautysalon Glow"
+                  className={styles.projectImage}
+                />
+              </div>
             </figure>
             <div className={styles.projectContent}>
               <h3 className={styles.projectTitle}>Beautysalon Glow</h3>
@@ -1020,15 +1126,19 @@ const TextDemo = () => {
       <section className={styles.studioSection}>
         <div className={styles.studioHero}>
           <div className={styles.studioBg}>
-            <img src="https://picsum.photos/seed/studio-bg/1920/1080" alt="" className={styles.studioBgImage} />
+            <div className={styles.parallaxTarget}>
+              <img src="https://picsum.photos/seed/studio-bg/1920/1080" alt="" className={styles.studioBgImage} />
+            </div>
           </div>
           <div className={styles.studioCard}>
             <p className={styles.studioLabel}>Over V-Creative</p>
             <span className={styles.studioLogo} aria-hidden="true" />
-            <h2 className={styles.studioTagline}>
-              <em>M</em>ijn missie is om jouw merk écht zichtbaar te maken.
-            </h2>
-            <p className={styles.studioScroll}>Blijf scrollen</p>
+            <div className={styles.studioBottomGroup}>
+              <h2 className={styles.studioTagline}>
+                <em>M</em>ijn missie is om jouw merk écht zichtbaar te maken.
+              </h2>
+              <p className={styles.studioScroll}>Blijf scrollen</p>
+            </div>
           </div>
         </div>
         <div className={styles.studioContent}>
@@ -1100,14 +1210,16 @@ const TextDemo = () => {
         </ul>
 
         <div className={styles.werkwijzeCta}>
-          <figure className={styles.werkwijzeCtaFigure}>
-            <img
-              data-webgl-media
-              data-webgl-effect="bend"
-              src="https://picsum.photos/seed/vienna-portrait/900/900"
-              alt="Viënna"
-              className={styles.werkwijzeCtaImage}
-            />
+          <figure className={styles.werkwijzeCtaFigure} data-parallax="trigger">
+            <div className={styles.parallaxTarget} data-parallax="target">
+              <img
+                data-webgl-media
+                data-webgl-effect="bend"
+                src="https://picsum.photos/seed/vienna-portrait/900/900"
+                alt="Viënna"
+                className={styles.werkwijzeCtaImage}
+              />
+            </div>
           </figure>
           <p className={styles.werkwijzeCtaText}>
             <em>Z</em>et mij aan het werk met jouw unieke merk.
