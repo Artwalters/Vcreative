@@ -183,8 +183,116 @@ interface ImageEntry {
 }
 
 
+const REVIEWS = [
+  {
+    logo: 'https://placehold.co/240x80/faf8f2/332f29/png?text=hair+by+kim&font=playfair',
+    quote:
+      'Wat Viënna voor ons heeft neergezet is zoveel meer dan foto\u2019s en reels — ze heeft ons merk echt op de kaart gezet. Onze salon voelt nu ook online als onze salon.',
+    author: 'Kim van Dijk',
+    role: 'Eigenaar Hair by Kim',
+    caseHref: '/cases/hair-by-kim',
+  },
+  {
+    logo: 'https://placehold.co/240x80/faf8f2/332f29/png?text=falcon+ink&font=playfair',
+    quote:
+      'Één contentdag met Viënna leverde meer op dan maandenlang losse posts. De sfeer, de ruwheid, de energie — alles klopt met wie we zijn als studio.',
+    author: 'Mark Jansen',
+    role: 'Founder Falcon Ink',
+    caseHref: '/cases/falcon-ink',
+  },
+  {
+    logo: 'https://placehold.co/240x80/faf8f2/332f29/png?text=hal+xiii&font=playfair',
+    quote:
+      'Viënna begrijpt wat een merk nodig heeft om écht zichtbaar te worden. Geen standaard content, maar beeld dat kracht uitstraalt en ons publiek raakt.',
+    author: 'Daan Vermeer',
+    role: 'Owner Hal XIII',
+    caseHref: '/cases/hal-xiii',
+  },
+] as const
+
+const WERKWIJZE_STEPS = [
+  {
+    title: 'Je neemt contact op, ik leer jouw merk kennen.',
+    description:
+      'We gaan in gesprek — telefonisch, video of bij je op locatie. Ik wil jouw merk, doelgroep en ambities echt begrijpen voordat we beginnen.',
+  },
+  {
+    title: 'Jij beoordeelt de offerte op mijn plan van aanpak.',
+    description:
+      'Je ontvangt binnen een week een heldere offerte met concrete deliverables, tijdlijn en investering. Geen verrassingen onderweg.',
+  },
+  {
+    title: 'Zijn we een match? We gaan aan de slag!',
+    description:
+      'Zodra we beide tekenen plannen we de eerste contentdag in. Ik zorg voor de voorbereiding — jij hoeft alleen zelf op te komen dagen.',
+  },
+  {
+    title: 'Ik vertaal jouw merk in content die bij je past.',
+    description:
+      'Van conceptuele creatie tot strategische timing — ik maak content die jouw merk versterkt en jouw publiek raakt.',
+  },
+  {
+    title: 'We brengen het live en blijven evalueren.',
+    description:
+      'Na publicatie kijken we regelmatig terug: wat werkt, wat kan beter, waar groeien we door? Zo blijft jouw content scherp.',
+  },
+] as const
+
 const TextDemo = () => {
   const [webglEnabled, setWebglEnabled] = useState(true)
+  const [activeStep, setActiveStep] = useState<number | null>(null)
+  const [reviewIndex, setReviewIndex] = useState(0)
+
+  const toggleStep = (i: number) => {
+    setActiveStep((cur) => (cur === i ? null : i))
+  }
+
+  const prevReview = () => setReviewIndex((i) => (i - 1 + REVIEWS.length) % REVIEWS.length)
+  const nextReview = () => setReviewIndex((i) => (i + 1) % REVIEWS.length)
+  const currentReview = REVIEWS[reviewIndex]
+
+  /* ── Studio scale-in scroll animation ── */
+  useEffect(() => {
+    let ctx: ReturnType<typeof import('gsap')['default']['context']> | undefined
+    let cancelled = false
+
+    ;(async () => {
+      const gsap = (await import('gsap')).default
+      const {ScrollTrigger} = await import('gsap/ScrollTrigger')
+      gsap.registerPlugin(ScrollTrigger)
+      if (cancelled) return
+
+      ctx = gsap.context(() => {
+        const hero = document.querySelector(`.${styles.studioHero}`) as HTMLElement | null
+        const card = document.querySelector(`.${styles.studioCard}`) as HTMLElement | null
+        const bg = document.querySelector(`.${styles.studioBg}`) as HTMLElement | null
+        if (!hero || !card || !bg) return
+
+        gsap.set(card, {scale: 0.35, transformOrigin: 'center center'})
+        gsap.set(bg, {opacity: 1})
+
+        const tl = gsap.timeline({
+          scrollTrigger: {
+            trigger: hero,
+            start: 'top top',
+            end: '+=180%',
+            pin: true,
+            scrub: true,
+            anticipatePin: 1,
+            invalidateOnRefresh: true,
+          },
+        })
+        tl.to(bg, {opacity: 0, ease: 'none', duration: 0.3}, 0)
+        tl.to(card, {scale: 1, ease: 'none', duration: 0.5}, 0)
+        tl.to({}, {duration: 0.5}, 0.5)
+      })
+    })()
+
+    return () => {
+      cancelled = true
+      if (ctx) ctx.revert()
+    }
+  }, [])
 
   useEffect(() => {
     if (!webglEnabled) {
@@ -319,7 +427,7 @@ const TextDemo = () => {
           elCamera.position.z = 1
 
           const elScene = new THREE.Scene()
-          const bgColor = new THREE.Vector3(0xf2 / 255, 0xeb / 255, 0xd9 / 255)
+          const bgColor = new THREE.Vector3(0xfa / 255, 0xf8 / 255, 0xf2 / 255)
 
           const aspect = bounds.width / bounds.height
           const elMaterial = new THREE.ShaderMaterial({
@@ -375,7 +483,7 @@ const TextDemo = () => {
         })
       } else {
         /* ── Desktop: WebGL overlay (smooth with Lenis) ── */
-        const bgColor = new THREE.Vector3(0xf2 / 255, 0xeb / 255, 0xd9 / 255)
+        const bgColor = new THREE.Vector3(0xfa / 255, 0xf8 / 255, 0xf2 / 255)
 
         textElements.forEach((element) => {
           const bounds = element.getBoundingClientRect()
@@ -481,8 +589,9 @@ const TextDemo = () => {
             },
             u_progress: {value: 0},
             u_enableBend: {value: hasBend},
-            u_innerScale: {value: 1.0},
-            u_innerY: {value: hasParallax ? -0.04 : 0.0},
+            /* Static slight zoom so the Y-pan stays within texture bounds */
+            u_innerScale: {value: 1.05},
+            u_innerY: {value: -0.025},
             u_opacity: {value: 1},
             u_edgeFade: {value: hasDistort ? 1.0 : 0.0},
           },
@@ -513,6 +622,39 @@ const TextDemo = () => {
       images.forEach((img) => {
         const {effect} = img
 
+        /* Every WebGL image: subtle Y parallax pan */
+        gsap.fromTo(
+          img.material.uniforms.u_innerY,
+          {value: -0.025},
+          {
+            value: 0.025,
+            ease: 'none',
+            scrollTrigger: {
+              trigger: img.element,
+              scrub: true,
+              start: 'top bottom',
+              end: 'bottom top',
+            },
+          },
+        )
+
+        /* Every WebGL image: start zoomed-in (closer), settle at normal around viewport center */
+        gsap.fromTo(
+          img.material.uniforms.u_innerScale,
+          {value: 1.12},
+          {
+            value: 1.05,
+            ease: 'power1.out',
+            scrollTrigger: {
+              trigger: img.element,
+              scrub: true,
+              start: 'top bottom',
+              end: 'center center',
+            },
+          },
+        )
+
+        /* Bend/distort add the scroll-linked curl on top of the pan */
         if (effect === 'bend' || effect === 'distort') {
           gsap.to(img.material.uniforms.u_progress, {
             value: 1.5,
@@ -524,54 +666,6 @@ const TextDemo = () => {
               end: 'bottom 70%',
             },
           })
-        }
-
-        if (effect === 'parallax') {
-          gsap.fromTo(
-            img.material.uniforms.u_innerY,
-            {value: -0.04},
-            {
-              value: 0.04,
-              ease: 'none',
-              scrollTrigger: {
-                trigger: img.element,
-                scrub: true,
-                start: 'top bottom',
-                end: 'bottom top',
-              },
-            },
-          )
-          gsap.fromTo(
-            img.material.uniforms.u_innerScale,
-            {value: 1.03},
-            {
-              value: 1.0,
-              ease: 'none',
-              scrollTrigger: {
-                trigger: img.element,
-                scrub: true,
-                start: 'top bottom',
-                end: 'bottom top',
-              },
-            },
-          )
-        }
-
-        if (effect === 'distort') {
-          gsap.fromTo(
-            img.material.uniforms.u_innerScale,
-            {value: 1.03},
-            {
-              value: 1.0,
-              ease: 'none',
-              scrollTrigger: {
-                trigger: img.element,
-                scrub: true,
-                start: 'top bottom',
-                end: 'bottom top',
-              },
-            },
-          )
         }
       })
 
@@ -821,154 +915,266 @@ const TextDemo = () => {
         {webglEnabled ? 'WebGL on' : 'WebGL off'}
       </button>
       <section className={styles.hero}>
-        <h2 data-animation="webgl-text" className={styles.heroText}>
-          Social media content creatie voor ondernemers die zichtbaar willen zijn, professioneel, persoonlijk en zonder gedoe.
-        </h2>
+        <h1 data-animation="webgl-text" className={styles.heroText}>
+          <em>J</em>ij runt je bedrijf
+          <br />
+          ik regel je socials
+        </h1>
+        <p className={styles.heroSubtitle}>
+          Sociale media management
+          <br />
+          by Vienna
+        </p>
       </section>
+      <figure className={styles.heroFigure}>
+        <img
+          data-webgl-media
+          data-webgl-effect="bend"
+          src="https://picsum.photos/seed/vienna-hero/1920/823"
+          alt="V-Creative hero"
+          className={styles.heroImage}
+        />
+      </figure>
       <section className={styles.imageGrid}>
-        <figure className={styles.figure}>
-          <img
-            data-webgl-media
-            data-webgl-effect="bend"
-            src="/images/face-mist-sunlight.webp"
-            alt="V-Creative hero"
-            className={styles.gridImage}
-          />
-        </figure>
-        <section className={styles.dienstenSection}>
-          <div className={styles.dienstenImage}>
+        <section className={styles.projectenSection}>
+          <header className={styles.projectenHeader}>
+            <h2 className={styles.projectenTitle}>
+              Zakelijke <em>projecten</em>
+              <span className={styles.projectenYears}>2008 — 2026</span>
+            </h2>
+            <ul className={styles.projectenCategories}>
+              <li className={styles.projectenCategory}>Horeca</li>
+              <li className={styles.projectenCategory}>Onderwijs</li>
+              <li className={styles.projectenCategory}>Recreatie</li>
+              <li className={styles.projectenCategory}>Kantoor</li>
+              <li className={styles.projectenCategory}>Zorg</li>
+            </ul>
+          </header>
+
+          <article className={`${styles.projectItem} ${styles.projectFull}`}>
+            <figure className={styles.projectFigure}>
+              <img
+                data-webgl-media
+                data-webgl-effect="bend"
+                src="https://picsum.photos/seed/hair-by-kim/1400/700"
+                alt="Hair by Kim"
+                className={styles.projectImage}
+              />
+            </figure>
+            <div className={styles.projectContent}>
+              <h3 className={styles.projectTitle}>Hair by Kim</h3>
+              <p className={styles.projectDescription}>
+                Social media beheer voor Hair by Kim. Strategie, fotografie en contentcreatie die het merk laat groeien.
+              </p>
+              <a href="/cases/hair-by-kim" className={styles.projectLink}>Bekijk case</a>
+            </div>
+          </article>
+
+          <div className={styles.projectenRow}>
+            <article className={`${styles.projectItem} ${styles.projectSmall}`}>
+              <figure className={styles.projectFigure}>
+                <img
+                  data-webgl-media
+                  data-webgl-effect="bend"
+                  src="https://picsum.photos/seed/falcon-ink/800/600"
+                  alt="Falcon Ink"
+                  className={styles.projectImage}
+                />
+              </figure>
+              <div className={styles.projectContent}>
+                <h3 className={styles.projectTitle}>Falcon Ink</h3>
+                <p className={styles.projectDescription}>
+                  Content creatie voor Falcon Ink. Van concept tot publicatie, altijd in de juiste sfeer.
+                </p>
+                <a href="/cases/falcon-ink" className={styles.projectLink}>Bekijk case</a>
+              </div>
+            </article>
+
+            <article className={`${styles.projectItem} ${styles.projectLarge}`}>
+              <figure className={styles.projectFigure}>
+                <img
+                  data-webgl-media
+                  data-webgl-effect="bend"
+                  src="https://picsum.photos/seed/hal-xiii/1280/800"
+                  alt="Hal XIII"
+                  className={styles.projectImage}
+                />
+              </figure>
+              <div className={styles.projectContent}>
+                <h3 className={styles.projectTitle}>Hal XIII</h3>
+                <p className={styles.projectDescription}>
+                  Maandelijks beheer voor Hal XIII. Energie en kracht vertaald naar beeld en video.
+                </p>
+                <a href="/cases/hal-xiii" className={styles.projectLink}>Bekijk case</a>
+              </div>
+            </article>
+          </div>
+
+          <article className={`${styles.projectItem} ${styles.projectFull}`}>
+            <figure className={styles.projectFigure}>
+              <img
+                data-webgl-media
+                data-webgl-effect="bend"
+                src="https://picsum.photos/seed/beautysalon-glow/1400/700"
+                alt="Beautysalon Glow"
+                className={styles.projectImage}
+              />
+            </figure>
+            <div className={styles.projectContent}>
+              <h3 className={styles.projectTitle}>Beautysalon Glow</h3>
+              <p className={styles.projectDescription}>
+                Eenmalige contentdag voor Beautysalon Glow. Een dag shooten, een maand aan content.
+              </p>
+              <a href="/cases/beautysalon-glow" className={styles.projectLink}>Bekijk case</a>
+            </div>
+          </article>
+
+          <a href="/contact" className={styles.projectenCta}>Zet mij aan het werk met jouw merk</a>
+        </section>
+      </section>
+
+      <section className={styles.studioSection}>
+        <div className={styles.studioHero}>
+          <div className={styles.studioBg}>
+            <img src="https://picsum.photos/seed/studio-bg/1920/1080" alt="" className={styles.studioBgImage} />
+          </div>
+          <div className={styles.studioCard}>
+            <p className={styles.studioLabel}>Over V-Creative</p>
+            <span className={styles.studioLogo} aria-hidden="true" />
+            <h2 className={styles.studioTagline}>
+              Mijn missie is om jouw merk <em>écht zichtbaar</em> te maken.
+            </h2>
+            <p className={styles.studioScroll}>Blijf scrollen</p>
+          </div>
+        </div>
+        <div className={styles.studioContent}>
+          <div className={styles.studioContentInner}>
+            <blockquote className={styles.studioQuote}>
+              &ldquo;Mijn studio richt zich op het creëren van content die jouw merk écht zichtbaar maakt en de verbinding met je doelgroep versterkt.&rdquo;
+            </blockquote>
+            <p className={styles.studioBody}>
+              Jouw content draagt jouw merk, jouw verhaal, jouw karakter — hoe je wilt dat mensen je zien en voelen. Een strategie met als resultaat beeld en video waar je trots op bent, en waarmee je met vertrouwen en energie je merk naar buiten brengt.
+            </p>
+            <blockquote className={styles.studioQuote}>
+              &ldquo;Content is meer dan een mooie foto. Het bepaalt hoe jouw merk ervaren, herinnerd en vertrouwd wordt.&rdquo;
+            </blockquote>
+            <p className={styles.studioBody}>
+              Concept, fotografie, video, editing. Iedere stap vraagt om aandacht. Kleur, licht, compositie en timing bepalen samen hoe jouw merk online voelt. Alles wordt doordacht en op de juiste manier ingezet — zodat elk beeld een verlengstuk is van wie jij bent.
+            </p>
+            <p className={styles.studioBody}>
+              Ieder project krijgt een eigen aanpak, zowel in strategie als in uitvoering. Ik werk vanuit een hecht netwerk aan creatieve partners en kan je adviseren over welke aanpak bij jouw merk past. Jij houdt de regie, ik zorg dat alles op het juiste moment klopt — van eerste idee tot laatste post.
+            </p>
+            <a href="/over-mij" className={styles.studioCta}>Het gezicht achter de studio</a>
+          </div>
+        </div>
+      </section>
+
+      <section className={styles.werkwijzeSection}>
+        <p className={styles.werkwijzeLabel}>Werkwijze</p>
+        <h2 className={styles.werkwijzeTitle}>
+          In{' '}
+          <span className={styles.werkwijzeCount}>
+            {String(WERKWIJZE_STEPS.length).padStart(2, '0')}
+          </span>{' '}
+          stappen van jouw merk naar <em>content die raakt</em>.
+        </h2>
+
+        <ul className={styles.werkwijzeList}>
+          {WERKWIJZE_STEPS.map((step, i) => {
+            const isActive = activeStep === i
+            return (
+              <li
+                key={i}
+                className={styles.werkwijzeItem}
+                data-accordion-status={isActive ? 'active' : 'not-active'}
+              >
+                <button
+                  type="button"
+                  className={styles.werkwijzeTop}
+                  onClick={() => toggleStep(i)}
+                  aria-expanded={isActive}
+                >
+                  <span className={styles.werkwijzeNumber}>
+                    {String(i + 1).padStart(2, '0')}
+                  </span>
+                  <h3 className={styles.werkwijzeH3}>{step.title}</h3>
+                  <span className={styles.werkwijzeIcon} aria-hidden="true">
+                    <span className={styles.werkwijzeIconH} />
+                    <span className={styles.werkwijzeIconV} />
+                  </span>
+                </button>
+                <div className={styles.werkwijzeBottom}>
+                  <div className={styles.werkwijzeBottomWrap}>
+                    <div className={styles.werkwijzeBottomContent}>
+                      <p className={styles.werkwijzeP}>{step.description}</p>
+                    </div>
+                  </div>
+                </div>
+              </li>
+            )
+          })}
+        </ul>
+
+        <div className={styles.werkwijzeCta}>
+          <figure className={styles.werkwijzeCtaFigure}>
             <img
               data-webgl-media
               data-webgl-effect="bend"
-              src="/images/body-oil-dramatic.webp"
-              alt="V-Creative diensten"
-              className={styles.dienstenImg}
+              src="https://picsum.photos/seed/vienna-portrait/900/900"
+              alt="Viënna"
+              className={styles.werkwijzeCtaImage}
             />
-          </div>
-          <div className={styles.dienstenContent}>
-            <p data-animation="webgl-text" className={styles.dienstenBody}>
-              Jouw merk verdient beter dan een snelle post. Ik maak content die raakt. Strategie, fotografie, video en editing in één. Alles om zichtbaar te zijn en professioneel over te komen. Geen standaard werk, wel eerlijk vakwerk dat bij jou past.
-            </p>
-            <a href="/contact" className={styles.dienstenLink}>Start nu →</a>
-          </div>
-        </section>
-        <section className={styles.aanpakSection}>
-          <p data-animation="webgl-text" className={styles.aanpakBody}>
-            Het begint met luisteren. Vanuit jouw merk bouw ik een strategie, maak ik de content en zorg ik dat alles op het juiste moment live staat.
+          </figure>
+          <p className={styles.werkwijzeCtaText}>
+            Zet mij aan het werk met <em>jouw unieke merk</em>.
           </p>
-          <a href="/cases" className={styles.aanpakLink}>Lees hoe ik dit toepas</a>
-        </section>
-
-        <section className={styles.projectenSection}>
-          <div className={`${styles.projectItem} ${styles.projectLeft}`}>
-            <figure className={styles.projectFigure}>
-              <img
-                data-webgl-media
-                data-webgl-effect="bend"
-                src="/images/body-oil-dramatic.webp"
-                alt="Hair by Kim — Social Media Beheer"
-                className={styles.projectImage}
-              />
-            </figure>
-            <p className={styles.projectCaption}>
-              Social media beheer voor Hair by Kim.<br />
-              Strategie, fotografie en contentcreatie<br />
-              die het merk laat groeien.
-            </p>
-          </div>
-
-          <div className={`${styles.projectItem} ${styles.projectRight}`}>
-            <figure className={styles.projectFigure}>
-              <img
-                data-webgl-media
-                data-webgl-effect="bend"
-                src="/images/body-oil-dark-mood.webp"
-                alt="Falcon Ink — Content Creatie"
-                className={styles.projectImage}
-              />
-            </figure>
-            <p className={styles.projectCaption}>
-              Content creatie voor Falcon Ink.<br />
-              Van concept tot publicatie,<br />
-              altijd in de juiste sfeer.
-            </p>
-          </div>
-
-          <div className={`${styles.projectItem} ${styles.projectLeft}`}>
-            <figure className={styles.projectFigure}>
-              <img
-                data-webgl-media
-                data-webgl-effect="bend"
-                src="/images/face-mist-duo-marble.webp"
-                alt="Hal XIII — Social Media Beheer"
-                className={styles.projectImage}
-              />
-            </figure>
-            <p className={styles.projectCaption}>
-              Maandelijks beheer voor Hal XIII.<br />
-              Energie en kracht vertaald<br />
-              naar beeld en video.
-            </p>
-          </div>
-
-          <div className={`${styles.projectItem} ${styles.projectCenter}`}>
-            <figure className={styles.projectFigure}>
-              <img
-                data-webgl-media
-                data-webgl-effect="bend"
-                src="/images/body-oil-tilted-closeup.webp"
-                alt="Beautysalon Glow — Contentdag"
-                className={styles.projectImage}
-              />
-            </figure>
-            <p className={styles.projectCaption}>
-              Eenmalige contentdag voor Beautysalon Glow.<br />
-              Een dag shooten, een maand<br />
-              aan content.
-            </p>
-          </div>
-        </section>
-
-        <section className={styles.overSection}>
-          <p data-animation="webgl-text" className={styles.overText}>
-            Ik ben Viënna, het gezicht achter V-Creative. Al van jongs af aan was ik die ene vriendin met de camera zonder dat het toen al werk was. Wat begon als een hobby groeide uit tot iets veel groters.
-          </p>
-          <div className={styles.overGrid}>
-            <div className={styles.overLogoWrap}>
-              <img data-webgl-media data-webgl-effect="none" data-webgl-depth="-30" src="/logo/logopatch.png" alt="V-Creative logo" className={styles.overLogo} />
-            </div>
-            <div className={styles.overRow}>
-              <div className={styles.overImgWrap}>
-                <img data-webgl-media data-webgl-effect="none" data-webgl-depth="25" src="/images/vienna-portrait-chair.webp" alt="Viënna portret zittend op stoel" className={styles.overImg} />
-              </div>
-              <div className={styles.overImgWrap}>
-                <img data-webgl-media data-webgl-effect="none" data-webgl-depth="-40" src="/images/vienna-photographer-camera-stairs.webp" alt="Viënna met camera op trap" className={styles.overImg} />
-              </div>
-              <div className={styles.overImgWrap}>
-                <img data-webgl-media data-webgl-effect="none" data-webgl-depth="35" src="/images/vienna-working-desk.webp" alt="Viënna aan het werk achter bureau" className={styles.overImg} />
-              </div>
-            </div>
-            <div className={styles.overRowBottom}>
-              <div className={styles.overImgWrap}>
-                <img data-webgl-media data-webgl-effect="none" data-webgl-depth="-55" src="/images/vienna-editing-photos-laptop.webp" alt="Viënna bewerkt foto's op laptop" className={styles.overImg} />
-              </div>
-              <div className={`${styles.overImgWrap} ${styles.overImgLarge}`}>
-                <img data-webgl-media data-webgl-effect="none" data-webgl-depth="40" src="/images/vienna-photographer-portrait.webp" alt="Viënna portret met camera" className={styles.overImg} />
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <figure className={styles.figure}>
-          <img
-            data-webgl-media
-            data-webgl-effect="bend"
-            src="/images/body-oil-painting-backdrop.webp"
-            alt="V-Creative behind the scenes"
-            className={styles.gridImage}
-          />
-        </figure>
+          <a href="/contact" className={styles.werkwijzeCtaButton}>
+            Start jouw project
+          </a>
+        </div>
       </section>
+
+      <section className={styles.reviewsSection} aria-roledescription="carousel">
+        <button
+          type="button"
+          className={`${styles.reviewsArrow} ${styles.reviewsArrowLeft}`}
+          onClick={prevReview}
+          aria-label="Vorige review"
+        >
+          <span aria-hidden="true">←</span>
+        </button>
+
+        <div className={styles.reviewCard} key={reviewIndex}>
+          <img
+            src={currentReview.logo}
+            alt=""
+            aria-hidden="true"
+            className={styles.reviewLogo}
+          />
+          <blockquote className={styles.reviewQuote}>
+            &ldquo;{currentReview.quote}&rdquo;
+          </blockquote>
+          <p className={styles.reviewAuthor}>
+            <span className={styles.reviewAuthorDot} aria-hidden="true" />
+            {currentReview.author}
+          </p>
+          <p className={styles.reviewRole}>{currentReview.role}</p>
+          <div className={styles.reviewStars} aria-label="5 sterren">
+            {'★★★★★'}
+          </div>
+          <a href={currentReview.caseHref} className={styles.reviewLink}>Bekijk case</a>
+        </div>
+
+        <button
+          type="button"
+          className={`${styles.reviewsArrow} ${styles.reviewsArrowRight}`}
+          onClick={nextReview}
+          aria-label="Volgende review"
+        >
+          <span aria-hidden="true">→</span>
+        </button>
+      </section>
+
       <Footer />
     </div>
   )

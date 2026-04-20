@@ -17,6 +17,7 @@ const RootLayout = ({
     <html lang="nl">
       <head>
         <meta name="format-detection" content="telephone=no, date=no, email=no, address=no" />
+        <link rel="stylesheet" href="https://use.typekit.net/uvq1lml.css" />
       </head>
       <body>
           <LenisScroll />

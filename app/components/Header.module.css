@@ -3,49 +3,39 @@
   top: 0;
   left: 0;
   width: 100%;
-  height: 100vh;
   z-index: 50;
   pointer-events: none;
   padding: 2em 2.5em;
 }
 
-/* ── Nav (top left) ── */
+/* ── Menu (top left) ── */
 
-.nav {
+.menuLink {
   position: absolute;
   top: 2em;
   left: 2.5em;
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 2em;
+  gap: 0.5em;
+  font-family: var(--font-secondary);
+  font-size: 0.875em;
+  font-weight: var(--weight-medium);
+  color: var(--color-navy);
+  text-decoration: none;
+  letter-spacing: var(--tracking-tight);
+  transition: opacity var(--duration-fast);
   pointer-events: auto;
 }
 
-.navLink {
-  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-  font-size: 0.875em;
-  font-weight: 400;
-  color: var(--color-navy);
-  text-decoration: none;
-  letter-spacing: 0.01em;
-  transition: opacity 0.2s;
-  position: relative;
-}
-
-.navLink:hover {
+.menuLink:hover {
   opacity: 0.6;
 }
 
-.navLinkActive::before {
-  content: '';
-  position: absolute;
-  left: -0.75em;
-  top: 50%;
-  transform: translateY(-50%);
+.menuDot {
   width: 0.35em;
   height: 0.35em;
-  border-radius: 50%;
-  background: var(--color-burgundy);
+  border-radius: var(--radius-full);
+  background: var(--color-accent);
 }
 
 /* ── Logo (top center) ── */
@@ -59,55 +49,33 @@
 }
 
 .logoImg {
-  width: 7em;
-  height: auto;
+  display: block;
+  width: 2.25em;
+  aspect-ratio: 88.92 / 104.29;
+  background-color: currentColor;
+  -webkit-mask: url('/icons/SVG/main_logo_v.svg') no-repeat center / contain;
+  mask: url('/icons/SVG/main_logo_v.svg') no-repeat center / contain;
   color: var(--color-navy);
 }
 
-/* ── CTA button (top right) ── */
+/* ── Contact (top right) ── */
 
-.ctaButton {
+.contactLink {
   position: absolute;
   top: 2em;
   right: 2.5em;
-  display: flex;
-  align-items: center;
-  gap: 0.75em;
-  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-family: var(--font-secondary);
   font-size: 0.875em;
-  font-weight: 400;
+  font-weight: var(--weight-medium);
   color: var(--color-navy);
   text-decoration: none;
-  border: 1px solid var(--color-navy);
-  border-radius: 2em;
-  padding: 0.5em 0.6em 0.5em 1.25em;
-  transition: opacity 0.2s;
+  letter-spacing: var(--tracking-tight);
+  transition: opacity var(--duration-fast);
   pointer-events: auto;
 }
 
-.ctaButton:hover {
+.contactLink:hover {
   opacity: 0.6;
-}
-
-.ctaDot {
-  width: 1.75em;
-  height: 1.75em;
-  border-radius: 50%;
-  background: var(--color-burgundy);
-  flex-shrink: 0;
-}
-
-/* ── Year (bottom left) ── */
-
-.yearLeft {
-  position: absolute;
-  bottom: 2em;
-  left: 2.5em;
-  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-  font-size: 0.875em;
-  font-weight: 400;
-  color: var(--color-navy);
-  letter-spacing: 0.02em;
 }
 
 /* ── Mobile ── */
@@ -117,13 +85,9 @@
     padding: 1.5em;
   }
 
-  .nav {
+  .menuLink {
     top: 1.5em;
     left: 1.5em;
-    gap: 1.25em;
-  }
-
-  .navLink {
     font-size: 0.75em;
   }
 
@@ -132,23 +96,12 @@
   }
 
   .logoImg {
-    width: 5em;
+    width: 1.75em;
   }
 
-  .ctaButton {
+  .contactLink {
     top: 1.5em;
     right: 1.5em;
-    font-size: 0.75em;
-  }
-
-  .ctaDot {
-    width: 1.5em;
-    height: 1.5em;
-  }
-
-  .yearLeft {
-    bottom: 1.5em;
-    left: 1.5em;
     font-size: 0.75em;
   }
 }
