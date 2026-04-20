@@ -921,9 +921,10 @@ const TextDemo = () => {
           ik regel je socials
         </h1>
         <p className={styles.heroSubtitle}>
-          Sociale media management
-          <br />
-          by Vienna
+          <span className={styles.heroSubtitleMain}>Media management</span>
+          <span className={styles.heroSubtitleScript}>
+            by <span className={styles.heroSubtitleV}>V</span>ienna
+          </span>
         </p>
       </section>
       <figure className={styles.heroFigure}>

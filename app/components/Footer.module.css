@@ -27,8 +27,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 3em;
-  height: 3em;
+  width: 3.5em;
+  height: 3.5em;
   border: 1px solid currentColor;
   border-radius: var(--radius-full);
   color: var(--color-cream);
@@ -41,7 +41,7 @@
 
 .logoMark {
   display: block;
-  width: 1.2em;
+  width: 1.5em;
   aspect-ratio: 88.92 / 104.29;
   background-color: currentColor;
   -webkit-mask: url('/icons/SVG/main_logo_v.svg') no-repeat center / contain;

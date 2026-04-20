@@ -48,9 +48,9 @@
   pointer-events: auto;
 }
 
-.logoImg {
+.logoMark {
   display: block;
-  width: 2.25em;
+  width: 3em;
   aspect-ratio: 88.92 / 104.29;
   background-color: currentColor;
   -webkit-mask: url('/icons/SVG/main_logo_v.svg') no-repeat center / contain;
@@ -95,8 +95,8 @@
     top: 1em;
   }
 
-  .logoImg {
-    width: 1.75em;
+  .logoMark {
+    width: 2.25em;
   }
 
   .contactLink {

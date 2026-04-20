@@ -1,9 +1,82 @@
 /* ------------------------- Fonts -------------------------  */
 
 @font-face {
-  font-family: 'PS Times';
-  src: url('/fonts/PSTimesTrial-Regular.otf') format('opentype');
+  font-family: 'HW Cigars';
+  src: url('/fonts/HW Cigars Trial/HW Cigars Trial SuperSlim.woff2') format('woff2'),
+       url('/fonts/HW Cigars Trial/HW Cigars Trial SuperSlim.woff') format('woff');
+  font-weight: 100;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'HW Cigars';
+  src: url('/fonts/HW Cigars Trial/HW Cigars Trial Slim.woff2') format('woff2'),
+       url('/fonts/HW Cigars Trial/HW Cigars Trial Slim.woff') format('woff');
+  font-weight: 200;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'HW Cigars';
+  src: url('/fonts/HW Cigars Trial/HW Cigars Trial Light.woff2') format('woff2'),
+       url('/fonts/HW Cigars Trial/HW Cigars Trial Light.woff') format('woff');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'HW Cigars';
+  src: url('/fonts/HW Cigars Trial/HW Cigars Trial Regular.woff2') format('woff2'),
+       url('/fonts/HW Cigars Trial/HW Cigars Trial Regular.woff') format('woff');
   font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'HW Cigars';
+  src: url('/fonts/HW Cigars Trial/HW Cigars Trial Medium.woff2') format('woff2'),
+       url('/fonts/HW Cigars Trial/HW Cigars Trial Medium.woff') format('woff');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'HW Cigars';
+  src: url('/fonts/HW Cigars Trial/HW Cigars Trial SemiBold.woff2') format('woff2'),
+       url('/fonts/HW Cigars Trial/HW Cigars Trial SemiBold.woff') format('woff');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'HW Cigars';
+  src: url('/fonts/HW Cigars Trial/HW Cigars Trial Bold.woff2') format('woff2'),
+       url('/fonts/HW Cigars Trial/HW Cigars Trial Bold.woff') format('woff');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'HW Cigars';
+  src: url('/fonts/HW Cigars Trial/HW Cigars Trial Strong.woff2') format('woff2'),
+       url('/fonts/HW Cigars Trial/HW Cigars Trial Strong.woff') format('woff');
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'HW Cigars';
+  src: url('/fonts/HW Cigars Trial/HW Cigars Trial Black.woff2') format('woff2'),
+       url('/fonts/HW Cigars Trial/HW Cigars Trial Black.woff') format('woff');
+  font-weight: 900;
   font-style: normal;
   font-display: swap;
 }
@@ -38,9 +111,9 @@
   --6: 0.428571em;
 
   /* Typography */
-  --font-primary: 'PS Times', Georgia, serif;
+  --font-primary: 'HW Cigars', Georgia, serif;
   --font-secondary: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-  --font-script: 'nautica', 'PS Times', Georgia, serif;
+  --font-script: 'nautica', 'HW Cigars', Georgia, serif;
 
   --weight-regular: 400;
   --weight-medium: 500;

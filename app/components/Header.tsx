@@ -12,7 +12,7 @@ const Header = () => {
       </Link>
 
       <Link href="/" className={styles.logo} aria-label="V-Creative">
-        <span className={styles.logoImg} role="img" aria-hidden="true" />
+        <span className={styles.logoMark} role="img" aria-hidden="true" />
       </Link>
 
       <Link href="/contact" className={styles.contactLink}>
