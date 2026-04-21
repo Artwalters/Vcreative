@@ -311,35 +311,10 @@
   opacity: 0.6;
 }
 
-/* Shared pill CTA — used by projectenCta, studioCta, werkwijzeCtaButton */
-.projectenCta,
-.studioCta,
-.werkwijzeCtaButton {
-  font-family: var(--font-secondary);
-  font-size: var(--text-sm);
-  font-weight: var(--weight-medium);
-  background: transparent;
-  border: none;
-  border-radius: var(--radius-pill);
-  padding: 1.25em 2.5em;
-  text-transform: uppercase;
-  letter-spacing: var(--tracking-wide);
-  text-decoration: none;
-  transition: opacity var(--duration-fast);
-  position: relative;
-  isolation: isolate;
-}
-
-.projectenCta:hover,
-.studioCta:hover,
-.werkwijzeCtaButton:hover {
-  opacity: 0.85;
-}
-
+/* Layout-only wrappers for IconButton CTAs (visuals live on .btn-icon-link) */
 .projectenCta {
   align-self: center;
   margin-top: 3em;
-  color: var(--color-navy);
 }
 
 /* ── Studio Section (scroll-scale intro) ── */
@@ -493,7 +468,6 @@
 }
 
 .studioCta {
-  color: var(--color-cream);
   margin-top: 3em;
 }
 
@@ -507,27 +481,6 @@
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.reviewsArrow {
-  width: 3em;
-  height: 3em;
-  border-radius: var(--radius-full);
-  border: 1px solid var(--border-subtle);
-  background: transparent;
-  color: var(--color-navy);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  font-size: var(--text-md);
-  transition: opacity var(--duration-fast);
-  position: relative;
-  isolation: isolate;
-}
-
-.reviewsArrow:hover {
-  opacity: 0.85;
 }
 
 .reviewCard {
@@ -832,10 +785,6 @@
   text-transform: none;
 }
 
-.werkwijzeCtaButton {
-  color: var(--color-navy);
-}
-
 /* ── WebGL toggle ── */
 
 .toggle {
@@ -935,8 +884,6 @@
 
   .projectenCta {
     margin-top: 1em;
-    padding: 1em 2em;
-    font-size: var(--text-xs);
   }
 
   .studioCard {
@@ -969,12 +916,6 @@
 
   .reviewsSection {
     padding: 5em 1.5em 6em;
-  }
-
-  .reviewsArrow {
-    width: 2.5em;
-    height: 2.5em;
-    font-size: var(--text-sm);
   }
 
   .reviewStarsRow {
@@ -1018,9 +959,5 @@
 
   .werkwijzeCtaText {
     font-size: var(--text-lg);
-  }
-
-  .werkwijzeCtaButton {
-    font-size: var(--text-xs);
   }
 }

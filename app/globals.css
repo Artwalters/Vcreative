@@ -158,83 +158,178 @@ a {
   text-decoration: none;
 }
 
-/* ------------------------- Glass Effect ------------------------- */
+/* ------------------------- Icon Button -------------------------
+   Pill button (`.btn-icon-link` + `.btn-icon-content`) and circle-only
+   variant (`.btn-icon-only`). On hover:
+     - text slides up, its text-shadow duplicate rises into view
+     - triplet of arrow SVGs translates 200% so the next arrow in the row
+       lands exactly where the previous one sat
+     - a diagonal bg wipes up from below, rotating to flush
+   Fully rounded (border-radius: 999em) both on the pill and on the
+   inner icon circle. Transform transitions are applied to any element
+   tagged `data-button-anim-target`. */
 
-.glass-effect {
-  -webkit-backdrop-filter: saturate(120%) blur(0.75em);
-  backdrop-filter: saturate(120%) blur(0.75em);
-  pointer-events: none;
+.btn-icon-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  font-family: var(--font-secondary);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  line-height: 1.2;
+  color: var(--color-cream);
+  text-decoration: none;
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.btn-icon-content {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75em;
+  padding: 1em 1em 1em 1.5em;
+  background: var(--color-navy);
+  color: var(--color-cream);
+  border-radius: 999em;
+  overflow: hidden;
   isolation: isolate;
-  color: #201d1d;
-  border-radius: inherit;
-  position: absolute;
-  inset: 0;
+}
+
+.btn-icon-content__mask {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
   overflow: hidden;
 }
 
-.glass-effect__fill {
-  opacity: 1;
-  border-radius: inherit;
-  background:
-    radial-gradient(ellipse 80% 120% at 25% 15%, rgba(254, 201, 165, 0.32), transparent 60%),
-    radial-gradient(ellipse 70% 90% at 80% 85%, rgba(254, 153, 99, 0.18), transparent 55%),
-    rgba(254, 201, 165, 0.08);
-  position: absolute;
-  inset: 0;
+.btn-icon-content__text {
+  --text-duplicate-distance: 1.5em;
+  display: inline-block;
+  text-shadow: 0 var(--text-duplicate-distance) currentColor;
 }
 
-.glass-effect__fill-burn {
-  opacity: 0.05;
-  mix-blend-mode: color-burn;
-  border-radius: inherit;
-  background-color: currentColor;
-  position: absolute;
-  inset: 0;
-}
-
-.glass-effect__highlight-soft {
-  mix-blend-mode: overlay;
-  border-radius: inherit;
-  position: absolute;
-  inset: 0;
-  box-shadow: inset -0.28125em -0.28125em 0.09375em -0.328125em #ffffff80;
-}
-
-.glass-effect__highlight-strong {
-  border-radius: inherit;
-  position: absolute;
-  inset: 0;
-  box-shadow: inset 0.28125em 0.28125em 0.09375em -0.328125em #fffc;
-}
-
-.glass-effect__edge-light {
-  border-radius: inherit;
-  mix-blend-mode: plus-lighter;
-  position: absolute;
-  inset: 0;
-  box-shadow: inset 0.1875em 0.28125em 0.09375em -0.1875em #b3b3b380;
-}
-
-.glass-effect__edge-dark {
-  mix-blend-mode: overlay;
-  border-radius: inherit;
-  position: absolute;
-  inset: 0;
-  box-shadow: inset -0.1875em -0.28125em 0.09375em -0.1875em #b3b3b34d;
-}
-
-.glass-effect__inner-glow {
-  mix-blend-mode: darken;
-  border-radius: inherit;
-  position: absolute;
-  inset: 0;
-  box-shadow: inset 0 0 1.75em #f2f2f24d;
-}
-
-.glass-effect__content {
+.btn-icon-icon {
   position: relative;
   z-index: 1;
-  color: #000;
+  flex: none;
+  width: 1.75em;
+  height: 1.75em;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-icon-icon__bg {
+  position: absolute;
+  inset: 0;
+  border-radius: 999em;
+  background-color: var(--color-cream);
+}
+
+.btn-icon-icon__wrap {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  color: var(--color-navy);
+  border-radius: 999em;
+  overflow: hidden;
+}
+
+.btn-icon-icon__list {
+  flex: none;
+  display: flex;
+  align-items: center;
+  height: 100%;
+}
+
+.btn-icon-icon__arrow {
+  flex: none;
+  width: 1.75em;
+  height: 100%;
+  padding: 0.35em;
+}
+
+.btn-icon-content__bg {
+  position: absolute;
+  left: -10%;
+  bottom: 0;
+  width: 120%;
+  height: 100%;
+  z-index: 0;
+  background-color: var(--color-accent);
+  /* Start well below the pill — on wide buttons the 15° rotation lifts
+     one corner up, so 175% (the original demo value) pokes back into the
+     visible area. 300% keeps the rotated rect fully clear until hover. */
+  transform: translate(0, 300%) rotate(15deg);
+}
+
+/* Icon-only circle variant (review carousel arrows) */
+.btn-icon-only {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 1em;
+}
+
+.btn-icon-only .btn-icon-icon {
+  width: 3em;
+  height: 3em;
+}
+
+.btn-icon-only .btn-icon-icon__bg {
+  background-color: var(--color-navy);
+}
+
+.btn-icon-only .btn-icon-icon__wrap {
+  color: var(--color-cream);
+}
+
+.btn-icon-only .btn-icon-icon__arrow {
+  width: 3em;
+  padding: 0.75em;
+}
+
+.btn-icon-only--flip {
+  transform: scaleX(-1);
+}
+
+[data-button-anim-target] {
+  transition: transform 0.525s cubic-bezier(0.625, 0.05, 0, 1);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .btn-icon-link:hover .btn-icon-content__text {
+    transform: translate(0, calc(-1 * var(--text-duplicate-distance)));
+  }
+  .btn-icon-link:hover .btn-icon-icon__arrow,
+  .btn-icon-only:hover .btn-icon-icon__arrow {
+    transform: translate(200%, 0);
+  }
+  .btn-icon-link:hover .btn-icon-content__bg {
+    transform: translate(0, 0) rotate(0);
+  }
+}
+
+@media (max-width: 767px) {
+  .btn-icon-link {
+    font-size: var(--text-xs);
+  }
+  .btn-icon-only {
+    font-size: 0.83em;
+  }
 }
 
 /* ------------------------- Progressive Blur ------------------------- */

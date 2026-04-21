@@ -4,8 +4,8 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import styles from '@/app/styles/text-demo.module.css'
 import Footer from '@/app/components/Footer'
 import LogoMarquee from '@/app/components/LogoMarquee'
-import GlassEffect from '@/app/components/GlassEffect'
 import { useWebGLEffects, useGlobalParallax } from '@/app/lib/useWebGLEffects'
+import { IconButton, IconCircle } from '@/app/components/IconButton'
 
 const REVIEWS = [
   {
@@ -335,10 +335,9 @@ const TextDemo = () => {
             </div>
           </article>
 
-          <a href="/contact" className={styles.projectenCta}>
-            <GlassEffect />
-            <span className="glass-effect__content">Zet mij aan het werk met jouw merk</span>
-          </a>
+          <IconButton href="/contact" className={styles.projectenCta}>
+            Zet mij aan het werk met jouw merk
+          </IconButton>
         </section>
       </section>
 
@@ -377,10 +376,9 @@ const TextDemo = () => {
             <p className={styles.studioBody}>
               Ieder project krijgt een eigen aanpak, zowel in strategie als in uitvoering. Ik werk vanuit een hecht netwerk aan creatieve partners en kan je adviseren over welke aanpak bij jouw merk past. Jij houdt de regie, ik zorg dat alles op het juiste moment klopt, van eerste idee tot laatste post.
             </p>
-            <a href="/over-mij" className={styles.studioCta}>
-              <GlassEffect />
-              <span className="glass-effect__content">Het gezicht achter de studio</span>
-            </a>
+            <IconButton href="/over-mij" className={styles.studioCta}>
+              Het gezicht achter de studio
+            </IconButton>
           </div>
         </div>
       </section>
@@ -446,10 +444,9 @@ const TextDemo = () => {
           <p className={styles.werkwijzeCtaText}>
             <em>Z</em>et mij aan het werk met jouw unieke merk.
           </p>
-          <a href="/contact" className={styles.werkwijzeCtaButton}>
-            <GlassEffect />
-            <span className="glass-effect__content">Start jouw project</span>
-          </a>
+          <IconButton href="/contact" className={styles.werkwijzeCtaButton}>
+            Start jouw project
+          </IconButton>
         </div>
       </section>
 
@@ -475,27 +472,19 @@ const TextDemo = () => {
           </p>
           <p className={styles.reviewRole}>{currentReview.role}</p>
           <div className={styles.reviewStarsRow}>
-            <button
-              type="button"
-              className={styles.reviewsArrow}
+            <IconCircle
+              direction="prev"
               onClick={prevReview}
-              aria-label="Vorige review"
-            >
-              <GlassEffect />
-              <span aria-hidden="true" className="glass-effect__content">←</span>
-            </button>
+              ariaLabel="Vorige review"
+            />
             <div className={styles.reviewStars} aria-label="5 sterren">
               {'★★★★★'}
             </div>
-            <button
-              type="button"
-              className={styles.reviewsArrow}
+            <IconCircle
+              direction="next"
               onClick={nextReview}
-              aria-label="Volgende review"
-            >
-              <GlassEffect />
-              <span aria-hidden="true" className="glass-effect__content">→</span>
-            </button>
+              ariaLabel="Volgende review"
+            />
           </div>
           <a href={currentReview.caseHref} className={styles.reviewLink}>Bekijk case</a>
         </div>
