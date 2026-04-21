@@ -258,6 +258,7 @@ const TextDemo = () => {
                   src="https://picsum.photos/seed/hair-by-kim/1400/700"
                   alt="Hair by Kim"
                   className={styles.projectImage}
+                  loading="lazy"
                 />
               </div>
             </figure>
@@ -280,6 +281,7 @@ const TextDemo = () => {
                     src="https://picsum.photos/seed/falcon-ink/800/600"
                     alt="Falcon Ink"
                     className={styles.projectImage}
+                    loading="lazy"
                   />
                 </div>
               </figure>
@@ -301,6 +303,7 @@ const TextDemo = () => {
                     src="https://picsum.photos/seed/hal-xiii/1280/800"
                     alt="Hal XIII"
                     className={styles.projectImage}
+                    loading="lazy"
                   />
                 </div>
               </figure>
@@ -323,6 +326,7 @@ const TextDemo = () => {
                   src="https://picsum.photos/seed/beautysalon-glow/1400/700"
                   alt="Beautysalon Glow"
                   className={styles.projectImage}
+                  loading="lazy"
                 />
               </div>
             </figure>
@@ -345,7 +349,7 @@ const TextDemo = () => {
         <div className={styles.studioHero}>
           <div className={styles.studioBg}>
             <div className={styles.parallaxTarget}>
-              <img src="https://picsum.photos/seed/studio-bg/1920/1080" alt="" className={styles.studioBgImage} />
+              <img src="https://picsum.photos/seed/studio-bg/1920/1080" alt="" className={styles.studioBgImage} loading="lazy" />
             </div>
           </div>
           <div className={styles.studioCard}>
@@ -438,6 +442,7 @@ const TextDemo = () => {
                 src="https://picsum.photos/seed/vienna-portrait/900/900"
                 alt="Viënna"
                 className={styles.werkwijzeCtaImage}
+                loading="lazy"
               />
             </div>
           </figure>

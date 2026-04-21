@@ -98,6 +98,7 @@ const CasePage = ({ slug }: { slug: CaseSlug }) => {
                 src={`https://picsum.photos/seed/${data.sections[0].imageSeed}/900/1125`}
                 alt={`${data.name} — ${data.sections[0].label}`}
                 className={styles.sectionImage}
+                loading="lazy"
               />
             </div>
           </figure>
@@ -113,6 +114,7 @@ const CasePage = ({ slug }: { slug: CaseSlug }) => {
                 src={`https://picsum.photos/seed/${data.sections[1].imageSeed}/1200/900`}
                 alt={`${data.name} — ${data.sections[1].label}`}
                 className={styles.sectionImage}
+                loading="lazy"
               />
             </div>
           </figure>
@@ -140,6 +142,7 @@ const CasePage = ({ slug }: { slug: CaseSlug }) => {
                 src={`https://picsum.photos/seed/${data.sections[2].imageSeed}/1920/840`}
                 alt={`${data.name} — ${data.sections[2].label}`}
                 className={styles.sectionImage}
+                loading="lazy"
               />
             </div>
           </figure>
@@ -169,6 +172,7 @@ const CasePage = ({ slug }: { slug: CaseSlug }) => {
             alt=""
             aria-hidden="true"
             className={styles.quoteLogo}
+            loading="lazy"
           />
           <blockquote
             data-animation="webgl-text"
@@ -191,6 +195,7 @@ const CasePage = ({ slug }: { slug: CaseSlug }) => {
             src={`https://picsum.photos/seed/${data.fullBleedSeed}/1920/1080`}
             alt={`${data.name} — full bleed`}
             className={styles.fullBleedImage}
+            loading="lazy"
           />
         </div>
       </figure>
@@ -214,6 +219,7 @@ const CasePage = ({ slug }: { slug: CaseSlug }) => {
                 src={`https://picsum.photos/seed/${next.heroImageSeed}/1600/900`}
                 alt={next.name}
                 className={styles.nextCaseImage}
+                loading="lazy"
               />
             </div>
           </figure>

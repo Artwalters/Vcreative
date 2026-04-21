@@ -51,6 +51,7 @@ const OverMij = () => (
           src="https://picsum.photos/seed/vienna-portrait/1920/823"
           alt="Vienna aan het werk"
           className={styles.portraitImage}
+          loading="lazy"
         />
       </figure>
     </div>

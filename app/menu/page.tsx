@@ -5,7 +5,7 @@ import styles from '@/app/menu/menu.module.css'
 const NAV = [
   { label: 'Home', script: 'H', rest: 'ome', href: '/' },
   { label: 'Over mij', script: 'O', rest: 'ver mij', href: '/over-mij' },
-  { label: 'Cases', script: 'C', rest: 'ases', href: '/cases/hair-by-kim' },
+  { label: 'Cases', script: 'C', rest: 'ases', href: '/cases' },
   { label: 'Contact', script: 'C', rest: 'ontact', href: '/contact' },
 ]
 
