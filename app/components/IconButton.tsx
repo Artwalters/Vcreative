@@ -1,4 +1,6 @@
-import type { ReactNode } from 'react'
+'use client'
+
+import { useState, type ReactNode } from 'react'
 
 /* Arrow glyph shared by all three hidden copies inside the icon pill.
    Three copies sit in a row; on hover each translates 200% to the right,
@@ -98,9 +100,17 @@ export const IconCircle = ({
   ariaLabel,
   className = '',
 }: IconCircleProps) => {
+  const [animating, setAnimating] = useState(false)
+
+  const handleClick = () => {
+    setAnimating(true)
+    onClick()
+  }
+
   const classes = [
     'btn-icon-only',
     direction === 'prev' ? 'btn-icon-only--flip' : '',
+    animating ? 'btn-icon-only--animating' : '',
     className,
   ]
     .filter(Boolean)
@@ -108,7 +118,8 @@ export const IconCircle = ({
   return (
     <button
       type="button"
-      onClick={onClick}
+      onClick={handleClick}
+      onAnimationEnd={() => setAnimating(false)}
       className={classes}
       aria-label={ariaLabel}
     >

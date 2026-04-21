@@ -19,8 +19,8 @@
 .label {
   font-family: var(--font-secondary);
   font-size: var(--text-xs);
-  font-weight: var(--weight-medium);
-  letter-spacing: var(--tracking-widest);
+  font-weight: 400;
+  letter-spacing: var(--tracking-wide);
   text-transform: uppercase;
   display: inline-flex;
   align-items: center;

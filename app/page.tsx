@@ -63,7 +63,6 @@ const WERKWIJZE_STEPS = [
 ] as const
 
 const TextDemo = () => {
-  const [webglEnabled, setWebglEnabled] = useState(true)
   const [activeStep, setActiveStep] = useState<number | null>(null)
   const [reviewIndex, setReviewIndex] = useState(0)
   const [displayedReviewIndex, setDisplayedReviewIndex] = useState(0)
@@ -99,7 +98,7 @@ const TextDemo = () => {
     }
     el.dispatchEvent(new CustomEvent('webgl-text-replay'))
     reviewPendingReplayRef.current = true
-    const t = setTimeout(() => setDisplayedReviewIndex(reviewIndex), 450)
+    const t = setTimeout(() => setDisplayedReviewIndex(reviewIndex), 850)
     return () => clearTimeout(t)
   }, [reviewIndex, displayedReviewIndex])
 
@@ -114,8 +113,13 @@ const TextDemo = () => {
     el.dispatchEvent(new CustomEvent('webgl-text-remeasured'))
   }, [displayedReviewIndex])
 
-  /* ── Studio scale-in scroll animation ── */
+  /* ── Studio scale-in scroll animation (desktop only) ── */
   useEffect(() => {
+    // skip the pin + scale choreography on mobile — card just stacks normally
+    if (typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches) {
+      return
+    }
+
     let ctx: ReturnType<typeof import('gsap')['default']['context']> | undefined
     let cancelled = false
 
@@ -191,18 +195,11 @@ const TextDemo = () => {
   }, [])
 
   useGlobalParallax()
-  useWebGLEffects(webglEnabled)
+  useWebGLEffects()
 
 
   return (
     <div className={styles.page}>
-      <button
-        className={styles.toggle}
-        onClick={() => setWebglEnabled((v) => !v)}
-      >
-        <span className={`${styles.toggleDot} ${!webglEnabled ? styles.toggleDotOff : ''}`} />
-        {webglEnabled ? 'WebGL on' : 'WebGL off'}
-      </button>
       <section className={styles.hero}>
         <h1
           data-animation="webgl-text"
@@ -463,47 +460,41 @@ const TextDemo = () => {
             aria-hidden="true"
             className={styles.reviewLogo}
           />
-          <blockquote
-            ref={reviewQuoteRef}
-            className={styles.reviewQuote}
-            data-animation="webgl-text"
-            data-webgl-text-mode="time-trigger"
-          >
-            &ldquo;{currentReview.quote}&rdquo;
-          </blockquote>
+          <div className={styles.reviewQuoteRow}>
+            <IconCircle
+              direction="prev"
+              onClick={prevReview}
+              ariaLabel="Vorige review"
+              className={styles.reviewArrow}
+            />
+            <blockquote
+              ref={reviewQuoteRef}
+              className={styles.reviewQuote}
+              data-animation="webgl-text"
+              data-webgl-text-mode="time-trigger"
+            >
+              &ldquo;{currentReview.quote}&rdquo;
+            </blockquote>
+            <IconCircle
+              direction="next"
+              onClick={nextReview}
+              ariaLabel="Volgende review"
+              className={styles.reviewArrow}
+            />
+          </div>
           <p className={styles.reviewAuthor}>
             <span className={styles.reviewAuthorDot} aria-hidden="true" />
             {currentReview.author}
           </p>
           <p className={styles.reviewRole}>{currentReview.role}</p>
-          <div className={styles.reviewStarsRow}>
-            <IconCircle
-              direction="prev"
-              onClick={prevReview}
-              ariaLabel="Vorige review"
-            />
-            <div className={styles.reviewStars} aria-label="5 sterren">
-              {'★★★★★'}
-            </div>
-            <IconCircle
-              direction="next"
-              onClick={nextReview}
-              ariaLabel="Volgende review"
-            />
+          <div className={styles.reviewStars} aria-label="5 sterren">
+            {'★★★★★'}
           </div>
           <a href={currentReview.caseHref} className={styles.reviewLink}>Bekijk case</a>
         </div>
       </section>
 
       <Footer />
-
-      <div className="progressive-blur">
-        <div className="progressive-blur__layer is--1" />
-        <div className="progressive-blur__layer is--2" />
-        <div className="progressive-blur__layer is--3" />
-        <div className="progressive-blur__layer is--4" />
-        <div className="progressive-blur__layer is--5" />
-      </div>
     </div>
   )
 }

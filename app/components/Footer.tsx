@@ -1,5 +1,8 @@
+'use client'
+
 import Link from 'next/link'
 import styles from '@/app/components/Footer.module.css'
+import Logo3D from '@/app/components/Logo3D'
 
 const SOCIALS = [
   {label: 'Instagram', href: 'https://instagram.com/'},
@@ -13,7 +16,7 @@ const Footer = () => {
     <footer className={styles.footer}>
       <div className={styles.top}>
         <Link href="/" className={styles.logo} aria-label="V-Creative">
-          <span className={styles.logoMark} role="img" aria-hidden="true" />
+          <Logo3D interaction="mouseTilt" className={styles.logoMark} />
         </Link>
 
         <div className={styles.main}>
@@ -48,17 +51,6 @@ const Footer = () => {
         <div className={styles.infoCol}>
           <p className={styles.infoLabel}>
             <span className={styles.infoDot} aria-hidden="true" />
-            Werkgebied
-          </p>
-          <ul className={styles.infoList}>
-            <li>Heerlen &amp; omstreken</li>
-            <li>Op locatie in heel Nederland</li>
-          </ul>
-        </div>
-
-        <div className={styles.infoCol}>
-          <p className={styles.infoLabel}>
-            <span className={styles.infoDot} aria-hidden="true" />
             Volg mijn werk
           </p>
           <ul className={styles.socialGrid}>
@@ -74,20 +66,8 @@ const Footer = () => {
       </div>
 
       <div className={styles.bottom}>
-        <span>V-Creative</span>
+        <span>Vienna Wachelder</span>
         <span>Alle rechten voorbehouden</span>
-        <span>2026</span>
-        <span>
-          Web by{' '}
-          <a
-            href="https://pendra.studio"
-            target="_blank"
-            rel="noreferrer"
-            className={styles.bottomLink}
-          >
-            Pendra Studio
-          </a>
-        </span>
       </div>
     </footer>
   )

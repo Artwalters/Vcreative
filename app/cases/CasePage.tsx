@@ -1,6 +1,6 @@
 'use client'
 
-import { Fragment, useState } from 'react'
+import { Fragment } from 'react'
 import Footer from '@/app/components/Footer'
 import { useWebGLEffects, useGlobalParallax } from '@/app/lib/useWebGLEffects'
 import { CASES, type CaseSlug, type CaseTitle } from './caseData'
@@ -28,21 +28,12 @@ const renderTitle = (t: CaseTitle) => {
 const CasePage = ({ slug }: { slug: CaseSlug }) => {
   const data = CASES[slug]
   const next = CASES[data.nextSlug]
-  const [webglEnabled, setWebglEnabled] = useState(true)
 
   useGlobalParallax()
-  useWebGLEffects(webglEnabled)
+  useWebGLEffects()
 
   return (
     <div className={styles.page}>
-      <button
-        className={styles.toggle}
-        onClick={() => setWebglEnabled((v) => !v)}
-      >
-        <span className={`${styles.toggleDot} ${!webglEnabled ? styles.toggleDotOff : ''}`} />
-        {webglEnabled ? 'WebGL on' : 'WebGL off'}
-      </button>
-
       <section className={styles.hero}>
         <p className={styles.heroMeta}>
           <span className={styles.heroMetaDot} aria-hidden="true" />
@@ -76,7 +67,7 @@ const CasePage = ({ slug }: { slug: CaseSlug }) => {
       </figure>
 
       <div className={styles.sections}>
-        {/* Section A — text cols 1-5, image cols 7-12 */}
+        {/* Section 01 — text left, portrait image right */}
         <section className={`${styles.section} ${styles.sectionA}`}>
           <div className={styles.sectionText}>
             <p className={styles.sectionLabel}>
@@ -104,7 +95,7 @@ const CasePage = ({ slug }: { slug: CaseSlug }) => {
           </figure>
         </section>
 
-        {/* Section B — image cols 1-6, text cols 8-12 (mirrored width of A) */}
+        {/* Section 02 — landscape image left, text right */}
         <section className={`${styles.section} ${styles.sectionB}`}>
           <figure className={styles.sectionFigure} data-parallax="trigger">
             <div className={styles.parallaxTarget} data-parallax="target">
@@ -132,7 +123,7 @@ const CasePage = ({ slug }: { slug: CaseSlug }) => {
           </div>
         </section>
 
-        {/* Section C — full-width image + 2-col caption below */}
+        {/* Section 03 — full-width image + 2-col caption below */}
         <section className={`${styles.section} ${styles.sectionC}`}>
           <figure className={styles.sectionFigure} data-parallax="trigger">
             <div className={styles.parallaxTarget} data-parallax="target">
@@ -231,14 +222,6 @@ const CasePage = ({ slug }: { slug: CaseSlug }) => {
       </section>
 
       <Footer />
-
-      <div className="progressive-blur">
-        <div className="progressive-blur__layer is--1" />
-        <div className="progressive-blur__layer is--2" />
-        <div className="progressive-blur__layer is--3" />
-        <div className="progressive-blur__layer is--4" />
-        <div className="progressive-blur__layer is--5" />
-      </div>
     </div>
   )
 }

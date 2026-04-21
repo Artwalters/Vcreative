@@ -4,7 +4,7 @@
   font-family: 'HW Cigars';
   src: url('/fonts/HW Cigars Trial/HW Cigars Trial Light.woff2') format('woff2'),
        url('/fonts/HW Cigars Trial/HW Cigars Trial Light.woff') format('woff');
-  font-weight: 300;
+  font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
@@ -36,6 +36,73 @@
   font-display: swap;
 }
 
+/* PP Mori — replaces Helvetica as the secondary sans.
+   Each real file is mapped to a range so weight 300/500/700 resolve too. */
+
+@font-face {
+  font-family: 'PP Mori';
+  src: url('/fonts/PP_Mori/otf/PPMori-Extralight.otf') format('opentype');
+  font-weight: 200 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'PP Mori';
+  src: url('/fonts/PP_Mori/otf/PPMori-ExtralightItalic.otf') format('opentype');
+  font-weight: 200 300;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'PP Mori';
+  src: url('/fonts/PP_Mori/otf/PPMori-Regular.otf') format('opentype');
+  font-weight: 400 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'PP Mori';
+  src: url('/fonts/PP_Mori/otf/PPMori-Italic.otf') format('opentype');
+  font-weight: 400 500;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'PP Mori';
+  src: url('/fonts/PP_Mori/otf/PPMori-Semibold.otf') format('opentype');
+  font-weight: 600 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'PP Mori';
+  src: url('/fonts/PP_Mori/otf/PPMori-SemiboldItalic.otf') format('opentype');
+  font-weight: 600 700;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'PP Mori';
+  src: url('/fonts/PP_Mori/otf/PPMori-Black.otf') format('opentype');
+  font-weight: 800 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'PP Mori';
+  src: url('/fonts/PP_Mori/otf/PPMori-BlackItalic.otf') format('opentype');
+  font-weight: 800 900;
+  font-style: italic;
+  font-display: swap;
+}
+
 /* ------------------------- Scaling System by Osmo [https://osmo.supply/] -------------------------  */
 
 /* Desktop */
@@ -54,7 +121,7 @@
 
   /* Typography */
   --font-primary: 'HW Cigars', Georgia, serif;
-  --font-secondary: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --font-secondary: 'PP Mori', Arial, sans-serif;
   --font-script: 'nautica', 'HW Cigars', Georgia, serif;
 
   /* Type scale — em-based, scales with Osmo via body font-size.
@@ -150,6 +217,7 @@ body {
   min-height: 100%;
   font-size: var(--size-font);
   color: var(--color-navy);
+  background: var(--color-cream);
 }
 
 /* ------------------------- Reduced motion -------------------------
@@ -211,8 +279,8 @@ textarea:focus-visible {
   align-items: center;
   gap: 0.5em;
   font-family: var(--font-secondary);
-  font-size: var(--text-sm);
-  font-weight: var(--weight-medium);
+  font-size: var(--text-xs);
+  font-weight: 400;
   letter-spacing: var(--tracking-wide);
   text-transform: uppercase;
   line-height: 1.2;
@@ -347,12 +415,20 @@ textarea:focus-visible {
   transition: transform 0.525s cubic-bezier(0.625, 0.05, 0, 1);
 }
 
+@keyframes btn-icon-arrow-slide {
+  from { transform: translate(0, 0); }
+  to { transform: translate(200%, 0); }
+}
+
+.btn-icon-only--animating .btn-icon-icon__arrow {
+  animation: btn-icon-arrow-slide 0.525s cubic-bezier(0.625, 0.05, 0, 1);
+}
+
 @media (hover: hover) and (pointer: fine) {
   .btn-icon-link:hover .btn-icon-content__text {
     transform: translate(0, calc(-1 * var(--text-duplicate-distance)));
   }
-  .btn-icon-link:hover .btn-icon-icon__arrow,
-  .btn-icon-only:hover .btn-icon-icon__arrow {
+  .btn-icon-link:hover .btn-icon-icon__arrow {
     transform: translate(200%, 0);
   }
   .btn-icon-link:hover .btn-icon-content__bg {
@@ -369,60 +445,3 @@ textarea:focus-visible {
   }
 }
 
-/* ------------------------- Progressive Blur ------------------------- */
-
-.progressive-blur {
-  z-index: 40;
-  pointer-events: none;
-  isolation: isolate;
-  contain: paint;
-  width: 100%;
-  height: 15em;
-  transform-style: preserve-3d;
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  overflow: hidden;
-  transform: translateZ(0);
-}
-
-.progressive-blur__layer {
-  width: 100%;
-  height: 100%;
-  position: absolute;
-}
-
-.progressive-blur__layer.is--1 {
-  -webkit-backdrop-filter: blur(0.05em);
-  backdrop-filter: blur(0.05em);
-  -webkit-mask: linear-gradient(#0000 50%, #000 62.5% 75%, #0000 87.5%);
-  mask: linear-gradient(#0000 50%, #000 62.5% 75%, #0000 87.5%);
-}
-
-.progressive-blur__layer.is--2 {
-  -webkit-backdrop-filter: blur(0.1em);
-  backdrop-filter: blur(0.1em);
-  -webkit-mask: linear-gradient(#0000 62.5%, #000 75% 87.5%, #0000 100%);
-  mask: linear-gradient(#0000 62.5%, #000 75% 87.5%, #0000 100%);
-}
-
-.progressive-blur__layer.is--3 {
-  -webkit-backdrop-filter: blur(0.2em);
-  backdrop-filter: blur(0.2em);
-  -webkit-mask: linear-gradient(#0000 75%, #000 87.5% 100%);
-  mask: linear-gradient(#0000 75%, #000 87.5% 100%);
-}
-
-.progressive-blur__layer.is--4 {
-  -webkit-backdrop-filter: blur(0.4em);
-  backdrop-filter: blur(0.4em);
-  -webkit-mask: linear-gradient(#0000 82%, #000 92% 100%);
-  mask: linear-gradient(#0000 82%, #000 92% 100%);
-}
-
-.progressive-blur__layer.is--5 {
-  -webkit-backdrop-filter: blur(0.8em);
-  backdrop-filter: blur(0.8em);
-  -webkit-mask: linear-gradient(#0000 88%, #000 100%);
-  mask: linear-gradient(#0000 88%, #000 100%);
-}

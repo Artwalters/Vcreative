@@ -177,13 +177,8 @@ interface ImageEntry {
    - [data-webgl-media]      → three.js textured quad with bend + parallax pan
    - Desktop uses a full-screen overlay canvas; mobile uses per-element canvases
      for text only (images fall back to <img>). */
-export function useWebGLEffects(enabled: boolean) {
+export function useWebGLEffects() {
   useEffect(() => {
-    if (!enabled) {
-      document.body.classList.remove('webgl-active')
-      return
-    }
-
     document.body.classList.add('webgl-active')
 
     let animationId: number
@@ -388,7 +383,7 @@ export function useWebGLEffects(enabled: boolean) {
               gsap.killTweensOf(elMaterial.uniforms.uReveal)
               gsap.to(elMaterial.uniforms.uReveal, {
                 value: 0,
-                duration: 0.4,
+                duration: 0.8,
                 ease: 'power2.in',
                 onUpdate: renderEl,
               })
@@ -399,7 +394,7 @@ export function useWebGLEffects(enabled: boolean) {
               gsap.killTweensOf(elMaterial.uniforms.uReveal)
               gsap.to(elMaterial.uniforms.uReveal, {
                 value: 1,
-                duration: 1.2,
+                duration: 2.2,
                 ease: 'power2.inOut',
                 onUpdate: renderEl,
               })
@@ -494,7 +489,7 @@ export function useWebGLEffects(enabled: boolean) {
               gsap.killTweensOf(t.material.uniforms.uReveal)
               gsap.to(t.material.uniforms.uReveal, {
                 value: 0,
-                duration: 0.4,
+                duration: 0.8,
                 ease: 'power2.in',
                 onUpdate: () => { needsRender = true },
               })
@@ -504,7 +499,7 @@ export function useWebGLEffects(enabled: boolean) {
               gsap.killTweensOf(t.material.uniforms.uReveal)
               gsap.to(t.material.uniforms.uReveal, {
                 value: 1,
-                duration: 1.2,
+                duration: 2.2,
                 ease: 'power2.inOut',
                 onUpdate: () => { needsRender = true },
               })
@@ -858,7 +853,7 @@ export function useWebGLEffects(enabled: boolean) {
         }
       })
     }
-  }, [enabled])
+  }, [])
 }
 
 /* Global parallax: every [data-parallax="trigger"] pans its target
