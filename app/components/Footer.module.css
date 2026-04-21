@@ -1,7 +1,8 @@
 .footer {
   background: var(--color-navy);
   color: var(--color-cream);
-  padding: 6em 5vw 2.5em;
+  padding: 6em clamp(1.5em, 5vw, 4em) 2.5em;
+  padding-bottom: max(2.5em, env(safe-area-inset-bottom));
   display: flex;
   flex-direction: column;
   gap: 6em;
@@ -27,25 +28,18 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 3.5em;
-  height: 3.5em;
-  border: 1px solid currentColor;
-  border-radius: var(--radius-full);
   color: var(--color-cream);
   transition: opacity var(--duration-fast);
 }
 
 .logo:hover {
-  opacity: 0.7;
+  opacity: 0.85;
 }
 
 .logoMark {
   display: block;
-  width: 1.5em;
+  width: 7em;
   aspect-ratio: 88.92 / 104.29;
-  background-color: currentColor;
-  -webkit-mask: url('/icons/SVG/main_logo_v.svg') no-repeat center / contain;
-  mask: url('/icons/SVG/main_logo_v.svg') no-repeat center / contain;
 }
 
 .main {
@@ -208,6 +202,7 @@
 @media (max-width: 767px) {
   .footer {
     padding: 4em 1.5em 2em;
+    padding-bottom: max(2em, env(safe-area-inset-bottom));
     gap: 3.5em;
   }
 
@@ -221,8 +216,8 @@
   }
 
   .info {
-    grid-template-columns: 1fr;
-    gap: 2.5em;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.5em 1.5em;
     padding-left: 0;
   }
 
@@ -234,5 +229,26 @@
     flex-direction: column;
     align-items: flex-start;
     gap: 0.5em;
+  }
+}
+
+@media (max-width: 479px) {
+  .footer {
+    padding: 3em 1.25em 1.5em;
+    padding-bottom: max(1.5em, env(safe-area-inset-bottom));
+    gap: 3em;
+  }
+
+  .info {
+    grid-template-columns: 1fr;
+    gap: 2em;
+  }
+
+  .logoMark {
+    width: 5.5em;
+  }
+
+  .heading {
+    font-size: var(--text-xl);
   }
 }

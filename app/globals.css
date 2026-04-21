@@ -152,6 +152,23 @@ body {
   color: var(--color-navy);
 }
 
+/* ------------------------- Reduced motion -------------------------
+   Honor users who request fewer animations: kills GSAP/Lenis-driven
+   transforms, transitions, and animations across the board. WebGL
+   canvases will still render their static state but won't be animated
+   on scroll. */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 
 a {
   color: inherit;
@@ -356,36 +373,36 @@ a {
 }
 
 .progressive-blur__layer.is--1 {
-  -webkit-backdrop-filter: blur(0.09375em);
-  backdrop-filter: blur(0.09375em);
+  -webkit-backdrop-filter: blur(0.05em);
+  backdrop-filter: blur(0.05em);
   -webkit-mask: linear-gradient(#0000 50%, #000 62.5% 75%, #0000 87.5%);
   mask: linear-gradient(#0000 50%, #000 62.5% 75%, #0000 87.5%);
 }
 
 .progressive-blur__layer.is--2 {
-  -webkit-backdrop-filter: blur(0.1875em);
-  backdrop-filter: blur(0.1875em);
+  -webkit-backdrop-filter: blur(0.1em);
+  backdrop-filter: blur(0.1em);
   -webkit-mask: linear-gradient(#0000 62.5%, #000 75% 87.5%, #0000 100%);
   mask: linear-gradient(#0000 62.5%, #000 75% 87.5%, #0000 100%);
 }
 
 .progressive-blur__layer.is--3 {
-  -webkit-backdrop-filter: blur(0.375em);
-  backdrop-filter: blur(0.375em);
+  -webkit-backdrop-filter: blur(0.2em);
+  backdrop-filter: blur(0.2em);
   -webkit-mask: linear-gradient(#0000 75%, #000 87.5% 100%);
   mask: linear-gradient(#0000 75%, #000 87.5% 100%);
 }
 
 .progressive-blur__layer.is--4 {
-  -webkit-backdrop-filter: blur(0.75em);
-  backdrop-filter: blur(0.75em);
+  -webkit-backdrop-filter: blur(0.4em);
+  backdrop-filter: blur(0.4em);
   -webkit-mask: linear-gradient(#0000 82%, #000 92% 100%);
   mask: linear-gradient(#0000 82%, #000 92% 100%);
 }
 
 .progressive-blur__layer.is--5 {
-  -webkit-backdrop-filter: blur(1.5em);
-  backdrop-filter: blur(1.5em);
+  -webkit-backdrop-filter: blur(0.8em);
+  backdrop-filter: blur(0.8em);
   -webkit-mask: linear-gradient(#0000 88%, #000 100%);
   mask: linear-gradient(#0000 88%, #000 100%);
 }

@@ -9,8 +9,19 @@ const LenisScroll = () => {
     let raf: number
 
     const init = async () => {
+      // Skip smooth scroll if user prefers reduced motion
+      if (
+        typeof window !== 'undefined' &&
+        window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      ) {
+        return
+      }
+
       const Lenis = (await import('lenis')).default
-      lenis = new Lenis()
+      lenis = new Lenis({
+        // iOS Safari: disable touch smoothing to avoid address-bar flicker / jank
+        syncTouch: false,
+      })
       setLenisInstance(lenis)
 
       const animate = (time: number) => {

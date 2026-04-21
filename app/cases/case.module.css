@@ -533,6 +533,29 @@
 
   .hero { padding: 10em var(--container-pad) var(--rhythm); }
   .heroTitle { font-size: var(--text-3xl); }
+
+  /* iPad portrait: stack 12-col layouts so text/image columns aren't squeezed */
+  .sectionA .sectionText,
+  .sectionA .sectionFigure,
+  .sectionB .sectionFigure,
+  .sectionB .sectionText,
+  .sectionC .sectionFigure,
+  .sectionCTextLead,
+  .sectionCTextBody {
+    grid-column: 1 / -1;
+  }
+
+  .sectionA .sectionText { order: 2; }
+  .sectionA .sectionFigure { order: 1; aspect-ratio: 16 / 10; }
+  .sectionB .sectionFigure { order: 1; aspect-ratio: 16 / 10; }
+  .sectionB .sectionText { order: 2; }
+  .sectionC .sectionFigure { aspect-ratio: 16 / 10; }
+
+  .sectionCText {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5em;
+  }
 }
 
 @media (max-width: 767px) {
@@ -581,4 +604,18 @@
   }
 
   .nextCaseTitle { font-size: var(--text-2xl); }
+}
+
+@media (max-width: 479px) {
+  .page {
+    --rhythm: 3em;
+    --container-pad: 1.25em;
+  }
+
+  .hero { padding: 6em var(--container-pad) var(--rhythm); }
+  .heroTitle { font-size: var(--text-xl); }
+  .heroSubtitle { font-size: var(--text-sm); }
+  .sectionTitle { font-size: var(--text-lg); }
+  .quoteText { font-size: var(--text-md); }
+  .nextCaseTitle { font-size: var(--text-xl); }
 }

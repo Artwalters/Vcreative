@@ -3,7 +3,12 @@
 import { useEffect, useRef } from 'react'
 import styles from '@/app/components/Header.module.css'
 
-const Logo3D = () => {
+type Props = {
+  interaction?: 'scroll' | 'mouseTilt'
+  className?: string
+}
+
+const Logo3D = ({ interaction = 'scroll', className }: Props) => {
   const containerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -20,8 +25,12 @@ const Logo3D = () => {
 
       if (cancelled) return
 
-      const SUPERSAMPLE = 2
-      const dpr = Math.min(window.devicePixelRatio * SUPERSAMPLE, 4)
+      const isTouch =
+        'ontouchstart' in document.documentElement ||
+        navigator.maxTouchPoints > 0
+      // touch devices: dial back the supersample so battery / heat stays sane
+      const SUPERSAMPLE = isTouch ? 1.25 : 2
+      const dpr = Math.min(window.devicePixelRatio * SUPERSAMPLE, isTouch ? 3 : 4)
       const rect = container.getBoundingClientRect()
       const width = Math.max(rect.width, 1)
       const height = Math.max(rect.height, 1)
@@ -77,6 +86,7 @@ const Logo3D = () => {
       }
 
       const pearlMaterial = new THREE.ShaderMaterial({
+        side: THREE.DoubleSide,
         uniforms: {
           uMatcap: { value: matcap },
           uIridescence: { value: iridescence },
@@ -112,6 +122,8 @@ const Logo3D = () => {
           void main() {
             vec3 viewDir = normalize(vViewPosition);
             vec3 n = normalize(vNormal);
+            // flip normal for back-faces so lighting matches the visible side
+            if (!gl_FrontFacing) n = -n;
             vec3 x = normalize(vec3(viewDir.z, 0.0, -viewDir.x));
             vec3 y = cross(viewDir, x);
             vec2 uv = vec2(dot(x, n), dot(y, n)) * 0.495 + 0.5;
@@ -180,43 +192,88 @@ const Logo3D = () => {
 
       scene.add(model)
 
-      const { getLenisInstance } = await import('@/app/lib/lenis')
-      let lenis = getLenisInstance()
-      if (!lenis) {
-        for (let i = 0; i < 40; i++) {
-          await new Promise((r) => setTimeout(r, 50))
-          if (cancelled) return
-          lenis = getLenisInstance()
-          if (lenis) break
+      let targetRotY = 0
+      let targetRotX = 0
+      let raf = 0
+      let detachInteraction: (() => void) | undefined
+
+      if (interaction === 'scroll') {
+        const { getLenisInstance } = await import('@/app/lib/lenis')
+        let lenis = getLenisInstance()
+        if (!lenis) {
+          for (let i = 0; i < 40; i++) {
+            await new Promise((r) => setTimeout(r, 50))
+            if (cancelled) return
+            lenis = getLenisInstance()
+            if (lenis) break
+          }
+        }
+
+        const ROTATION_PER_PIXEL = 0.003
+        const updateScrollTarget = () => {
+          const s = lenis ? lenis.animatedScroll : window.scrollY
+          const dh = Math.max(
+            document.documentElement.scrollHeight - window.innerHeight,
+            1,
+          )
+          const progress = Math.min(Math.max(s / dh, 0), 1)
+          const envelope = Math.sin(progress * Math.PI)
+          targetRotY = s * ROTATION_PER_PIXEL * envelope
+        }
+        updateScrollTarget()
+        model.rotation.y = targetRotY
+
+        const onScroll = () => updateScrollTarget()
+        if (lenis) {
+          lenis.on('scroll', onScroll)
+          detachInteraction = () => lenis!.off('scroll', onScroll)
+        } else {
+          window.addEventListener('scroll', onScroll, { passive: true })
+          detachInteraction = () =>
+            window.removeEventListener('scroll', onScroll)
+        }
+      } else if (isTouch) {
+        // touch: subtle continuous wobble — no mouse to follow
+        const start = performance.now()
+        let wobbleRaf = 0
+        const wobble = () => {
+          const t = (performance.now() - start) / 1000
+          targetRotY = Math.sin(t * 0.5) * 0.18
+          targetRotX = Math.sin(t * 0.35 + 1.2) * 0.08
+          wobbleRaf = requestAnimationFrame(wobble)
+        }
+        wobble()
+        detachInteraction = () => cancelAnimationFrame(wobbleRaf)
+      } else {
+        // mouseTilt: bind to nearest <footer>, fall back to window
+        const tiltZone =
+          (container.closest('footer') as HTMLElement | null) ?? null
+        const TILT = 0.22
+        const onMove = (e: MouseEvent) => {
+          const rect = (tiltZone ?? document.documentElement).getBoundingClientRect()
+          const cx = rect.left + rect.width / 2
+          const cy = rect.top + rect.height / 2
+          const nx = (e.clientX - cx) / (rect.width / 2)
+          const ny = (e.clientY - cy) / (rect.height / 2)
+          targetRotY = Math.max(Math.min(nx, 1), -1) * TILT
+          targetRotX = Math.max(Math.min(ny, 1), -1) * TILT * 0.6
+        }
+        const onLeave = () => {
+          targetRotY = 0
+          targetRotX = 0
+        }
+        const zone = tiltZone ?? window
+        zone.addEventListener('mousemove', onMove as EventListener)
+        zone.addEventListener('mouseleave', onLeave as EventListener)
+        detachInteraction = () => {
+          zone.removeEventListener('mousemove', onMove as EventListener)
+          zone.removeEventListener('mouseleave', onLeave as EventListener)
         }
       }
 
-      const ROTATION_PER_PIXEL = 0.003
-      let scrollTarget = 0
-      const updateScrollTarget = () => {
-        const s = lenis ? lenis.animatedScroll : window.scrollY
-        const dh = Math.max(
-          document.documentElement.scrollHeight - window.innerHeight,
-          1,
-        )
-        const progress = Math.min(Math.max(s / dh, 0), 1)
-        // sine envelope: 0 at top & bottom, 1 in the middle → logo straight at extremes
-        const envelope = Math.sin(progress * Math.PI)
-        scrollTarget = s * ROTATION_PER_PIXEL * envelope
-      }
-      updateScrollTarget()
-      model.rotation.y = scrollTarget
-
-      const onScroll = () => updateScrollTarget()
-      if (lenis) {
-        lenis.on('scroll', onScroll)
-      } else {
-        window.addEventListener('scroll', onScroll, { passive: true })
-      }
-
-      let raf = 0
       const animate = () => {
-        model.rotation.y += (scrollTarget - model.rotation.y) * 0.15
+        model.rotation.y += (targetRotY - model.rotation.y) * 0.12
+        model.rotation.x += (targetRotX - model.rotation.x) * 0.12
         renderer.render(scene, camera)
         raf = requestAnimationFrame(animate)
       }
@@ -237,8 +294,7 @@ const Logo3D = () => {
       cleanup = () => {
         cancelAnimationFrame(raf)
         window.removeEventListener('resize', handleResize)
-        if (lenis) lenis.off('scroll', onScroll)
-        else window.removeEventListener('scroll', onScroll)
+        detachInteraction?.()
         meshes.forEach((m) => m.geometry?.dispose())
         pearlMaterial.dispose()
         matcap.dispose()
@@ -259,7 +315,13 @@ const Logo3D = () => {
     }
   }, [])
 
-  return <div ref={containerRef} className={styles.logoMark} aria-hidden="true" />
+  return (
+    <div
+      ref={containerRef}
+      className={className ?? styles.logoMark}
+      aria-hidden="true"
+    />
+  )
 }
 
 export default Logo3D
