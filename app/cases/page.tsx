@@ -1,7 +1,14 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import Footer from '@/app/components/Footer'
 import { CASES, type CaseSlug } from '@/app/cases/caseData'
 import styles from '@/app/cases/cases-index.module.css'
+
+export const metadata: Metadata = {
+  title: 'Cases',
+  description:
+    'Werk dat ik trots op deelt — een selectie van merken die ik mocht helpen met content en social media.',
+}
 
 const ORDER: CaseSlug[] = [
   'hair-by-kim',

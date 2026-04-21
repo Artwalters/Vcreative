@@ -1,6 +1,13 @@
+import type { Metadata } from 'next'
 import Footer from '@/app/components/Footer'
 import { IconButton } from '@/app/components/IconButton'
 import styles from '@/app/over-mij/over-mij.module.css'
+
+export const metadata: Metadata = {
+  title: 'Over mij',
+  description:
+    'Vienna Wachelder — social media partner voor merken met karakter. Strategie, content en maandelijks beheer vanuit Heerlen.',
+}
 
 const SERVICES = [
   {

@@ -1,6 +1,12 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import Footer from '@/app/components/Footer'
 import styles from '@/app/menu/menu.module.css'
+
+export const metadata: Metadata = {
+  title: 'Menu',
+  description: 'Hoofdnavigatie van V-Creative.',
+}
 
 const NAV = [
   { label: 'Home', script: 'H', rest: 'ome', href: '/' },
