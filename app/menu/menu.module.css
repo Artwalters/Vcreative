@@ -172,7 +172,12 @@
   }
 
   .navLink {
-    font-size: clamp(2em, 9vw, 4.5em);
+    font-size: clamp(2em, 8vw, 4em);
+    white-space: nowrap;
+  }
+
+  .tagline {
+    font-size: var(--text-2xl);
   }
 }
 
