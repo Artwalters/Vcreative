@@ -175,6 +175,26 @@ a {
   text-decoration: none;
 }
 
+/* Keyboard-only focus ring — pointer users (mouse/touch) get nothing,
+   keyboard users get a clearly visible accent ring. */
+:focus {
+  outline: none;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 0.25em;
+  border-radius: 0.15em;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 0.25em;
+}
+
 /* ------------------------- Icon Button -------------------------
    Pill button (`.btn-icon-link` + `.btn-icon-content`) and circle-only
    variant (`.btn-icon-only`). On hover:
