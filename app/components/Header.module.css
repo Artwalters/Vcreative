@@ -50,12 +50,8 @@
 
 .logoMark {
   display: block;
-  width: 3em;
+  width: 4em;
   aspect-ratio: 88.92 / 104.29;
-  background-color: currentColor;
-  -webkit-mask: url('/icons/SVG/main_logo_v.svg') no-repeat center / contain;
-  mask: url('/icons/SVG/main_logo_v.svg') no-repeat center / contain;
-  color: var(--color-navy);
 }
 
 /* ── Contact (top right) ── */
@@ -96,7 +92,7 @@
   }
 
   .logoMark {
-    width: 2.25em;
+    width: 3em;
   }
 
   .contactLink {

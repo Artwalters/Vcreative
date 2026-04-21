@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import styles from '@/app/components/Header.module.css'
+import Logo3D from '@/app/components/Logo3D'
 
 const Header = () => {
   return (
@@ -12,7 +13,7 @@ const Header = () => {
       </Link>
 
       <Link href="/" className={styles.logo} aria-label="V-Creative">
-        <span className={styles.logoMark} role="img" aria-hidden="true" />
+        <Logo3D />
       </Link>
 
       <Link href="/contact" className={styles.contactLink}>
