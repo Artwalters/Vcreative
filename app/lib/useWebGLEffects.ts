@@ -1,0 +1,926 @@
+'use client'
+
+import { useEffect } from 'react'
+import type * as THREE from 'three'
+
+/* ── Text Overlay Shader (bg-colored mask dissolves to reveal DOM text) ── */
+
+const textVertShader = /* glsl */ `
+precision highp float;
+varying vec2 vUv;
+
+void main() {
+  vUv = uv;
+  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+}
+`
+
+const textFragShader = /* glsl */ `
+precision highp float;
+uniform float uReveal;
+uniform vec3 uColor;
+uniform vec2 uAspect;
+varying vec2 vUv;
+
+float hash(vec2 p) {
+  return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
+}
+
+float noise(vec2 p) {
+  vec2 i = floor(p);
+  vec2 f = fract(p);
+  vec2 u = f * f * (3.0 - 2.0 * f);
+  float a = hash(i);
+  float b = hash(i + vec2(1.0, 0.0));
+  float c = hash(i + vec2(0.0, 1.0));
+  float d = hash(i + vec2(1.0, 1.0));
+  return mix(mix(a, b, u.x), mix(c, d, u.x), u.y);
+}
+
+float fbm(vec2 p) {
+  float value = 0.0;
+  float amp = 0.5;
+  for (int i = 0; i < 5; i++) {
+    value += amp * noise(p);
+    p *= 2.0;
+    amp *= 0.5;
+  }
+  return value;
+}
+
+void main() {
+  vec2 uv = vUv * uAspect * 8.0;
+  float n1 = fbm(uv);
+  float n1b = fbm(uv + vec2(5.2, 1.3));
+  vec2 warped = uv + vec2(n1, n1b) * 0.4;
+  float n2 = fbm(warped + vec2(1.7, 9.2));
+  float n2b = fbm(warped + vec2(8.3, 2.8));
+  vec2 warped2 = warped + vec2(n2, n2b) * 0.4;
+  float n3 = fbm(warped2);
+  float fine = fbm(vUv * 28.0 + vec2(n2, n3) * 0.2);
+  float n = n3 * 0.55 + fine * 0.45;
+
+  float progress = uReveal * 1.5 - 0.25;
+  float mask = smoothstep(progress - 0.15, progress + 0.15, n);
+  if (mask < 0.01) discard;
+  gl_FragColor = vec4(uColor, mask);
+}
+`
+
+/* ── Image Shaders ── */
+
+const imgVertShader = /* glsl */ `
+precision highp float;
+varying vec2 vUv;
+varying vec2 ssCoords;
+
+uniform vec2 uTextureSize;
+uniform vec2 uQuadSize;
+uniform float u_progress;
+uniform bool u_enableBend;
+
+void main() {
+  vec3 pos = position;
+  mat4 MVPM = projectionMatrix * modelViewMatrix;
+  vec4 originalPosition = MVPM * vec4(position, 1.0);
+  ssCoords = vec2(originalPosition.xy / originalPosition.w);
+
+  if (u_enableBend) {
+    float startAt = uv.y - 0.5;
+    float finishAt = uv.y;
+    float bend = smoothstep(startAt, finishAt, 1.0 - u_progress);
+    pos.x *= 1.0 + (bend * 0.04) * abs(ssCoords.x);
+    pos.z += bend * 7.0;
+  }
+
+  vUv = uv;
+  gl_Position = MVPM * vec4(pos, 1.0);
+}
+`
+
+const imgFragShader = /* glsl */ `
+precision highp float;
+
+uniform sampler2D uTexture;
+uniform vec2 uTextureSize;
+uniform vec2 uQuadSize;
+uniform float u_opacity;
+uniform float u_innerScale;
+uniform float u_innerY;
+uniform float u_edgeFade;
+
+varying vec2 vUv;
+varying vec2 ssCoords;
+
+vec2 getCoverUv(vec2 uv, vec2 textureSize, vec2 quadSize) {
+  vec2 ratio = vec2(
+    min((quadSize.x / quadSize.y) / (textureSize.x / textureSize.y), 1.0),
+    min((quadSize.y / quadSize.x) / (textureSize.y / textureSize.x), 1.0)
+  );
+  return vec2(
+    uv.x * ratio.x + (1.0 - ratio.x) * 0.5,
+    uv.y * ratio.y + (1.0 - ratio.y) * 0.5
+  );
+}
+
+void main() {
+  vec2 uv = getCoverUv(vUv, uTextureSize, uQuadSize);
+
+  vec2 scaleOrigin = vec2(0.5);
+  uv = (uv - scaleOrigin) / u_innerScale + scaleOrigin;
+  uv.y += u_innerY;
+
+  vec4 color = texture2D(uTexture, uv);
+
+  float thresholdLeft = smoothstep(-0.85, -1.0, ssCoords.x) * u_edgeFade;
+  float thresholdRight = smoothstep(0.85, 1.0, ssCoords.x) * u_edgeFade;
+  float thresholdTop = smoothstep(0.85, 1.0, ssCoords.y) * u_edgeFade;
+  float thresholdBottom = smoothstep(-0.85, -1.0, ssCoords.y) * u_edgeFade;
+  float threshold = thresholdLeft + thresholdRight + thresholdBottom + thresholdTop;
+
+  float colorShiftR = texture2D(uTexture, uv + vec2(0.0, 0.003)).r;
+  float colorShiftG = texture2D(uTexture, uv - vec2(0.0, 0.003)).g;
+  color.r = mix(color.r, colorShiftR, threshold);
+  color.g = mix(color.g, colorShiftG, threshold);
+
+  gl_FragColor = vec4(color.rgb, color.a * u_opacity);
+}
+`
+
+interface TextEntry {
+  mesh: THREE.Mesh
+  element: HTMLElement
+  material: THREE.ShaderMaterial
+  bounds: DOMRect
+  y: number
+  isVisible: boolean
+}
+
+interface ImageEntry {
+  mesh: THREE.Mesh
+  element: HTMLElement
+  imgElement: HTMLImageElement
+  material: THREE.ShaderMaterial
+  effect: string
+  width: number
+  height: number
+  top: number
+  left: number
+  depth: number
+}
+
+/* Runs the shared WebGL pipeline:
+   - [data-animation="webgl-text"] gets a noise-mask reveal
+       mode="hero"          → auto-plays on load
+       mode="time-trigger"  → plays once on scroll enter, cyclable via events
+       default              → scrubbed with scroll
+   - [data-webgl-media]      → three.js textured quad with bend + parallax pan
+   - Desktop uses a full-screen overlay canvas; mobile uses per-element canvases
+     for text only (images fall back to <img>). */
+export function useWebGLEffects(enabled: boolean) {
+  useEffect(() => {
+    if (!enabled) {
+      document.body.classList.remove('webgl-active')
+      return
+    }
+
+    document.body.classList.add('webgl-active')
+
+    let animationId: number
+    let resizeHandler: (() => void) | undefined
+    let scrollHandler: (() => void) | undefined
+    let canvas: HTMLCanvasElement | undefined
+    let cancelled = false
+    let needsRender = true
+
+    const restoreElements: Array<{el: HTMLElement, prop: string, val: string}> = []
+
+    const init = async () => {
+      await document.fonts.ready
+
+      const THREE = await import('three')
+      const {getLenisInstance} = await import('@/app/lib/lenis')
+      const gsap = (await import('gsap')).default
+      const {ScrollTrigger} = await import('gsap/ScrollTrigger')
+      const {EffectComposer} = await import('three/examples/jsm/postprocessing/EffectComposer.js')
+      const {RenderPass} = await import('three/examples/jsm/postprocessing/RenderPass.js')
+      const {ShaderPass} = await import('three/examples/jsm/postprocessing/ShaderPass.js')
+
+      gsap.registerPlugin(ScrollTrigger)
+
+      if (cancelled) return
+
+      let lenis = getLenisInstance()
+      if (!lenis) {
+        for (let i = 0; i < 40; i++) {
+          await new Promise((r) => setTimeout(r, 50))
+          if (cancelled) return
+          lenis = getLenisInstance()
+          if (lenis) break
+        }
+      }
+
+      const getScroll = () => lenis ? lenis.animatedScroll : window.scrollY
+      const getScrollRaw = () => lenis ? lenis.actualScroll : window.scrollY
+
+      scrollHandler = () => { needsRender = true }
+      if (lenis) {
+        lenis.on('scroll', scrollHandler)
+      } else {
+        window.addEventListener('scroll', scrollHandler, { passive: true })
+      }
+
+      const screen = {
+        width: window.innerWidth,
+        height: window.innerHeight,
+      }
+      const DIST = 500
+
+      const fov =
+        2 * Math.atan(screen.height / 2 / DIST) * (180 / Math.PI)
+
+      const camera = new THREE.PerspectiveCamera(
+        fov,
+        screen.width / screen.height,
+        10,
+        1000,
+      )
+      camera.position.z = DIST
+
+      const isTouch = 'ontouchstart' in document.documentElement
+      const dpr = Math.min(window.devicePixelRatio, 2)
+
+      const renderer = new THREE.WebGLRenderer({
+        alpha: true,
+        antialias: false,
+        stencil: false,
+        powerPreference: 'high-performance',
+      })
+      renderer.setSize(screen.width, screen.height)
+      renderer.setPixelRatio(dpr)
+      renderer.outputColorSpace = THREE.LinearSRGBColorSpace
+
+      canvas = renderer.domElement
+      canvas.style.cssText =
+        'position:fixed;top:0;left:0;pointer-events:none;z-index:10;'
+      canvas.style.width = window.innerWidth + 'px'
+      canvas.style.height = window.innerHeight + 'px'
+      document.body.appendChild(canvas)
+
+      const scene = new THREE.Scene()
+      const textGeometry = new THREE.PlaneGeometry(1, 1)
+
+      /* Mask color = background it dissolves from. Defaults to cream; elements
+         on dark sections can override via data-webgl-text-bg="#332f29". */
+      const CREAM_RGB = new THREE.Vector3(0xfa / 255, 0xf8 / 255, 0xf2 / 255)
+      const getMaskColor = (element: HTMLElement) => {
+        const attr = element.dataset.webglTextBg
+        if (!attr) return CREAM_RGB.clone()
+        const hex = attr.replace('#', '')
+        if (hex.length !== 6) return CREAM_RGB.clone()
+        const r = parseInt(hex.slice(0, 2), 16) / 255
+        const g = parseInt(hex.slice(2, 4), 16) / 255
+        const b = parseInt(hex.slice(4, 6), 16) / 255
+        return new THREE.Vector3(r, g, b)
+      }
+
+      const textElements = document.querySelectorAll<HTMLElement>(
+        '[data-animation="webgl-text"]',
+      )
+      const texts: TextEntry[] = []
+
+      if (isTouch) {
+        /* Mobile: per-element WebGL canvas (scrolls with DOM, no jitter) */
+        const PAD_X = 0.12
+        const PAD_Y = 0.25
+
+        textElements.forEach((element) => {
+          element.style.position = 'relative'
+          restoreElements.push({el: element, prop: 'position', val: ''})
+
+          const bounds = element.getBoundingClientRect()
+          const paddedW = bounds.width * (1 + PAD_X * 2)
+          const paddedH = bounds.height * (1 + PAD_Y * 2)
+          const offsetX = bounds.width * PAD_X
+          const offsetY = bounds.height * PAD_Y
+          const elDpr = Math.min(window.devicePixelRatio, 1.5)
+
+          const elRenderer = new THREE.WebGLRenderer({
+            alpha: true,
+            antialias: false,
+            powerPreference: 'low-power',
+          })
+          elRenderer.setSize(paddedW, paddedH)
+          elRenderer.setPixelRatio(elDpr)
+          elRenderer.outputColorSpace = THREE.LinearSRGBColorSpace
+
+          const elCanvas = elRenderer.domElement
+          elCanvas.style.cssText = `position:absolute;top:${-offsetY}px;left:${-offsetX}px;z-index:1;pointer-events:none;width:${paddedW}px;height:${paddedH}px;`
+          element.appendChild(elCanvas)
+          restoreElements.push({el: elCanvas, prop: '__remove', val: ''})
+
+          const elCamera = new THREE.OrthographicCamera(-0.5, 0.5, 0.5, -0.5, 0.1, 10)
+          elCamera.position.z = 1
+
+          const elScene = new THREE.Scene()
+          const bgColor = getMaskColor(element)
+
+          const aspect = paddedW / paddedH
+          const elMaterial = new THREE.ShaderMaterial({
+            fragmentShader: textFragShader,
+            vertexShader: textVertShader,
+            transparent: true,
+            uniforms: {
+              uReveal: new THREE.Uniform(0),
+              uColor: {value: bgColor},
+              uAspect: {value: new THREE.Vector2(aspect, 1.0)},
+            },
+          })
+
+          const elMesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), elMaterial)
+          elScene.add(elMesh)
+          elRenderer.render(elScene, elCamera)
+
+          const mode = element.dataset.webglTextMode
+
+          const renderEl = () => {
+            elRenderer.render(elScene, elCamera)
+          }
+
+          const remeasureEl = () => {
+            const b = element.getBoundingClientRect()
+            const pW = b.width * (1 + PAD_X * 2)
+            const pH = b.height * (1 + PAD_Y * 2)
+            const oX = b.width * PAD_X
+            const oY = b.height * PAD_Y
+            elRenderer.setSize(pW, pH)
+            elCanvas.style.top = `${-oY}px`
+            elCanvas.style.left = `${-oX}px`
+            elCanvas.style.width = `${pW}px`
+            elCanvas.style.height = `${pH}px`
+            ;(elMaterial.uniforms.uAspect.value as THREE.Vector2).set(pW / pH, 1.0)
+          }
+
+          if (mode === 'hero') {
+            gsap.to(elMaterial.uniforms.uReveal, {
+              value: 1,
+              duration: 3,
+              delay: 0,
+              ease: 'power2.inOut',
+              onUpdate: renderEl,
+              onComplete: () => elCanvas.remove(),
+            })
+          } else if (mode === 'time-trigger') {
+            ScrollTrigger.create({
+              trigger: element,
+              start: 'top 85%',
+              once: true,
+              onEnter: () => {
+                gsap.to(elMaterial.uniforms.uReveal, {
+                  value: 1,
+                  duration: 1.4,
+                  ease: 'power2.inOut',
+                  onUpdate: renderEl,
+                })
+              },
+            })
+            element.addEventListener('webgl-text-replay', () => {
+              gsap.killTweensOf(elMaterial.uniforms.uReveal)
+              gsap.to(elMaterial.uniforms.uReveal, {
+                value: 0,
+                duration: 0.4,
+                ease: 'power2.in',
+                onUpdate: renderEl,
+              })
+            })
+            element.addEventListener('webgl-text-remeasured', () => {
+              remeasureEl()
+              renderEl()
+              gsap.killTweensOf(elMaterial.uniforms.uReveal)
+              gsap.to(elMaterial.uniforms.uReveal, {
+                value: 1,
+                duration: 1.2,
+                ease: 'power2.inOut',
+                onUpdate: renderEl,
+              })
+            })
+          } else {
+            gsap.to(elMaterial.uniforms.uReveal, {
+              value: 1,
+              ease: 'none',
+              onUpdate: renderEl,
+              onComplete: () => {
+                elCanvas.remove()
+                elRenderer.dispose()
+                elMaterial.dispose()
+              },
+              scrollTrigger: {
+                trigger: element,
+                start: 'top 85%',
+                end: 'top 25%',
+                scrub: 0.5,
+              },
+            })
+          }
+        })
+      } else {
+        /* Desktop: single WebGL overlay canvas (smooth with Lenis) */
+        const PAD_X = 0.12
+        const PAD_Y = 0.25
+
+        textElements.forEach((element) => {
+          const bounds = element.getBoundingClientRect()
+          const y = bounds.top + getScrollRaw()
+
+          const paddedW = bounds.width * (1 + PAD_X * 2)
+          const paddedH = bounds.height * (1 + PAD_Y * 2)
+          const aspect = paddedW / paddedH
+          const material = new THREE.ShaderMaterial({
+            fragmentShader: textFragShader,
+            vertexShader: textVertShader,
+            transparent: true,
+            uniforms: {
+              uReveal: new THREE.Uniform(0),
+              uColor: {value: getMaskColor(element)},
+              uAspect: {value: new THREE.Vector2(aspect, 1.0)},
+            },
+          })
+
+          const mesh = new THREE.Mesh(textGeometry, material)
+          mesh.scale.set(paddedW, paddedH, 1)
+          scene.add(mesh)
+
+          texts.push({mesh, element, material, bounds, y, isVisible: false})
+        })
+
+        texts.forEach((t) => {
+          t.isVisible = true
+          const mode = t.element.dataset.webglTextMode
+
+          const remeasure = () => {
+            const b = t.element.getBoundingClientRect()
+            t.bounds = b
+            t.y = b.top + getScrollRaw()
+            const pW = b.width * (1 + PAD_X * 2)
+            const pH = b.height * (1 + PAD_Y * 2)
+            t.mesh.scale.set(pW, pH, 1)
+            ;(t.material.uniforms.uAspect.value as THREE.Vector2).set(pW / pH, 1.0)
+            needsRender = true
+          }
+
+          if (mode === 'hero') {
+            gsap.to(t.material.uniforms.uReveal, {
+              value: 1,
+              duration: 3,
+              delay: 0,
+              ease: 'power2.inOut',
+              onUpdate: () => { needsRender = true },
+            })
+          } else if (mode === 'time-trigger') {
+            ScrollTrigger.create({
+              trigger: t.element,
+              start: 'top 85%',
+              once: true,
+              onEnter: () => {
+                gsap.to(t.material.uniforms.uReveal, {
+                  value: 1,
+                  duration: 1.4,
+                  ease: 'power2.inOut',
+                  onUpdate: () => { needsRender = true },
+                })
+              },
+            })
+            t.element.addEventListener('webgl-text-replay', () => {
+              gsap.killTweensOf(t.material.uniforms.uReveal)
+              gsap.to(t.material.uniforms.uReveal, {
+                value: 0,
+                duration: 0.4,
+                ease: 'power2.in',
+                onUpdate: () => { needsRender = true },
+              })
+            })
+            t.element.addEventListener('webgl-text-remeasured', () => {
+              remeasure()
+              gsap.killTweensOf(t.material.uniforms.uReveal)
+              gsap.to(t.material.uniforms.uReveal, {
+                value: 1,
+                duration: 1.2,
+                ease: 'power2.inOut',
+                onUpdate: () => { needsRender = true },
+              })
+            })
+          } else {
+            gsap.to(t.material.uniforms.uReveal, {
+              value: 1,
+              ease: 'none',
+              onUpdate: () => { needsRender = true },
+              scrollTrigger: {
+                trigger: t.element,
+                start: 'top 85%',
+                end: 'top 25%',
+                scrub: 0.5,
+              },
+            })
+          }
+        })
+      }
+
+      /* WebGL images — desktop only */
+
+      const mediaElements = isTouch
+        ? []
+        : Array.from(document.querySelectorAll<HTMLImageElement>('[data-webgl-media]'))
+      const images: ImageEntry[] = []
+      const imageGeometry = new THREE.PlaneGeometry(1, 1, 32, 32)
+      const textureLoader = new THREE.TextureLoader()
+
+      await Promise.all(
+        mediaElements.map(
+          (img) =>
+            new Promise<void>((resolve) => {
+              if (img.complete && img.naturalWidth > 0) {
+                resolve()
+              } else {
+                img.onload = () => resolve()
+                img.onerror = () => resolve()
+              }
+            }),
+        ),
+      )
+
+      if (cancelled) return
+
+      for (const img of mediaElements) {
+        const texture = await textureLoader.loadAsync(img.src)
+        const maskEl =
+          (img.closest('[data-parallax="trigger"]') as HTMLElement | null) || img
+        const bounds = maskEl.getBoundingClientRect()
+        const effect = img.dataset.webglEffect || 'none'
+        const depth = parseFloat(img.dataset.webglDepth || '0')
+
+        const hasBend = effect === 'bend' || effect === 'distort'
+        const hasDistort = effect === 'distort'
+
+        const imgMaterial = new THREE.ShaderMaterial({
+          vertexShader: imgVertShader,
+          fragmentShader: imgFragShader,
+          transparent: true,
+          uniforms: {
+            uTexture: {value: texture},
+            uTextureSize: {
+              value: new THREE.Vector2(
+                texture.image.width,
+                texture.image.height,
+              ),
+            },
+            uQuadSize: {
+              value: new THREE.Vector2(bounds.width, bounds.height),
+            },
+            u_progress: {value: 0},
+            u_enableBend: {value: hasBend},
+            u_innerScale: {value: 1.2},
+            u_innerY: {value: -0.1},
+            u_opacity: {value: 1},
+            u_edgeFade: {value: hasDistort ? 1.0 : 0.0},
+          },
+        })
+
+        const imgMesh = new THREE.Mesh(imageGeometry, imgMaterial)
+        imgMesh.scale.set(bounds.width, bounds.height, 1)
+        scene.add(imgMesh)
+
+        img.style.visibility = 'hidden'
+        restoreElements.push({el: img, prop: 'visibility', val: ''})
+
+        images.push({
+          mesh: imgMesh,
+          element: maskEl,
+          imgElement: img,
+          material: imgMaterial,
+          effect,
+          width: bounds.width,
+          height: bounds.height,
+          top: bounds.top + getScrollRaw(),
+          left: bounds.left,
+          depth,
+        })
+      }
+
+      images.forEach((img) => {
+        const {effect} = img
+
+        gsap.fromTo(
+          img.material.uniforms.u_innerY,
+          {value: -0.1},
+          {
+            value: 0.1,
+            ease: 'none',
+            scrollTrigger: {
+              trigger: img.element,
+              scrub: true,
+              start: 'top bottom',
+              end: 'bottom top',
+            },
+          },
+        )
+
+        if (effect === 'bend' || effect === 'distort') {
+          gsap.to(img.material.uniforms.u_progress, {
+            value: 1.5,
+            ease: 'sine.out',
+            scrollTrigger: {
+              trigger: img.element,
+              scrub: true,
+              start: 'top bottom',
+              end: 'bottom 70%',
+            },
+          })
+        }
+      })
+
+      const barrelShader = {
+        uniforms: {
+          tDiffuse: {value: null},
+          u_bendAmount: {value: -0.03},
+          u_maxDistort: {value: 0.1},
+        },
+        vertexShader: /* glsl */ `
+          varying vec2 vUv;
+          void main() {
+            vUv = uv;
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+          }
+        `,
+        fragmentShader: /* glsl */ `
+          precision highp float;
+          uniform sampler2D tDiffuse;
+          uniform float u_bendAmount;
+          uniform float u_maxDistort;
+          varying vec2 vUv;
+
+          vec2 barrelDistort(vec2 coord, float amt) {
+            vec2 cc = coord - 0.5;
+            float dist = dot(cc, cc);
+            return coord + cc * dist * amt;
+          }
+
+          void main() {
+            vec2 uv = vUv;
+            float rDist = u_maxDistort * u_bendAmount;
+            float gDist = u_maxDistort * u_bendAmount * 0.7;
+            float bDist = u_maxDistort * u_bendAmount * 0.4;
+
+            float r = texture2D(tDiffuse, barrelDistort(uv, rDist)).r;
+            float g = texture2D(tDiffuse, barrelDistort(uv, gDist)).g;
+            float b = texture2D(tDiffuse, barrelDistort(uv, bDist)).b;
+            float a = texture2D(tDiffuse, barrelDistort(uv, gDist)).a;
+
+            gl_FragColor = vec4(r, g, b, a);
+          }
+        `,
+      }
+
+      let composer: InstanceType<typeof EffectComposer> | null = null
+      if (!isTouch) {
+        composer = new EffectComposer(renderer)
+        composer.addPass(new RenderPass(scene, camera))
+        const barrelPass = new ShaderPass(barrelShader)
+        barrelPass.renderToScreen = true
+        composer.addPass(barrelPass)
+      }
+
+      let fpsCheckCount = 0
+      let fpsFrames = 0
+      let fpsLastTime = performance.now()
+
+      const checkFPS = () => {
+        if (fpsCheckCount >= 10) return
+        fpsFrames++
+        const now = performance.now()
+        if (now - fpsLastTime >= 600) {
+          const fps = (fpsFrames / (now - fpsLastTime)) * 1000
+          fpsFrames = 0
+          fpsLastTime = now
+          fpsCheckCount++
+
+          if (fps < 30) {
+            const currentDpr = renderer.getPixelRatio()
+            if (currentDpr > 1.5) {
+              renderer.setPixelRatio(1.5)
+              if (composer) composer.setPixelRatio(1.5)
+            } else if (currentDpr > 1) {
+              renderer.setPixelRatio(1)
+              if (composer) composer.setPixelRatio(1)
+            }
+          }
+        }
+      }
+
+      const uploadTexture = (texture: THREE.Texture) => {
+        if ('requestIdleCallback' in window) {
+          requestIdleCallback(() => {
+            texture.needsUpdate = true
+            renderer.initTexture(texture)
+          }, {timeout: 1000})
+        }
+      }
+
+      images.forEach((img) => uploadTexture(img.material.uniforms.uTexture.value))
+
+      const update = () => {
+        checkFPS()
+
+        if (needsRender) {
+          const scrollY = getScroll()
+
+          const vw = window.innerWidth
+          const vh = window.innerHeight
+          if (vh !== screen.height || vw !== screen.width) {
+            screen.width = vw
+            screen.height = vh
+            camera.fov = 2 * Math.atan(vh / 2 / DIST) * (180 / Math.PI)
+            camera.aspect = vw / vh
+            camera.updateProjectionMatrix()
+            renderer.setSize(vw, vh)
+            canvas!.style.width = vw + 'px'
+            canvas!.style.height = vh + 'px'
+          }
+
+          texts.forEach((t) => {
+            if (t.isVisible) {
+              t.mesh.position.x =
+                t.bounds.left - vw / 2 + t.bounds.width / 2
+              t.mesh.position.y =
+                -t.y + scrollY + vh / 2 - t.bounds.height / 2
+            }
+          })
+
+          images.forEach((img) => {
+            img.mesh.position.x =
+              img.left - screen.width / 2 + img.width / 2
+
+            const parallaxFactor = 1 + img.depth * 0.0004
+            img.mesh.position.y =
+              -img.top +
+              scrollY * parallaxFactor +
+              screen.height / 2 -
+              img.height / 2
+
+            img.mesh.position.z = img.depth
+
+            if (img.depth < 0) {
+              const shrink = 1 - DIST / (DIST - img.depth)
+              img.mesh.position.y += img.height * shrink * 8.0
+            }
+
+            const depthScale = DIST / (DIST - img.depth)
+            img.mesh.scale.set(
+              img.width * depthScale,
+              img.height * depthScale,
+              1,
+            )
+          })
+
+          if (composer) {
+            composer.render()
+          } else {
+            renderer.render(scene, camera)
+          }
+          needsRender = false
+        }
+        animationId = requestAnimationFrame(update)
+      }
+
+      update()
+
+      let resizeTimeout: ReturnType<typeof setTimeout>
+      resizeHandler = () => {
+        clearTimeout(resizeTimeout)
+        resizeTimeout = setTimeout(() => {
+          if (isTouch && window.innerWidth === screen.width) return
+
+          screen.width = window.innerWidth
+          screen.height = window.innerHeight
+
+          renderer.setSize(screen.width, screen.height)
+          renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+
+          camera.fov =
+            2 * Math.atan(screen.height / 2 / DIST) * (180 / Math.PI)
+          camera.aspect = screen.width / screen.height
+          camera.updateProjectionMatrix()
+
+          texts.forEach((t) => {
+            t.bounds = t.element.getBoundingClientRect()
+            t.y = t.bounds.top + getScrollRaw()
+            const paddedW = t.bounds.width * 1.24
+            const paddedH = t.bounds.height * 1.5
+            t.mesh.scale.set(paddedW, paddedH, 1)
+            const mat = t.material.uniforms.uAspect.value as THREE.Vector2
+            mat.set(paddedW / paddedH, 1.0)
+          })
+
+          images.forEach((img) => {
+            const bounds = img.element.getBoundingClientRect()
+            img.mesh.scale.set(bounds.width, bounds.height, 1)
+            img.width = bounds.width
+            img.height = bounds.height
+            img.top = bounds.top + getScrollRaw()
+            img.left = bounds.left
+            img.material.uniforms.uQuadSize.value.set(
+              bounds.width,
+              bounds.height,
+            )
+          })
+
+          if (composer) composer.setSize(screen.width, screen.height)
+          needsRender = true
+        }, 150)
+      }
+
+      window.addEventListener('resize', resizeHandler)
+    }
+
+    init()
+
+    return () => {
+      cancelled = true
+      if (animationId) cancelAnimationFrame(animationId)
+      if (resizeHandler) window.removeEventListener('resize', resizeHandler)
+      if (scrollHandler) window.removeEventListener('scroll', scrollHandler)
+      if (canvas) canvas.remove()
+      document.body.classList.remove('webgl-active')
+      restoreElements.forEach(({el, prop, val}) => {
+        if (prop === '__remove') {
+          el.remove()
+        } else {
+          el.style.setProperty(prop, val)
+        }
+      })
+    }
+  }, [enabled])
+}
+
+/* Global parallax: every [data-parallax="trigger"] pans its target
+   ([data-parallax="target"]) from startVal → endVal on scroll. */
+export function useGlobalParallax() {
+  useEffect(() => {
+    let ctx: ReturnType<typeof import('gsap')['default']['context']> | undefined
+    let cancelled = false
+
+    ;(async () => {
+      const gsap = (await import('gsap')).default
+      const {ScrollTrigger} = await import('gsap/ScrollTrigger')
+      gsap.registerPlugin(ScrollTrigger)
+      if (cancelled) return
+
+      ctx = gsap.context(() => {
+        document
+          .querySelectorAll<HTMLElement>('[data-parallax="trigger"]')
+          .forEach((trigger) => {
+            const target =
+              trigger.querySelector<HTMLElement>('[data-parallax="target"]') ||
+              trigger
+
+            const direction =
+              trigger.getAttribute('data-parallax-direction') || 'vertical'
+            const prop = direction === 'horizontal' ? 'xPercent' : 'yPercent'
+
+            const scrubAttr = trigger.getAttribute('data-parallax-scrub')
+            const scrub = scrubAttr ? parseFloat(scrubAttr) : true
+
+            const startAttr = trigger.getAttribute('data-parallax-start')
+            const startVal = startAttr !== null ? parseFloat(startAttr) : 15
+
+            const endAttr = trigger.getAttribute('data-parallax-end')
+            const endVal = endAttr !== null ? parseFloat(endAttr) : -15
+
+            const scrollStartRaw =
+              trigger.getAttribute('data-parallax-scroll-start') || 'top bottom'
+            const scrollEndRaw =
+              trigger.getAttribute('data-parallax-scroll-end') || 'bottom top'
+
+            gsap.fromTo(
+              target,
+              {[prop]: startVal},
+              {
+                [prop]: endVal,
+                ease: 'none',
+                scrollTrigger: {
+                  trigger,
+                  start: `clamp(${scrollStartRaw})`,
+                  end: `clamp(${scrollEndRaw})`,
+                  scrub,
+                },
+              },
+            )
+          })
+      })
+    })()
+
+    return () => {
+      cancelled = true
+      if (ctx) ctx.revert()
+    }
+  }, [])
+}
