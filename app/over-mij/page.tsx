@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Footer from '@/app/components/Footer'
 import { IconButton } from '@/app/components/IconButton'
+import PageFX from '@/app/components/PageFX'
 import styles from '@/app/over-mij/over-mij.module.css'
 
 export const metadata: Metadata = {
@@ -32,13 +33,18 @@ const USPS = [
 ]
 
 const OverMij = () => (
+  <PageFX>
   <div className={styles.page}>
     <header className={styles.hero}>
       <p className={styles.label}>
         <span className={styles.labelDot} aria-hidden="true" />
         Over mij
       </p>
-      <h1 className={styles.title}>
+      <h1
+        className={styles.title}
+        data-animation="webgl-text"
+        data-webgl-text-mode="hero"
+      >
         <em>I</em>k ben Vienna —
         <br />
         social media partner
@@ -64,7 +70,7 @@ const OverMij = () => (
     </div>
 
     <section className={styles.story}>
-      <h2 className={styles.storyTitle}>
+      <h2 className={styles.storyTitle} data-animation="webgl-text">
         <em>M</em>ijn verhaal
       </h2>
       <div className={styles.storyBody}>
@@ -90,7 +96,7 @@ const OverMij = () => (
     <section className={styles.servicesSection}>
       <div className={styles.servicesInner}>
         <header className={styles.servicesHeader}>
-          <h2 className={styles.servicesTitle}>
+          <h2 className={styles.servicesTitle} data-animation="webgl-text">
             <em>W</em>at ik doe
           </h2>
         </header>
@@ -110,7 +116,7 @@ const OverMij = () => (
     </section>
 
     <section className={styles.usps}>
-      <h2 className={styles.uspsTitle}>
+      <h2 className={styles.uspsTitle} data-animation="webgl-text">
         <em>W</em>aarom samen?
       </h2>
       <ul className={styles.uspsList}>
@@ -126,7 +132,7 @@ const OverMij = () => (
     </section>
 
     <section className={styles.cta}>
-      <h2 className={styles.ctaHeading}>
+      <h2 className={styles.ctaHeading} data-animation="webgl-text">
         <em>K</em>laar om jouw merk te laten zien?
       </h2>
       <IconButton href="/contact" ariaLabel="Naar contactpagina">
@@ -136,6 +142,7 @@ const OverMij = () => (
 
     <Footer />
   </div>
+  </PageFX>
 )
 
 export default OverMij

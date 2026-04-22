@@ -358,7 +358,7 @@
   color: var(--color-navy);
   width: min(calc(100vh * 210 / 297), 88vw);
   height: 100vh;
-  padding: 6em 3em;
+  padding: 2em 3em;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -381,10 +381,12 @@
 
 .studioLogo {
   display: block;
-  width: 19.2em;
-  aspect-ratio: 1289 / 1671;
-  background: url('/icons/SVG/biglogo%4010x.png') no-repeat center / contain;
+  width: 15.84em;
+  aspect-ratio: 1792 / 2400;
   margin: auto 0;
+  /* Contents are rendered by <EmbossedLogo> — a WebGL shader samples
+     the PNG as a height map, computes normals, and lights them to paint
+     an embossed impression in the cream paper colour. */
 }
 
 .studioTagline {
@@ -907,7 +909,7 @@
   }
 
   .studioLogo {
-    width: 14em;
+    width: 11.55em;
   }
 
   .studioTagline {
@@ -1033,7 +1035,7 @@
   }
 
   .studioLogo {
-    width: 11em;
+    width: 9.08em;
   }
 
   .studioTagline {

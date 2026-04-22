@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import Footer from '@/app/components/Footer'
+import PageFX from '@/app/components/PageFX'
 import { CASES, type CaseSlug } from '@/app/cases/caseData'
 import styles from '@/app/cases/cases-index.module.css'
 
@@ -18,13 +19,18 @@ const ORDER: CaseSlug[] = [
 ]
 
 const CasesIndex = () => (
+  <PageFX>
   <div className={styles.page}>
     <header className={styles.hero}>
       <p className={styles.label}>
         <span className={styles.labelDot} aria-hidden="true" />
         Cases
       </p>
-      <h1 className={styles.title}>
+      <h1
+        className={styles.title}
+        data-animation="webgl-text"
+        data-webgl-text-mode="hero"
+      >
         <em>W</em>erk dat ik trots
         <br />
         op deelt
@@ -71,6 +77,7 @@ const CasesIndex = () => (
 
     <Footer />
   </div>
+  </PageFX>
 )
 
 export default CasesIndex

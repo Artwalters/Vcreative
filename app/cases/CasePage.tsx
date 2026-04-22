@@ -46,7 +46,6 @@ const CasePage = ({ slug }: { slug: CaseSlug }) => {
         >
           {renderTitle(data.heroTitle)}
         </h1>
-        <p className={styles.heroSubtitle}>{data.heroSubtitle}</p>
         <ul className={styles.heroTags}>
           {data.heroTags.map((tag) => (
             <li key={tag} className={styles.heroTag}>

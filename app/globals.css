@@ -162,6 +162,12 @@
   /* Borders */
   --border-subtle: rgba(51, 47, 41, 0.15);
   --border-subtle-inverse: rgba(250, 248, 242, 0.12);
+
+  /* Muted text — one solid dark warm-grey that replaces every
+     per-element rgba() tint on the site. Used on the navy footer for
+     the Vienna Creative brand line, column headers, placeholder text,
+     copyright, etc. */
+  --color-muted: #4e4a43;
 }
 
 /* Tablet */

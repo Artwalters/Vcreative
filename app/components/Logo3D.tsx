@@ -1,10 +1,11 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
+import type * as THREE from 'three'
 import styles from '@/app/components/Header.module.css'
 
 type Props = {
-  interaction?: 'scroll' | 'mouseTilt'
+  interaction?: 'scroll' | 'mouseTilt' | 'auto'
   className?: string
 }
 
@@ -232,6 +233,24 @@ const Logo3D = ({ interaction = 'scroll', className }: Props) => {
           detachInteraction = () =>
             window.removeEventListener('scroll', onScroll)
         }
+      } else if (interaction === 'auto') {
+        /* Dual-axis rotation with non-harmonic frequencies so the motion
+           never repeats identically — reads like a coin tumbling in
+           zero-g rather than a metronome.
+           - Y is the primary spin (continuous)
+           - X does the "coin flip" tumble, slightly faster than Y
+           - Each axis gets an extra sinusoidal wobble at a different
+             period, pushing/pulling the speed irregularly */
+        const start = performance.now()
+        let autoRaf = 0
+        const tick = () => {
+          const t = (performance.now() - start) / 1000
+          targetRotY = t * 0.95 + Math.sin(t * 0.43) * 0.5
+          targetRotX = t * 1.35 + Math.sin(t * 0.61 + 1.7) * 0.55
+          autoRaf = requestAnimationFrame(tick)
+        }
+        tick()
+        detachInteraction = () => cancelAnimationFrame(autoRaf)
       } else if (isTouch) {
         // touch: subtle continuous wobble — no mouse to follow
         const start = performance.now()

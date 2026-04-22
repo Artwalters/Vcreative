@@ -1,27 +1,77 @@
+/* ──────────────────────────────────────────────────────────────
+   Footer — editorial type specimen layout.
+   Top row: logo + subscribe pill (left) • four nav columns (right)
+   Middle row: huge script brand name spanning the container
+   Bottom: small centred copyright
+   Backdrop is cream so the script-name sits on paper, not on navy.
+   ────────────────────────────────────────────────────────────── */
+
 .footer {
   background: var(--color-navy);
   color: var(--color-cream);
-  padding: 6em clamp(1.5em, 5vw, 4em) 2.5em;
-  padding-bottom: max(2.5em, env(safe-area-inset-bottom));
+  padding: 5em clamp(1.5em, 5vw, 4em) 2em;
+  padding-bottom: max(2em, env(safe-area-inset-bottom));
+  border-top: 1px solid var(--border-subtle-inverse);
   display: flex;
   flex-direction: column;
-  gap: 6em;
+  /* space-between pushes the three rows (topRow / brandRow / copyright)
+     to the top, middle and bottom of the 80vh area — gives the footer
+     ruimte zonder dat er een leeg gat onderaan komt. */
+  justify-content: space-between;
+  gap: 4em;
+  min-height: 80vh;
+  overflow: hidden;
 }
 
 .footer > * {
   width: 100%;
-  max-width: 68em;
+  max-width: 72em;
   margin-left: auto;
   margin-right: auto;
 }
 
-/* ── Top row: logo + heading + CTA ── */
+/* ── Top row ── */
 
-.top {
+.topRow {
   display: grid;
-  grid-template-columns: auto 1fr;
+  /* Left cluster takes all remaining space (subscribe pill gets room to
+     breathe); right cluster is auto-sized so "Volg mij" hugs the
+     container's right edge. */
+  grid-template-columns: 1fr auto;
   gap: 4em;
   align-items: start;
+}
+
+.left {
+  display: flex;
+  align-items: flex-start;
+  /* Larger gap pushes the newsletter column visibly away from the 3D
+     logo so they read as two distinct elements, not a stuck pair. */
+  gap: 3em;
+  /* Inset the whole cluster a touch from the grid's left edge so the
+     3D logo has some breathing room before the footer boundary. */
+  padding-left: 2em;
+  /* Cap the left cluster so on ultra-wide viewports the subscribe pill
+     doesn't stretch into a banner. Narrower than the default grid
+     column would allow so the 3D logo next to it reads as prominent. */
+  max-width: 34em;
+}
+
+.newsletter {
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
+  flex: 1;
+  min-width: 0;
+}
+
+.newsletterBody {
+  font-family: var(--font-secondary);
+  font-size: var(--text-sm);
+  line-height: var(--leading-relaxed);
+  color: var(--color-muted);
+  margin: 0;
+  max-width: 26em;
 }
 
 .logo {
@@ -30,6 +80,7 @@
   justify-content: center;
   color: var(--color-cream);
   transition: opacity var(--duration-fast);
+  flex-shrink: 0;
 }
 
 .logo:hover {
@@ -38,224 +89,248 @@
 
 .logoMark {
   display: block;
-  width: 7em;
+  width: 6em;
   aspect-ratio: 88.92 / 104.29;
 }
 
-.main {
+/* Subscribe row: pill-shaped input field + IconButton (uses the global
+   .btn-icon-link styling with sliding arrow + orange wipe on hover). */
+.subscribe {
   display: flex;
-  flex-direction: column;
-  gap: 2em;
+  align-items: center;
+  gap: 0.75em;
+  flex-wrap: wrap;
 }
 
-.heading {
-  font-family: var(--font-primary);
-  font-style: italic;
-  font-size: var(--text-3xl);
-  font-weight: var(--weight-regular);
-  line-height: 0.95;
-  margin: 0;
+.subscribeInput {
+  flex: 1;
+  min-width: 12em;
+  border: none;
+  background: rgba(250, 248, 242, 0.08);
+  padding: 1em 1.5em;
+  border-radius: var(--radius-pill);
+  font-family: var(--font-secondary);
+  font-size: var(--text-sm);
+  color: var(--color-cream);
+  outline: none;
+  transition: background var(--duration-fast);
+}
+
+.subscribeInput::placeholder {
+  color: var(--color-muted);
+}
+
+.subscribeInput:hover {
+  background: rgba(250, 248, 242, 0.12);
+}
+
+.subscribeInput:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* Override the shared IconButton palette for this specific button:
+   cream base (stands out against the dark footer) with a navy inner
+   circle + cream arrows. The existing orange wipe on hover stays —
+   so the button reads cream at rest and orange on hover. */
+.subscribe :global(.btn-icon-content) {
+  background: var(--color-cream);
+  color: var(--color-navy);
+}
+
+.subscribe :global(.btn-icon-icon__bg) {
+  background-color: var(--color-navy);
+}
+
+.subscribe :global(.btn-icon-icon__wrap) {
   color: var(--color-cream);
 }
 
-.heading em {
-  font-family: var(--font-script);
-  font-style: normal;
-  font-weight: 700;
-  text-transform: none;
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
-.cta {
-  font-family: var(--font-secondary);
-  font-size: var(--text-xs);
-  font-weight: var(--weight-medium);
-  letter-spacing: var(--tracking-wide);
-  text-transform: uppercase;
-  color: var(--color-accent);
-  text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5em;
-  align-self: flex-start;
-  transition: opacity var(--duration-fast);
-}
+/* ── Nav columns ── */
 
-.cta:hover {
-  opacity: 0.7;
-}
-
-.ctaArrow {
-  font-size: 1.1em;
-}
-
-/* ── Info columns ── */
-
-.info {
+.columns {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 4em;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2em;
 }
 
-.infoCol {
+.col {
   display: flex;
   flex-direction: column;
-  gap: 1.5em;
+  gap: 1em;
+  min-width: 0;
 }
 
-.infoLabel {
+.colHead {
   font-family: var(--font-secondary);
   font-size: var(--text-xs);
   font-weight: var(--weight-medium);
   letter-spacing: var(--tracking-normal);
+  color: var(--color-muted);
   margin: 0;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5em;
-  color: var(--color-cream);
 }
 
-.infoDot {
-  width: 0.4em;
-  height: 0.4em;
-  border-radius: var(--radius-full);
-  background: var(--color-accent);
-}
-
-.infoList {
+.colList {
   list-style: none;
   padding: 0;
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.4em;
+  gap: 0.5em;
   font-family: var(--font-secondary);
-  font-size: var(--text-xs);
+  font-size: var(--text-sm);
   font-weight: var(--weight-regular);
-  letter-spacing: var(--tracking-wide);
-  text-transform: uppercase;
 }
 
-.socialGrid {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.4em 1.5em;
-  font-family: var(--font-secondary);
-  font-size: var(--text-xs);
-  font-weight: var(--weight-regular);
-  letter-spacing: var(--tracking-wide);
-  text-transform: uppercase;
-}
-
-.infoLink {
+.link {
   color: var(--color-cream);
   text-decoration: none;
-  transition: opacity var(--duration-fast);
+  transition: color var(--duration-fast);
+  overflow-wrap: anywhere;
 }
 
-.infoLink:hover {
-  opacity: 0.7;
+.link:hover {
+  color: var(--color-accent);
 }
 
-/* ── Bottom bar ── */
+/* ── Huge brand name ── */
+
+.brandRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-top: 1em;
+  width: 100%;
+}
+
+.brand {
+  /* Body of the brand name — italic HW Cigars, same as page titles.
+     The actual `font-size` is computed in Footer.tsx so the line spans
+     ~97% of the brand row regardless of viewport. CSS here just sets
+     the typographic defaults.
+     The italic slant + script-C tail push the optical centre of the
+     line to the right of the geometric centre, so we nudge the whole
+     thing left by a small percent to re-balance it visually.
+     Weight 300 = Light. On dark backgrounds subpixel anti-aliasing
+     "halates" and makes cream glyphs look heavier than dark glyphs of
+     the same weight on cream — the font-smoothing overrides switch to
+     grayscale AA, which reads visibly thinner and matches the feel of
+     the dark-on-cream page titles (.projectenTitle etc). */
+  font-family: var(--font-primary);
+  font-style: italic;
+  font-weight: var(--weight-regular);
+  color: var(--color-muted);
+  margin: 0;
+  line-height: 0.85;
+  letter-spacing: var(--tracking-tight);
+  text-align: center;
+  white-space: nowrap;
+  transform: translateX(-1.5%);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.brand em {
+  /* Script initials (V, C). At this size the nautica metrics already
+     sit nicely on the italic body's baseline, so we don't add the
+     translateY(-0.22em) trick that heroText uses — that one was tuned
+     for much smaller display sizes and overshoots here.
+     `vertical-align: baseline` (default on inline-block) keeps the
+     script cap line aligned with the italic cap line. */
+  font-family: var(--font-script);
+  font-style: normal;
+  font-weight: 700;
+  text-transform: none;
+  font-size: 1em;
+  display: inline-block;
+  vertical-align: baseline;
+  margin-right: -0.08em;
+}
+
+/* ── Copyright ── */
 
 .bottom {
-  position: relative;
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
-  gap: 2em;
-  padding-top: 2em;
+  gap: 0.6em;
+  padding-top: 0.5em;
   font-family: var(--font-secondary);
   font-size: var(--text-xs);
   font-weight: var(--weight-regular);
-  letter-spacing: var(--tracking-wide);
-  text-transform: uppercase;
+  color: var(--color-muted);
 }
 
-.bottom::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 100vw;
-  height: 1px;
-  background: var(--border-subtle-inverse);
-  pointer-events: none;
+.bottomSep {
+  color: var(--color-accent);
 }
 
-.bottomLink {
-  color: inherit;
-  text-decoration: none;
-  transition: opacity var(--duration-fast);
-}
+/* ── Tablet ── */
 
-.bottomLink:hover {
-  opacity: 0.7;
+@media (max-width: 991px) {
+  .topRow {
+    grid-template-columns: 1fr;
+    gap: 3em;
+  }
 }
 
 /* ── Mobile ── */
 
 @media (max-width: 767px) {
   .footer {
-    padding: 4em 1.5em 2em;
-    padding-bottom: max(2em, env(safe-area-inset-bottom));
+    padding: 3.5em 1.5em 1.5em;
+    padding-bottom: max(1.5em, env(safe-area-inset-bottom));
+    gap: 3em;
+  }
+
+  .topRow {
     gap: 2.5em;
   }
 
-  .top {
-    grid-template-columns: auto 1fr;
-    gap: 1.5em;
-    align-items: center;
-  }
-
-  .logoMark {
-    width: 3.5em;
-  }
-
-  .heading {
-    font-size: var(--text-3xl);
-  }
-
-  .info {
-    grid-template-columns: 1fr 1fr;
-    gap: 2em 1.5em;
-    padding-left: 0;
-  }
-
-  .socialGrid {
-    grid-template-columns: 1fr;
-    gap: 0.4em;
-  }
-
-  .bottom {
+  .left {
     flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 0.75em;
-  }
-}
-
-@media (max-width: 479px) {
-  .footer {
-    padding: 3em 1.25em 1.5em;
-    padding-bottom: max(1.5em, env(safe-area-inset-bottom));
-    gap: 2em;
+    gap: 1em;
   }
 
   .logoMark {
     width: 3em;
   }
 
-  .heading {
-    font-size: var(--text-2xl);
+  .columns {
+    grid-template-columns: 1fr 1fr;
+    gap: 2em 1.5em;
   }
 
-  .info {
-    gap: 1.75em 1em;
+  .brand {
+    font-size: clamp(4em, 30vw, 12em);
+  }
+}
+
+@media (max-width: 479px) {
+  .left {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1.25em;
+  }
+
+  .subscribe {
+    align-self: stretch;
+  }
+
+  .bottom {
+    flex-wrap: wrap;
+    gap: 0.4em 0.6em;
   }
 }

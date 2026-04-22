@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Footer from '@/app/components/Footer'
 import { IconButton } from '@/app/components/IconButton'
+import PageFX from '@/app/components/PageFX'
 import styles from '@/app/contact/contact.module.css'
 
 const Contact = () => {
@@ -19,13 +20,18 @@ const Contact = () => {
   }
 
   return (
+    <PageFX>
     <div className={styles.page}>
       <header className={styles.hero}>
         <p className={styles.label}>
           <span className={styles.labelDot} aria-hidden="true" />
           Contact
         </p>
-        <h1 className={styles.title}>
+        <h1
+          className={styles.title}
+          data-animation="webgl-text"
+          data-webgl-text-mode="hero"
+        >
           <em>L</em>aat horen waar
           <br />
           jij mee bezig bent
@@ -137,6 +143,7 @@ const Contact = () => {
 
       <Footer />
     </div>
+    </PageFX>
   )
 }
 

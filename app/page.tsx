@@ -6,6 +6,7 @@ import Footer from '@/app/components/Footer'
 import LogoMarquee from '@/app/components/LogoMarquee'
 import { useWebGLEffects, useGlobalParallax } from '@/app/lib/useWebGLEffects'
 import { IconButton, IconCircle } from '@/app/components/IconButton'
+import EmbossedLogo from '@/app/components/EmbossedLogo'
 
 const REVIEWS = [
   {
@@ -351,9 +352,16 @@ const TextDemo = () => {
           </div>
           <div className={styles.studioCard}>
             <p className={styles.studioLabel}>Over V-Creative</p>
-            <span className={styles.studioLogo} aria-hidden="true" />
+            <EmbossedLogo
+              src="/icons/SVG/embossing.png"
+              className={styles.studioLogo}
+            />
             <div className={styles.studioBottomGroup}>
-              <h2 className={styles.studioTagline}>
+              <h2
+                className={styles.studioTagline}
+                data-animation="webgl-text"
+                data-webgl-text-mode="time-trigger"
+              >
                 <em>M</em>ijn missie is om jouw merk écht zichtbaar te maken.
               </h2>
               <p className={styles.studioScroll}>Blijf scrollen</p>
@@ -362,13 +370,13 @@ const TextDemo = () => {
         </div>
         <div className={styles.studioContent}>
           <div className={styles.studioContentInner}>
-            <blockquote className={styles.studioQuote}>
+            <blockquote className={styles.studioQuote} data-animation="webgl-text">
               &ldquo;Mijn studio richt zich op het creëren van content die jouw merk écht zichtbaar maakt en de verbinding met je doelgroep versterkt.&rdquo;
             </blockquote>
             <p className={styles.studioBody}>
               Jouw content draagt jouw merk, jouw verhaal, jouw karakter. Precies hoe je wilt dat mensen je zien en voelen. Een strategie met als resultaat beeld en video waar je trots op bent, en waarmee je met vertrouwen en energie je merk naar buiten brengt.
             </p>
-            <blockquote className={styles.studioQuote}>
+            <blockquote className={styles.studioQuote} data-animation="webgl-text">
               &ldquo;Content is meer dan een mooie foto. Het bepaalt hoe jouw merk ervaren, herinnerd en vertrouwd wordt.&rdquo;
             </blockquote>
             <p className={styles.studioBody}>
@@ -443,7 +451,7 @@ const TextDemo = () => {
               />
             </div>
           </figure>
-          <p className={styles.werkwijzeCtaText}>
+          <p className={styles.werkwijzeCtaText} data-animation="webgl-text">
             <em>Z</em>et mij aan het werk met jouw unieke merk.
           </p>
           <IconButton href="/contact" className={styles.werkwijzeCtaButton}>

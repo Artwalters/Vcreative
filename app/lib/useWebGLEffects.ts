@@ -177,6 +177,18 @@ interface ImageEntry {
    - [data-webgl-media]      → three.js textured quad with bend + parallax pan
    - Desktop uses a full-screen overlay canvas; mobile uses per-element canvases
      for text only (images fall back to <img>). */
+type GsapTween = {
+  kill: () => void
+  scrollTrigger?: { kill: () => void } | null
+}
+type GsapScrollTrigger = { kill: () => void }
+type LenisLike = {
+  on: (event: string, cb: (e?: unknown) => void) => void
+  off: (event: string, cb: (e?: unknown) => void) => void
+  animatedScroll: number
+  actualScroll: number
+}
+
 export function useWebGLEffects() {
   useEffect(() => {
     document.body.classList.add('webgl-active')
@@ -187,6 +199,14 @@ export function useWebGLEffects() {
     let canvas: HTMLCanvasElement | undefined
     let cancelled = false
     let needsRender = true
+
+    /* Track everything this hook instance creates so unmount can tear it
+       all down. Without this, tweens/triggers from the previous page stay
+       in ScrollTrigger.getAll() pointing at detached DOM, which makes
+       the next page's triggers misbehave. */
+    const tweens: GsapTween[] = []
+    const triggers: GsapScrollTrigger[] = []
+    let lenisRef: LenisLike | null = null
 
     const restoreElements: Array<{el: HTMLElement, prop: string, val: string}> = []
 
@@ -214,6 +234,7 @@ export function useWebGLEffects() {
           if (lenis) break
         }
       }
+      lenisRef = lenis as LenisLike | null
 
       const getScroll = () => lenis ? lenis.animatedScroll : window.scrollY
       const getScrollRaw = () => lenis ? lenis.actualScroll : window.scrollY
@@ -357,50 +378,55 @@ export function useWebGLEffects() {
           }
 
           if (mode === 'hero') {
-            gsap.to(elMaterial.uniforms.uReveal, {
+            tweens.push(gsap.to(elMaterial.uniforms.uReveal, {
               value: 1,
               duration: 3,
               delay: 0,
               ease: 'power2.inOut',
               onUpdate: renderEl,
               onComplete: () => elCanvas.remove(),
-            })
+            }))
           } else if (mode === 'time-trigger') {
-            ScrollTrigger.create({
+            triggers.push(ScrollTrigger.create({
               trigger: element,
               start: 'top 85%',
               once: true,
               onEnter: () => {
-                gsap.to(elMaterial.uniforms.uReveal, {
+                /* Remeasure right before the reveal plays. Elements that
+                   live inside a transformed parent (e.g. a scrolling-scaled
+                   card) have different bounds now than they did at init. */
+                remeasureEl()
+                renderEl()
+                tweens.push(gsap.to(elMaterial.uniforms.uReveal, {
                   value: 1,
                   duration: 1.4,
                   ease: 'power2.inOut',
                   onUpdate: renderEl,
-                })
+                }))
               },
-            })
+            }))
             element.addEventListener('webgl-text-replay', () => {
               gsap.killTweensOf(elMaterial.uniforms.uReveal)
-              gsap.to(elMaterial.uniforms.uReveal, {
+              tweens.push(gsap.to(elMaterial.uniforms.uReveal, {
                 value: 0,
                 duration: 0.8,
                 ease: 'power2.in',
                 onUpdate: renderEl,
-              })
+              }))
             })
             element.addEventListener('webgl-text-remeasured', () => {
               remeasureEl()
               renderEl()
               gsap.killTweensOf(elMaterial.uniforms.uReveal)
-              gsap.to(elMaterial.uniforms.uReveal, {
+              tweens.push(gsap.to(elMaterial.uniforms.uReveal, {
                 value: 1,
                 duration: 2.2,
                 ease: 'power2.inOut',
                 onUpdate: renderEl,
-              })
+              }))
             })
           } else {
-            gsap.to(elMaterial.uniforms.uReveal, {
+            tweens.push(gsap.to(elMaterial.uniforms.uReveal, {
               value: 1,
               ease: 'none',
               onUpdate: renderEl,
@@ -415,7 +441,7 @@ export function useWebGLEffects() {
                 end: 'top 25%',
                 scrub: 0.5,
               },
-            })
+            }))
           }
         })
       } else {
@@ -464,48 +490,52 @@ export function useWebGLEffects() {
           }
 
           if (mode === 'hero') {
-            gsap.to(t.material.uniforms.uReveal, {
+            tweens.push(gsap.to(t.material.uniforms.uReveal, {
               value: 1,
               duration: 3,
               delay: 0,
               ease: 'power2.inOut',
               onUpdate: () => { needsRender = true },
-            })
+            }))
           } else if (mode === 'time-trigger') {
-            ScrollTrigger.create({
+            triggers.push(ScrollTrigger.create({
               trigger: t.element,
               start: 'top 85%',
               once: true,
               onEnter: () => {
-                gsap.to(t.material.uniforms.uReveal, {
+                /* Remeasure right before the reveal plays. Elements that
+                   live inside a transformed parent (e.g. a scrolling-scaled
+                   card) have different bounds now than they did at init. */
+                remeasure()
+                tweens.push(gsap.to(t.material.uniforms.uReveal, {
                   value: 1,
                   duration: 1.4,
                   ease: 'power2.inOut',
                   onUpdate: () => { needsRender = true },
-                })
+                }))
               },
-            })
+            }))
             t.element.addEventListener('webgl-text-replay', () => {
               gsap.killTweensOf(t.material.uniforms.uReveal)
-              gsap.to(t.material.uniforms.uReveal, {
+              tweens.push(gsap.to(t.material.uniforms.uReveal, {
                 value: 0,
                 duration: 0.8,
                 ease: 'power2.in',
                 onUpdate: () => { needsRender = true },
-              })
+              }))
             })
             t.element.addEventListener('webgl-text-remeasured', () => {
               remeasure()
               gsap.killTweensOf(t.material.uniforms.uReveal)
-              gsap.to(t.material.uniforms.uReveal, {
+              tweens.push(gsap.to(t.material.uniforms.uReveal, {
                 value: 1,
                 duration: 2.2,
                 ease: 'power2.inOut',
                 onUpdate: () => { needsRender = true },
-              })
+              }))
             })
           } else {
-            gsap.to(t.material.uniforms.uReveal, {
+            tweens.push(gsap.to(t.material.uniforms.uReveal, {
               value: 1,
               ease: 'none',
               onUpdate: () => { needsRender = true },
@@ -515,7 +545,7 @@ export function useWebGLEffects() {
                 end: 'top 25%',
                 scrub: 0.5,
               },
-            })
+            }))
           }
         })
       }
@@ -604,7 +634,7 @@ export function useWebGLEffects() {
       images.forEach((img) => {
         const {effect} = img
 
-        gsap.fromTo(
+        tweens.push(gsap.fromTo(
           img.material.uniforms.u_innerY,
           {value: -0.1},
           {
@@ -617,10 +647,10 @@ export function useWebGLEffects() {
               end: 'bottom top',
             },
           },
-        )
+        ))
 
         if (effect === 'bend' || effect === 'distort') {
-          gsap.to(img.material.uniforms.u_progress, {
+          tweens.push(gsap.to(img.material.uniforms.u_progress, {
             value: 1.5,
             ease: 'sine.out',
             scrollTrigger: {
@@ -629,7 +659,7 @@ export function useWebGLEffects() {
               start: 'top bottom',
               end: 'bottom 70%',
             },
-          })
+          }))
         }
       })
 
@@ -834,6 +864,13 @@ export function useWebGLEffects() {
       }
 
       window.addEventListener('resize', resizeHandler)
+
+      /* Now that all triggers exist, tell ScrollTrigger to recompute
+         start/end using the real laid-out positions. Without this, a
+         navigation can register triggers against a half-laid-out page
+         (fonts/images still settling) and they end up firing at the
+         wrong scroll offsets. */
+      ScrollTrigger.refresh()
     }
 
     init()
@@ -842,7 +879,22 @@ export function useWebGLEffects() {
       cancelled = true
       if (animationId) cancelAnimationFrame(animationId)
       if (resizeHandler) window.removeEventListener('resize', resizeHandler)
-      if (scrollHandler) window.removeEventListener('scroll', scrollHandler)
+      if (scrollHandler) {
+        window.removeEventListener('scroll', scrollHandler)
+        /* Lenis has its own listener registry — plain removeEventListener
+           doesn't detach us. Without this, every navigation leaves a dead
+           scrollHandler attached to Lenis. */
+        if (lenisRef) lenisRef.off('scroll', scrollHandler)
+      }
+      /* Kill every tween + ScrollTrigger this hook instance created so
+         nothing stale survives the page change. */
+      tweens.forEach((t) => {
+        try { t.scrollTrigger?.kill() } catch {}
+        try { t.kill() } catch {}
+      })
+      triggers.forEach((trg) => {
+        try { trg.kill() } catch {}
+      })
       if (canvas) canvas.remove()
       document.body.classList.remove('webgl-active')
       restoreElements.forEach(({el, prop, val}) => {

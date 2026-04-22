@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import Footer from '@/app/components/Footer'
+import PageFX from '@/app/components/PageFX'
 import styles from '@/app/menu/menu.module.css'
 
 export const metadata: Metadata = {
@@ -23,6 +24,7 @@ const SOCIALS = [
 ]
 
 const Menu = () => (
+  <PageFX>
   <div className={styles.page}>
     <div className={styles.shell}>
       <div className={styles.intro}>
@@ -30,7 +32,11 @@ const Menu = () => (
           <span className={styles.labelDot} aria-hidden="true" />
           Menu
         </p>
-        <p className={styles.tagline}>
+        <p
+          className={styles.tagline}
+          data-animation="webgl-text"
+          data-webgl-text-mode="hero"
+        >
           <em>L</em>aat je merk leven
           <br />
           met content die klopt
@@ -72,6 +78,7 @@ const Menu = () => (
 
     <Footer />
   </div>
+  </PageFX>
 )
 
 export default Menu
