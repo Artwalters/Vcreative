@@ -3,19 +3,28 @@
 import { useEffect } from 'react'
 import { setLenisInstance } from '@/app/lib/lenis'
 
-/* Lenis smooth scroll, driven by the GSAP ticker. This is the
-   canonical Lenis ↔ ScrollTrigger integration:
+/* Lenis smooth scroll, driven by the GSAP ticker.
+   Integration pattern:
      - GSAP's ticker pumps Lenis's RAF so timing stays synced
      - Lenis forwards its scroll events to ScrollTrigger.update
-   Without the forward, ScrollTrigger only gets native scroll events,
-   which can lag behind the eased scroll position and make scrubbed
-   animations feel sluggish or skipped after client-side navigation. */
+     - Whenever ScrollTrigger refreshes (pin spacers, resize, route
+       change), we call lenis.resize() so Lenis re-measures the
+       document immediately — without this there's a one-frame window
+       where Lenis's cached height is stale after a pin adds its spacer
+       and the user's wheel input can "stick" against an outdated max.
+
+   This component is rendered in the root layout, so it lives across
+   client-side navigations — no teardown/setup on every route change. */
 const LenisScroll = () => {
   useEffect(() => {
     let lenis: any
     let tickerFn: ((time: number) => void) | undefined
     let scrollTriggerUpdate: (() => void) | undefined
+    let onStRefresh: (() => void) | undefined
     let gsapRef: typeof import('gsap')['default'] | undefined
+    let scrollTriggerRef:
+      | typeof import('gsap/ScrollTrigger')['ScrollTrigger']
+      | undefined
 
     const init = async () => {
       if (
@@ -33,6 +42,7 @@ const LenisScroll = () => {
       const gsap = gsapMod.default
       gsap.registerPlugin(ScrollTrigger)
       gsapRef = gsap
+      scrollTriggerRef = ScrollTrigger
 
       lenis = new Lenis({
         // iOS Safari: disable touch smoothing to avoid address-bar flicker
@@ -48,6 +58,15 @@ const LenisScroll = () => {
       tickerFn = (time: number) => lenis.raf(time * 1000)
       gsap.ticker.add(tickerFn)
       gsap.ticker.lagSmoothing(0)
+
+      /* Whenever ScrollTrigger refreshes — happens after pin spacers
+         are added/removed, route changes, window resize, etc. — tell
+         Lenis to re-measure the document so wheel input never sticks
+         against a stale max-scroll value. */
+      onStRefresh = () => {
+        if (lenis && typeof lenis.resize === 'function') lenis.resize()
+      }
+      ScrollTrigger.addEventListener('refresh', onStRefresh)
     }
 
     init()
@@ -55,6 +74,9 @@ const LenisScroll = () => {
     return () => {
       if (tickerFn && gsapRef) gsapRef.ticker.remove(tickerFn)
       if (lenis && scrollTriggerUpdate) lenis.off('scroll', scrollTriggerUpdate)
+      if (onStRefresh && scrollTriggerRef) {
+        scrollTriggerRef.removeEventListener('refresh', onStRefresh)
+      }
       if (lenis) {
         lenis.destroy()
         setLenisInstance(null)

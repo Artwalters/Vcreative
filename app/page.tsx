@@ -75,8 +75,19 @@ const TextDemo = () => {
     setActiveStep((cur) => (cur === i ? null : i))
   }
 
-  const prevReview = () => setReviewIndex((i) => (i - 1 + REVIEWS.length) % REVIEWS.length)
-  const nextReview = () => setReviewIndex((i) => (i + 1) % REVIEWS.length)
+  /* Lock prev/next while a cover→swap→reveal cycle is running so rapid
+     clicking can't stack overlapping tweens on the same material. */
+  const reviewCyclingRef = useRef(false)
+  const prevReview = () => {
+    if (reviewCyclingRef.current) return
+    reviewCyclingRef.current = true
+    setReviewIndex((i) => (i - 1 + REVIEWS.length) % REVIEWS.length)
+  }
+  const nextReview = () => {
+    if (reviewCyclingRef.current) return
+    reviewCyclingRef.current = true
+    setReviewIndex((i) => (i + 1) % REVIEWS.length)
+  }
   const currentReview = REVIEWS[displayedReviewIndex]
 
   /* ── Review carousel: cover → swap text → reveal via WebGL mask ──
@@ -112,6 +123,13 @@ const TextDemo = () => {
     const el = reviewQuoteRef.current
     if (!el) return
     el.dispatchEvent(new CustomEvent('webgl-text-remeasured'))
+    /* Cycle finished — re-open the prev/next controls. Delay matches
+       the reveal duration so the next click can't interrupt the
+       incoming tween. */
+    const t = setTimeout(() => {
+      reviewCyclingRef.current = false
+    }, 2200)
+    return () => clearTimeout(t)
   }, [displayedReviewIndex])
 
   /* ── Studio scale-in scroll animation (desktop only) ── */
@@ -140,14 +158,17 @@ const TextDemo = () => {
         gsap.set(card, {scale: 0.35, transformOrigin: 'center center'})
         gsap.set(bg, {opacity: 1})
 
-        /* Pin only — keeps the hero fixed through the scale animation */
+        /* Pin only — keeps the hero fixed through the scale animation.
+           Start/end are constants (relative to the viewport), not to
+           any layout metric that can shift, so invalidateOnRefresh is
+           intentionally off — re-invalidating mid-scroll is what made
+           the pin occasionally snap or lock up. */
         ScrollTrigger.create({
           trigger: hero,
           start: 'top top',
           end: '+=130%',
           pin: true,
           anticipatePin: 1,
-          invalidateOnRefresh: true,
         })
 
         /* Scale + fade timeline spans from viewport entry (top bottom)
@@ -162,7 +183,6 @@ const TextDemo = () => {
             start: 'top bottom',
             end: '+=230%',
             scrub: 1,
-            invalidateOnRefresh: true,
           },
         })
         tl.fromTo(card, {scale: 0.35}, {scale: 0.5, ease: 'none', duration: 0.435}, 0)

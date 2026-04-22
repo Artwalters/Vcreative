@@ -34,34 +34,18 @@
 
 .topRow {
   display: grid;
-  /* Left cluster takes all remaining space (subscribe pill gets room to
-     breathe); right cluster is auto-sized so "Volg mij" hugs the
-     container's right edge. */
-  grid-template-columns: 1fr auto;
+  /* Newsletter claims just enough width for the subscribe form to
+     stay on one line (input + Aanmelden side-by-side). The nav area
+     takes the remainder and splits into three equal link columns. */
+  grid-template-columns: minmax(0, 26em) 1fr;
   gap: 4em;
   align-items: start;
-}
-
-.left {
-  display: flex;
-  align-items: flex-start;
-  /* Larger gap pushes the newsletter column visibly away from the 3D
-     logo so they read as two distinct elements, not a stuck pair. */
-  gap: 3em;
-  /* Inset the whole cluster a touch from the grid's left edge so the
-     3D logo has some breathing room before the footer boundary. */
-  padding-left: 2em;
-  /* Cap the left cluster so on ultra-wide viewports the subscribe pill
-     doesn't stretch into a banner. Narrower than the default grid
-     column would allow so the 3D logo next to it reads as prominent. */
-  max-width: 34em;
 }
 
 .newsletter {
   display: flex;
   flex-direction: column;
   gap: 1em;
-  flex: 1;
   min-width: 0;
 }
 
@@ -69,27 +53,34 @@
   font-family: var(--font-secondary);
   font-size: var(--text-sm);
   line-height: var(--leading-relaxed);
-  color: var(--color-muted);
+  color: var(--color-cream);
   margin: 0;
   max-width: 26em;
 }
 
-.logo {
+.brandLogo {
+  /* Sits as a stamped style element over the centre of the Vienna
+     Creative wordmark — absolute so it overlaps the text instead of
+     stacking above it. */
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   color: var(--color-cream);
   transition: opacity var(--duration-fast);
-  flex-shrink: 0;
 }
 
-.logo:hover {
+.brandLogo:hover {
   opacity: 0.85;
 }
 
 .logoMark {
   display: block;
-  width: 6em;
+  width: 13em;
   aspect-ratio: 88.92 / 104.29;
 }
 
@@ -99,7 +90,6 @@
   display: flex;
   align-items: center;
   gap: 0.75em;
-  flex-wrap: wrap;
 }
 
 .subscribeInput {
@@ -161,6 +151,7 @@
 /* ── Nav columns ── */
 
 .columns {
+  /* Three equal columns for Diensten / Contact / Volg mij. */
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 2em;
@@ -208,6 +199,7 @@
 /* ── Huge brand name ── */
 
 .brandRow {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -281,8 +273,9 @@
 
 @media (max-width: 991px) {
   .topRow {
+    /* Stack newsletter above the nav area on narrower viewports. */
     grid-template-columns: 1fr;
-    gap: 3em;
+    gap: 2.5em;
   }
 }
 
@@ -296,20 +289,17 @@
   }
 
   .topRow {
-    gap: 2.5em;
-  }
-
-  .left {
-    flex-direction: row;
-    gap: 1em;
+    gap: 2em;
   }
 
   .logoMark {
-    width: 3em;
+    width: 8em;
   }
 
   .columns {
-    grid-template-columns: 1fr 1fr;
+    /* On narrow phones the 3 link cols fall back to 2x2 so text stays
+       legible in each column. */
+    grid-template-columns: repeat(2, 1fr);
     gap: 2em 1.5em;
   }
 
@@ -319,12 +309,6 @@
 }
 
 @media (max-width: 479px) {
-  .left {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 1.25em;
-  }
-
   .subscribe {
     align-self: stretch;
   }

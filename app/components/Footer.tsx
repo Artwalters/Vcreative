@@ -74,38 +74,32 @@ const Footer = () => {
   return (
     <footer className={styles.footer}>
       <div className={styles.topRow}>
-        <div className={styles.left}>
-          <Link href="/" className={styles.logo} aria-label="V-Creative">
-            <Logo3D interaction="auto" className={styles.logoMark} />
-          </Link>
-
-          <div className={styles.newsletter}>
-            <p className={styles.colHead}>Nieuwsbrief</p>
-            <p className={styles.newsletterBody}>
-              Af en toe een korte update uit de studio — nieuwe cases, werk in
-              uitvoering, gedachten over content.
-            </p>
-            <form className={styles.subscribe} onSubmit={onSubmit}>
-              <label className={styles.srOnly} htmlFor="footer-email">
-                E-mailadres voor nieuwsbrief
-              </label>
-              <input
-                id="footer-email"
-                type="email"
-                placeholder="Email"
-                autoComplete="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className={styles.subscribeInput}
-              />
-              <IconButton
-                onClick={submit}
-                ariaLabel="Aanmelden voor nieuwsbrief"
-              >
-                Aanmelden
-              </IconButton>
-            </form>
-          </div>
+        <div className={styles.newsletter}>
+          <p className={styles.colHead}>Nieuwsbrief</p>
+          <p className={styles.newsletterBody}>
+            Af en toe een korte update uit de studio — nieuwe cases, werk in
+            uitvoering, gedachten over content.
+          </p>
+          <form className={styles.subscribe} onSubmit={onSubmit}>
+            <label className={styles.srOnly} htmlFor="footer-email">
+              E-mailadres voor nieuwsbrief
+            </label>
+            <input
+              id="footer-email"
+              type="email"
+              placeholder="Email"
+              autoComplete="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className={styles.subscribeInput}
+            />
+            <IconButton
+              onClick={submit}
+              ariaLabel="Aanmelden voor nieuwsbrief"
+            >
+              Aanmelden
+            </IconButton>
+          </form>
         </div>
 
         <nav className={styles.columns} aria-label="Footer">
@@ -156,6 +150,9 @@ const Footer = () => {
       </div>
 
       <div className={styles.brandRow} ref={brandRowRef}>
+        <Link href="/" className={styles.brandLogo} aria-label="V-Creative">
+          <Logo3D interaction="auto" className={styles.logoMark} />
+        </Link>
         <p className={styles.brand} aria-hidden="true" ref={brandRef}>
           <em>V</em>ienna <em>C</em>reative
         </p>

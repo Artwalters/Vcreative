@@ -206,6 +206,12 @@ export function useWebGLEffects() {
        the next page's triggers misbehave. */
     const tweens: GsapTween[] = []
     const triggers: GsapScrollTrigger[] = []
+    /* DOM event listeners registered on time-trigger text elements.
+       Stored so we can removeEventListener them on unmount — otherwise
+       inline handlers would stack across any re-mount (StrictMode in
+       dev, fast navigation) and fire the reveal tween several times
+       per click. */
+    const domListeners: Array<{el: HTMLElement, type: string, fn: EventListener}> = []
     let lenisRef: LenisLike | null = null
 
     const restoreElements: Array<{el: HTMLElement, prop: string, val: string}> = []
@@ -405,7 +411,7 @@ export function useWebGLEffects() {
                 }))
               },
             }))
-            element.addEventListener('webgl-text-replay', () => {
+            const onReplay = () => {
               gsap.killTweensOf(elMaterial.uniforms.uReveal)
               tweens.push(gsap.to(elMaterial.uniforms.uReveal, {
                 value: 0,
@@ -413,8 +419,8 @@ export function useWebGLEffects() {
                 ease: 'power2.in',
                 onUpdate: renderEl,
               }))
-            })
-            element.addEventListener('webgl-text-remeasured', () => {
+            }
+            const onRemeasured = () => {
               remeasureEl()
               renderEl()
               gsap.killTweensOf(elMaterial.uniforms.uReveal)
@@ -424,7 +430,13 @@ export function useWebGLEffects() {
                 ease: 'power2.inOut',
                 onUpdate: renderEl,
               }))
-            })
+            }
+            element.addEventListener('webgl-text-replay', onReplay)
+            element.addEventListener('webgl-text-remeasured', onRemeasured)
+            domListeners.push(
+              {el: element, type: 'webgl-text-replay', fn: onReplay},
+              {el: element, type: 'webgl-text-remeasured', fn: onRemeasured},
+            )
           } else {
             tweens.push(gsap.to(elMaterial.uniforms.uReveal, {
               value: 1,
@@ -515,7 +527,7 @@ export function useWebGLEffects() {
                 }))
               },
             }))
-            t.element.addEventListener('webgl-text-replay', () => {
+            const onReplayT = () => {
               gsap.killTweensOf(t.material.uniforms.uReveal)
               tweens.push(gsap.to(t.material.uniforms.uReveal, {
                 value: 0,
@@ -523,8 +535,8 @@ export function useWebGLEffects() {
                 ease: 'power2.in',
                 onUpdate: () => { needsRender = true },
               }))
-            })
-            t.element.addEventListener('webgl-text-remeasured', () => {
+            }
+            const onRemeasuredT = () => {
               remeasure()
               gsap.killTweensOf(t.material.uniforms.uReveal)
               tweens.push(gsap.to(t.material.uniforms.uReveal, {
@@ -533,7 +545,13 @@ export function useWebGLEffects() {
                 ease: 'power2.inOut',
                 onUpdate: () => { needsRender = true },
               }))
-            })
+            }
+            t.element.addEventListener('webgl-text-replay', onReplayT)
+            t.element.addEventListener('webgl-text-remeasured', onRemeasuredT)
+            domListeners.push(
+              {el: t.element, type: 'webgl-text-replay', fn: onReplayT},
+              {el: t.element, type: 'webgl-text-remeasured', fn: onRemeasuredT},
+            )
           } else {
             tweens.push(gsap.to(t.material.uniforms.uReveal, {
               value: 1,
@@ -865,12 +883,15 @@ export function useWebGLEffects() {
 
       window.addEventListener('resize', resizeHandler)
 
-      /* Now that all triggers exist, tell ScrollTrigger to recompute
-         start/end using the real laid-out positions. Without this, a
-         navigation can register triggers against a half-laid-out page
-         (fonts/images still settling) and they end up firing at the
-         wrong scroll offsets. */
-      ScrollTrigger.refresh()
+      /* NOTE: we deliberately do NOT call ScrollTrigger.refresh() here.
+         This init is async (awaits fonts + all image textures), so it
+         can finish long after the user has started scrolling. A refresh
+         mid-scroll re-measures every pin/scrub in the app at once,
+         which snaps the studio-card pin and can leave Lenis with a
+         stale max-scroll — the "scroll feels stuck at the scale card"
+         symptom. GSAP already measures each trigger on creation and
+         refreshes on the window `load` event, so skipping the manual
+         refresh here removes the race without losing correctness. */
     }
 
     init()
@@ -886,6 +907,11 @@ export function useWebGLEffects() {
            scrollHandler attached to Lenis. */
         if (lenisRef) lenisRef.off('scroll', scrollHandler)
       }
+      /* Remove the webgl-text-replay / remeasured listeners we added so
+         they don't fire against stale closures after navigation. */
+      domListeners.forEach(({el, type, fn}) => {
+        el.removeEventListener(type, fn)
+      })
       /* Kill every tween + ScrollTrigger this hook instance created so
          nothing stale survives the page change. */
       tweens.forEach((t) => {
