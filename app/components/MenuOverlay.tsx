@@ -30,8 +30,10 @@ const fragmentShader = /* glsl */ `
   uniform float uTime;
   uniform vec3 uColorBase;
   uniform vec3 uColorEdge;
+  uniform vec3 uTextColor;
   uniform vec2 uAspect;
   uniform sampler2D uNoiseTex;
+  uniform sampler2D uTextTex;
   varying vec2 vUv;
 
   void main() {
@@ -108,7 +110,17 @@ const fragmentShader = /* glsl */ `
     float rim = 1.0 - smoothstep(0.25, 0.9, mask);
     colorMix = mix(colorMix, uColorEdge, rim * 0.8);
 
-    gl_FragColor = vec4(colorMix, mask);
+    /* ── Text composite ──
+       The menu text is baked into uTextTex at viewport resolution.
+       CanvasTexture already defaults flipY=true, so sampling with
+       vUv directly puts canvas-top at vUv.y=1 (top of the plane) —
+       no extra flip needed here. We mix cream text on top of the
+       ink wherever the text texture has alpha, but the final alpha
+       stays gated by the ink mask so text never leaks outside. */
+    float textAlpha = texture2D(uTextTex, vUv).a;
+    vec3 finalColor = mix(colorMix, uTextColor, textAlpha);
+
+    gl_FragColor = vec4(finalColor, mask);
   }
 `
 
@@ -200,6 +212,76 @@ const MenuOverlay = ({ open, hover = false, onClose }: Props) => {
       noiseTex.minFilter = THREE.LinearFilter
       noiseTex.magFilter = THREE.LinearFilter
 
+      /* ── Text canvas + texture ──
+         We paint the menu text into a 2D offscreen canvas at viewport
+         resolution, then upload it as a texture the ink shader samples.
+         Positions come from the real HTML elements (which stay in the
+         DOM as invisible click targets), so layout matches exactly
+         without us having to reimplement flexbox in canvas code. */
+      const textCanvas = document.createElement('canvas')
+      const textCtx = textCanvas.getContext('2d')
+      if (!textCtx) {
+        noiseTex.dispose()
+        renderer.dispose()
+        return
+      }
+      const textTex = new THREE.CanvasTexture(textCanvas)
+      textTex.minFilter = THREE.LinearFilter
+      textTex.magFilter = THREE.LinearFilter
+      textTex.generateMipmaps = false
+
+      const paintText = () => {
+        const dpr = Math.min(window.devicePixelRatio, 2)
+        const w = window.innerWidth
+        const h = window.innerHeight
+        if (textCanvas.width !== w * dpr || textCanvas.height !== h * dpr) {
+          textCanvas.width = w * dpr
+          textCanvas.height = h * dpr
+        }
+        textCtx.setTransform(1, 0, 0, 1, 0, 0)
+        textCtx.clearRect(0, 0, textCanvas.width, textCanvas.height)
+        textCtx.scale(dpr, dpr)
+
+        textCtx.textAlign = 'center'
+        textCtx.textBaseline = 'middle'
+        textCtx.fillStyle = '#ffffff'
+
+        /* Walk every live text element inside the overlay and paint
+           it with its computed font. getComputedStyle resolves the em
+           values the CSS uses back into concrete pixels, so the
+           canvas glyphs line up with the DOM layout at every
+           breakpoint. */
+        const nodes = container.querySelectorAll<HTMLElement>(
+          '[data-menu-text]',
+        )
+        nodes.forEach((el) => {
+          const rect = el.getBoundingClientRect()
+          const style = getComputedStyle(el)
+          const size = style.fontSize
+          const weight = style.fontWeight
+          const fStyle = style.fontStyle
+          const family = style.fontFamily
+          textCtx.font = `${fStyle} ${weight} ${size} ${family}`
+          const cx = rect.left + rect.width / 2
+          const cy = rect.top + rect.height / 2
+          const text = el.textContent ?? ''
+          if (text.toUpperCase() === text) {
+            /* Uppercase labels (the "Neem contact op" link) use
+               letter-spacing in CSS — canvas fillText doesn't honour
+               that, so spread letters manually via `letterSpacing`
+               when supported, or fall back to plain fillText. */
+            ;(textCtx as CanvasRenderingContext2D & {letterSpacing?: string})
+              .letterSpacing = style.letterSpacing
+          } else {
+            ;(textCtx as CanvasRenderingContext2D & {letterSpacing?: string})
+              .letterSpacing = '0px'
+          }
+          textCtx.fillText(text, cx, cy)
+        })
+
+        textTex.needsUpdate = true
+      }
+
       const material = new THREE.ShaderMaterial({
         transparent: true,
         vertexShader,
@@ -222,8 +304,15 @@ const MenuOverlay = ({ open, hover = false, onClose }: Props) => {
           uColorEdge: {
             value: new THREE.Vector3(0x7d / 255, 0x79 / 255, 0x71 / 255),
           },
+          /* Cream (#faf8f2) — baked-in text colour. Composited over
+             the ink inside the fragment shader; never leaks outside
+             the mask. */
+          uTextColor: {
+            value: new THREE.Vector3(0xfa / 255, 0xf8 / 255, 0xf2 / 255),
+          },
           uAspect: { value: new THREE.Vector2(width / height, 1) },
           uNoiseTex: { value: noiseTex },
+          uTextTex: { value: textTex },
         },
       })
 
@@ -231,6 +320,19 @@ const MenuOverlay = ({ open, hover = false, onClose }: Props) => {
       scene.add(mesh)
 
       const render = () => renderer.render(scene, camera)
+
+      /* Paint text once fonts are ready so glyphs match the CSS
+         typography. Without awaiting fonts the first paint would fall
+         back to system fonts and a second paint after swap would
+         cause a subtle glyph pop. */
+      await document.fonts.ready
+      if (cancelled) {
+        noiseTex.dispose()
+        textTex.dispose()
+        renderer.dispose()
+        return
+      }
+      paintText()
       render()
 
       materialRef.current = material as unknown as {
@@ -256,6 +358,7 @@ const MenuOverlay = ({ open, hover = false, onClose }: Props) => {
         const h = window.innerHeight
         renderer.setSize(w, h, false)
         ;(material.uniforms.uAspect.value as THREE.Vector2).set(w / h, 1)
+        paintText()
         render()
       }
       window.addEventListener('resize', onResize)
@@ -266,6 +369,7 @@ const MenuOverlay = ({ open, hover = false, onClose }: Props) => {
         material.dispose()
         mesh.geometry.dispose()
         noiseTex.dispose()
+        textTex.dispose()
         renderer.dispose()
         if (canvas.parentNode === container) container.removeChild(canvas)
         materialRef.current = null
@@ -393,16 +497,13 @@ const MenuOverlay = ({ open, hover = false, onClose }: Props) => {
       <nav id="main-menu" className={styles.menu} aria-label="Hoofdnavigatie">
         <ul className={styles.list}>
           {ITEMS.map((item, i) => (
-            <li
-              key={item.href}
-              className={styles.itemWrap}
-              style={{'--menu-stagger': i} as React.CSSProperties}
-            >
+            <li key={item.href} className={styles.itemWrap}>
               <Link
                 href={item.href}
                 className={styles.item}
                 onClick={(e) => handleNav(e, item.href)}
                 data-menu-link="true"
+                data-menu-text=""
                 ref={i === 0 ? firstItemRef : undefined}
                 tabIndex={open ? 0 : -1}
               >
@@ -416,8 +517,8 @@ const MenuOverlay = ({ open, hover = false, onClose }: Props) => {
           className={styles.contactText}
           onClick={(e) => handleNav(e, '/contact')}
           data-menu-link="true"
+          data-menu-text=""
           tabIndex={open ? 0 : -1}
-          style={{'--menu-stagger': ITEMS.length} as React.CSSProperties}
         >
           Neem contact op
         </Link>
