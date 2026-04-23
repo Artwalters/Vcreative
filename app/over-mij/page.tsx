@@ -7,141 +7,246 @@ import styles from '@/app/over-mij/over-mij.module.css'
 export const metadata: Metadata = {
   title: 'Over mij',
   description:
-    'Vienna Wachelder — social media partner voor merken met karakter. Strategie, content en maandelijks beheer vanuit Heerlen.',
+    'Vienna Wachelder — verhalen vertalen naar beeld dat blijft. Vanuit Heerlen, voor ondernemers door heel Nederland.',
 }
 
-const SERVICES = [
+const HERO_TAGS = ['Sinds 2019', 'Vanuit Heerlen', 'Voor heel Nederland']
+
+const DELIVERABLES = [
+  'Fotografie',
+  'Videografie',
+  'Editing',
+  'Copywriting',
+  'Account vormgeving',
+  'Planning',
+  'Analyse',
+]
+
+const WORKFLOW = [
   {
-    name: 'Strategie',
-    copy: 'Een helder verhaal als basis. We bepalen samen toon, ritme en doel zodat elke post bijdraagt aan jouw merk.',
+    name: 'Intake',
+    copy: 'We starten met een gesprek over wie je bent en wie je wilt bereiken. Niet om een template in te vullen, maar om een toon te vinden.',
   },
   {
     name: 'Content',
-    copy: 'Foto, video en tekst die voelt als jouw bedrijf — niet als een sjabloon. Op locatie of in de studio.',
+    copy: 'Ik fotografeer, film, monteer en schrijf. Op locatie als het kan, in de studio als het moet. Persoonlijk, nooit standaard.',
   },
   {
-    name: 'Beheer',
-    copy: 'Maandelijks contentbeheer, planning en monitoring. Jij focust op je vak, ik zorg dat je zichtbaar blijft.',
+    name: 'Plaatsen',
+    copy: 'Alles wordt gepland en geplaatst. Jij hoeft geen captions meer te bedenken om 22:00.',
+  },
+  {
+    name: 'Bijsturen',
+    copy: 'Maandelijks kijken we wat werkt en wat beter kan. Geen rapportage-theater, wel scherpe keuzes.',
   },
 ]
 
-const USPS = [
-  'Eén vast aanspreekpunt — geen kantoor, geen tussenlagen.',
-  'Wekelijkse afstemming en heldere planning, geen verrassingen achteraf.',
-  'Sterk netwerk van fotografen, editors en strategen voor grotere producties.',
-  'Meedenken op de lange termijn, niet alleen losse posts.',
-]
+const DownloadIcon = () => (
+  <svg
+    className={styles.ctaDownloadIcon}
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 16 16"
+    fill="none"
+    aria-hidden="true"
+  >
+    <path
+      d="M8 2.5V11.5M8 11.5L4 7.5M8 11.5L12 7.5M2.5 13.5H13.5"
+      stroke="currentColor"
+      strokeWidth="1.25"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+)
 
 const OverMij = () => (
   <PageFX>
-  <div className={styles.page}>
-    <header className={styles.hero}>
-      <p className={styles.label}>
-        <span className={styles.labelDot} aria-hidden="true" />
-        Over mij
-      </p>
-      <h1
-        className={styles.title}
-        data-animation="webgl-text"
-        data-webgl-text-mode="hero"
-      >
-        <em>I</em>k ben Vienna —
-        <br />
-        social media partner
-        <br />
-        voor merken met karakter
-      </h1>
-      <p className={styles.subtitle}>
-        Sinds 2019 help ik ondernemers en merken hun verhaal vertalen naar
-        content die werkt. Geen losse posts, maar een doorlopende stroom die
-        past bij wie je bent en hoe je gezien wil worden.
-      </p>
-    </header>
-
-    <div className={styles.portrait}>
-      <figure className={styles.portraitFigure}>
-        <img
-          src="https://picsum.photos/seed/vienna-portrait/1920/823"
-          alt="Vienna aan het werk"
-          className={styles.portraitImage}
-          loading="lazy"
-        />
-      </figure>
-    </div>
-
-    <section className={styles.story}>
-      <h2 className={styles.storyTitle} data-animation="webgl-text">
-        <em>M</em>ijn verhaal
-      </h2>
-      <div className={styles.storyBody}>
-        <p>
-          Ik ben opgegroeid met camera in de hand en altijd nieuwsgierig naar
-          de mensen achter een merk. Wat begon als hobbymatig fotograferen
-          voor lokale ondernemers groeide uit tot een eigen studio voor
-          social media en contentstrategie.
+    <div className={styles.page}>
+      <section className={styles.hero}>
+        <p className={styles.heroMeta}>
+          <span className={styles.heroMetaDot} aria-hidden="true" />
+          Over · V-Creative
         </p>
-        <p>
-          Mijn aanpak: kort op het merk, lange adem in de uitvoering. Ik
-          werk met een vaste cyclus van strategie, productie en evaluatie,
-          zodat content niet alleen mooi is, maar ook iets oplevert.
-        </p>
-        <p>
-          Vanuit Heerlen bedien ik klanten door heel Nederland — van
-          beautysalons tot horeca tot tattoo studio&rsquo;s. Wat ze gemeen
-          hebben: ze willen hun verhaal serieus nemen.
-        </p>
-      </div>
-    </section>
-
-    <section className={styles.servicesSection}>
-      <div className={styles.servicesInner}>
-        <header className={styles.servicesHeader}>
-          <h2 className={styles.servicesTitle} data-animation="webgl-text">
-            <em>W</em>at ik doe
-          </h2>
-        </header>
-
-        <div className={styles.servicesGrid}>
-          {SERVICES.map((s, i) => (
-            <article key={s.name} className={styles.serviceItem}>
-              <p className={styles.serviceNumber}>
-                {String(i + 1).padStart(2, '0')}
-              </p>
-              <h3 className={styles.serviceName}>{s.name}</h3>
-              <p className={styles.serviceCopy}>{s.copy}</p>
-            </article>
+        <h1
+          data-animation="webgl-text"
+          data-webgl-text-mode="hero"
+          className={styles.heroTitle}
+        >
+          <em>V</em>erhalen vertalen
+          <br />
+          naar beeld dat blijft
+        </h1>
+        <ul className={styles.heroTags}>
+          {HERO_TAGS.map((tag) => (
+            <li key={tag} className={styles.heroTag}>
+              {tag}
+            </li>
           ))}
+        </ul>
+      </section>
+
+      <figure className={styles.heroFigure} data-parallax="trigger">
+        <div className={styles.parallaxTarget} data-parallax="target">
+          <img
+            src="https://picsum.photos/seed/vienna-portrait/1920/823"
+            alt="Vienna aan het werk"
+            className={styles.heroImage}
+          />
         </div>
+      </figure>
+
+      <div className={styles.sections}>
+        {/* Section A — text left, portrait image right */}
+        <section className={`${styles.section} ${styles.sectionA}`}>
+          <div className={styles.sectionText}>
+            <p className={styles.sectionLabel}>
+              <span className={styles.sectionLabelNumber}>01</span>
+              Mijn verhaal
+            </p>
+            <h2 data-animation="webgl-text" className={styles.sectionTitle}>
+              <em>T</em>rage groei,
+              <br />
+              content die blijft hangen
+            </h2>
+            <p className={styles.sectionBody}>
+              Wat ooit begon met een camera in mijn hand op familiefeesten,
+              groeide uit tot een studio voor merken die iets te vertellen
+              hebben.
+            </p>
+            <p className={styles.sectionBody}>
+              Vanuit Heerlen werk ik met ondernemers door heel Nederland — van
+              beauty tot horeca tot tattoo studio&rsquo;s. Wat ze gemeen
+              hebben: ze willen hun verhaal serieus nemen, niet alleen vaker
+              posten.
+            </p>
+          </div>
+          <figure className={styles.sectionFigure} data-parallax="trigger">
+            <div className={styles.parallaxTarget} data-parallax="target">
+              <img
+                data-webgl-media
+                data-webgl-effect="bend"
+                src="https://picsum.photos/seed/vienna-studio/900/1125"
+                alt="Vienna in de studio"
+                className={styles.sectionImage}
+                loading="lazy"
+              />
+            </div>
+          </figure>
+        </section>
+
+        {/* Section B — landscape image left, text right */}
+        <section className={`${styles.section} ${styles.sectionB}`}>
+          <figure className={styles.sectionFigure} data-parallax="trigger">
+            <div className={styles.parallaxTarget} data-parallax="target">
+              <img
+                data-webgl-media
+                data-webgl-effect="bend"
+                src="https://picsum.photos/seed/vienna-work/1200/900"
+                alt="Content voorbeelden"
+                className={styles.sectionImage}
+                loading="lazy"
+              />
+            </div>
+          </figure>
+          <div className={styles.sectionText}>
+            <p className={styles.sectionLabel}>
+              <span className={styles.sectionLabelNumber}>02</span>
+              Wat ik doe
+            </p>
+            <h2 data-animation="webgl-text" className={styles.sectionTitle}>
+              <em>V</em>an eerste concept
+              <br />
+              tot maandelijks ritme
+            </h2>
+            <p className={styles.sectionBody}>
+              Ik neem het hele creatieve traject over — van fotografie en video
+              tot editing, captions, planning en analyse. Op locatie als het
+              kan, in de studio als het moet.
+            </p>
+            <ul className={styles.chips}>
+              {DELIVERABLES.map((d) => (
+                <li key={d} className={styles.chip}>
+                  {d}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+
+        {/* Section C — full-width image + 2-col caption below */}
+        <section className={`${styles.section} ${styles.sectionC}`}>
+          <figure className={styles.sectionFigure} data-parallax="trigger">
+            <div className={styles.parallaxTarget} data-parallax="target">
+              <img
+                data-webgl-media
+                data-webgl-effect="bend"
+                src="https://picsum.photos/seed/vienna-process/1920/840"
+                alt="Werkwijze"
+                className={styles.sectionImage}
+                loading="lazy"
+              />
+            </div>
+          </figure>
+          <div className={styles.sectionCText}>
+            <div className={styles.sectionCTextLead}>
+              <p className={styles.sectionLabel}>
+                <span className={styles.sectionLabelNumber}>03</span>
+                Hoe ik werk
+              </p>
+              <h2 data-animation="webgl-text" className={styles.sectionTitle}>
+                <em>V</em>ier stappen,
+                <br />
+                één ritme
+              </h2>
+            </div>
+            <div className={styles.sectionCTextBody}>
+              <ol className={styles.workflowList}>
+                {WORKFLOW.map((step, i) => (
+                  <li key={step.name} className={styles.workflowItem}>
+                    <span className={styles.workflowNumber}>
+                      {String(i + 1).padStart(2, '0')}
+                    </span>
+                    <h3 className={styles.workflowName}>{step.name}</h3>
+                    <p className={styles.workflowCopy}>{step.copy}</p>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          </div>
+        </section>
       </div>
-    </section>
 
-    <section className={styles.usps}>
-      <h2 className={styles.uspsTitle} data-animation="webgl-text">
-        <em>W</em>aarom samen?
-      </h2>
-      <ul className={styles.uspsList}>
-        {USPS.map((u, i) => (
-          <li key={i} className={styles.uspItem}>
-            <span className={styles.uspNumber}>
-              {String(i + 1).padStart(2, '0')}
-            </span>
-            <p className={styles.uspText}>{u}</p>
-          </li>
-        ))}
-      </ul>
-    </section>
+      <section className={styles.cta}>
+        <p className={styles.ctaLabel}>
+          <span className={styles.ctaLabelDot} aria-hidden="true" />
+          Samenwerken
+        </p>
+        <h2
+          data-animation="webgl-text"
+          data-webgl-text-bg="#332f29"
+          className={styles.ctaTitle}
+        >
+          <em>K</em>laar om jouw merk
+          <br />
+          te laten zien?
+        </h2>
+        <div className={styles.ctaActions}>
+          <IconButton href="/contact" ariaLabel="Naar contactpagina">
+            Start jouw project
+          </IconButton>
+          <a
+            className={styles.ctaDownload}
+            href="/v-creative-brochure.pdf"
+            download
+          >
+            <DownloadIcon />
+            Download de brochure
+          </a>
+        </div>
+      </section>
 
-    <section className={styles.cta}>
-      <h2 className={styles.ctaHeading} data-animation="webgl-text">
-        <em>K</em>laar om jouw merk te laten zien?
-      </h2>
-      <IconButton href="/contact" ariaLabel="Naar contactpagina">
-        Start jouw project
-      </IconButton>
-    </section>
-
-    <Footer />
-  </div>
+      <Footer />
+    </div>
   </PageFX>
 )
 

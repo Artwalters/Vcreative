@@ -164,11 +164,7 @@ const CasePage = ({ slug }: { slug: CaseSlug }) => {
             className={styles.quoteLogo}
             loading="lazy"
           />
-          <blockquote
-            data-animation="webgl-text"
-            data-webgl-text-mode="time-trigger"
-            className={styles.quoteText}
-          >
+          <blockquote className={styles.quoteText}>
             &ldquo;{data.quote.text}&rdquo;
           </blockquote>
           <p className={styles.quoteAuthor}>

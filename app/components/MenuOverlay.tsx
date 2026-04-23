@@ -28,12 +28,13 @@ const fragmentShader = /* glsl */ `
   precision highp float;
   uniform float uReveal;
   uniform float uTime;
-  uniform vec3 uColorBase;
-  uniform vec3 uColorEdge;
   uniform vec3 uTextColor;
   uniform vec2 uAspect;
+  uniform vec2 uMouse;
   uniform sampler2D uNoiseTex;
   uniform sampler2D uTextTex;
+  uniform sampler2D uLogoTex;
+  uniform sampler2D uBgMatcap;
   varying vec2 vUv;
 
   void main() {
@@ -96,29 +97,89 @@ const fragmentShader = /* glsl */ `
     float mask = smoothstep(reach + 0.05, reach - 0.05, distorted);
     if (mask < 0.01) discard;
 
-    /* ── Depth / vignette shading ──
-       Dark core near the corner, lighter toward the body edge. The
-       power curve <1 biases more of the blob toward the lighter
-       tone so the vignette reads clearly even at small reaches. */
-    float depthRaw = clamp(dist / max(reach + 0.3, 0.25), 0.0, 1.0);
-    float depth = pow(depthRaw, 0.65);
-    vec3 colorMix = mix(uColorBase, uColorEdge, depth);
+    /* ── Matcap background ──
+       Sample the SAME dark matcap the logo uses as the menu's
+       background. Heavy gaussian-ish blur via LOD bias + a 9-tap
+       cross+diagonal kernel so it reads as a painterly light-field,
+       not a recognisable matcap image. uMouse (normalised -1..1,
+       smoothed in JS) shifts the sampled centre so the whole light
+       field parallaxes gently with the cursor — very subtle, just
+       enough to feel like a physical volume behind the glass. */
+    vec2 mouseShift = uMouse * 0.022;
+    vec2 bgUv =
+        (vUv - 0.5 - mouseShift)
+      / vec2(min(uAspect.x / uAspect.y, 1.0) * 1.35, 1.35)
+      + 0.5;
 
-    /* Rim highlight: the semi-transparent feather zone (tendril tips,
-       wisps) gets a lighter tone, giving that oil-sheen edge where
-       the ink thins out against the paper. */
+    float bgLod = 7.5;
+    float o = 0.035;
+    float d = o * 0.707;
+    vec3 colorMix =
+        texture2D(uBgMatcap, bgUv,                       bgLod).rgb * 0.22
+      + texture2D(uBgMatcap, bgUv + vec2( o, 0.0),       bgLod).rgb * 0.13
+      + texture2D(uBgMatcap, bgUv + vec2(-o, 0.0),       bgLod).rgb * 0.13
+      + texture2D(uBgMatcap, bgUv + vec2(0.0,  o),       bgLod).rgb * 0.13
+      + texture2D(uBgMatcap, bgUv + vec2(0.0, -o),       bgLod).rgb * 0.13
+      + texture2D(uBgMatcap, bgUv + vec2( d,  d),        bgLod).rgb * 0.065
+      + texture2D(uBgMatcap, bgUv + vec2(-d,  d),        bgLod).rgb * 0.065
+      + texture2D(uBgMatcap, bgUv + vec2( d, -d),        bgLod).rgb * 0.065
+      + texture2D(uBgMatcap, bgUv + vec2(-d, -d),        bgLod).rgb * 0.065;
+
+    /* Rim highlight: soft brightening at the oil-spill's feathered
+       edge so the boundary still pops against the matcap gradient. */
     float rim = 1.0 - smoothstep(0.25, 0.9, mask);
-    colorMix = mix(colorMix, uColorEdge, rim * 0.8);
+    colorMix += vec3(0.1, 0.11, 0.13) * rim;
 
-    /* ── Text composite ──
-       The menu text is baked into uTextTex at viewport resolution.
-       CanvasTexture already defaults flipY=true, so sampling with
-       vUv directly puts canvas-top at vUv.y=1 (top of the plane) —
-       no extra flip needed here. We mix cream text on top of the
-       ink wherever the text texture has alpha, but the final alpha
-       stays gated by the ink mask so text never leaks outside. */
+    /* ── Background logo ──
+       Low-res RT already gives the blur; shader does a tight 5-tap
+       smooth to mask any remaining aliasing. Nothing fancy. */
+    float ls = 0.0025;
+    vec4 logoSample =
+        texture2D(uLogoTex, vUv)                        * 0.44
+      + texture2D(uLogoTex, vUv + vec2( ls, 0.0))       * 0.14
+      + texture2D(uLogoTex, vUv + vec2(-ls, 0.0))       * 0.14
+      + texture2D(uLogoTex, vUv + vec2(0.0,  ls))       * 0.14
+      + texture2D(uLogoTex, vUv + vec2(0.0, -ls))       * 0.14;
+
+    /* ── Clean bloom + subtle anamorphic lens flare ──
+       One 5-tap box around each pixel for a soft round bloom,
+       plus a wider horizontal sample for the anamorphic streak
+       (the classic blue lens-flare stretch across the brights).
+       Both go through the same high-pass threshold so only the
+       matcap's brightest hotspots contribute — keeps the effect
+       clean and quiet. */
+    float br = 0.018;
+    vec3 bloomBox =
+      ( texture2D(uLogoTex, vUv + vec2( br, 0.0)).rgb
+      + texture2D(uLogoTex, vUv + vec2(-br, 0.0)).rgb
+      + texture2D(uLogoTex, vUv + vec2(0.0,  br)).rgb
+      + texture2D(uLogoTex, vUv + vec2(0.0, -br)).rgb
+      + texture2D(uLogoTex, vUv).rgb
+      ) * 0.2;
+    vec3 bloom = max(bloomBox - vec3(0.3), 0.0) * 1.2;
+
+    float fr = 0.09;
+    vec3 flareStrip =
+      ( texture2D(uLogoTex, vUv + vec2( fr,       0.0)).rgb
+      + texture2D(uLogoTex, vUv + vec2(-fr,       0.0)).rgb
+      + texture2D(uLogoTex, vUv + vec2( fr * 0.5, 0.0)).rgb
+      + texture2D(uLogoTex, vUv + vec2(-fr * 0.5, 0.0)).rgb
+      ) * 0.25;
+    /* Higher threshold so only the very brightest pixels spawn a
+       flare, keeping it a rare accent rather than a constant
+       horizontal wash. */
+    vec3 flare = max(flareStrip - vec3(0.45), 0.0);
+    flare *= vec3(0.85, 0.95, 1.15);
+
+    vec3 withLogo = mix(colorMix, logoSample.rgb, logoSample.a);
+    withLogo += bloom * 0.35;
+    withLogo += flare * 0.18;
+
+    /* ── Text ── crisp typography, no glow or halo. The bloom
+       and flare layers only affect the logo world; text composites
+       on top at pure cream so it stays neutral reading surface. */
     float textAlpha = texture2D(uTextTex, vUv).a;
-    vec3 finalColor = mix(colorMix, uTextColor, textAlpha);
+    vec3 finalColor = mix(withLogo, uTextColor, textAlpha);
 
     gl_FragColor = vec4(finalColor, mask);
   }
@@ -282,6 +343,178 @@ const MenuOverlay = ({ open, hover = false, onClose }: Props) => {
         textTex.needsUpdate = true
       }
 
+      /* ── Background logo: GLTF + pearl shader into a render target ──
+         We load the same VIENNA_LOGO.glb the header/footer use, build
+         a pearl-style matcap material (dark matcap variant so it reads
+         as a tinted mass on the navy ink rather than competing with
+         the text), and render it into a WebGLRenderTarget every frame.
+         The ink shader samples that render target as uLogoTex, so the
+         oil-spill mask literally clips the rotating model. No CSS
+         opacity, no separate DOM layer. */
+      const {GLTFLoader} = await import(
+        'three/examples/jsm/loaders/GLTFLoader.js'
+      )
+      const {DRACOLoader} = await import(
+        'three/examples/jsm/loaders/DRACOLoader.js'
+      )
+
+      const [logoMatcap, logoIri] = await Promise.all([
+        texLoader.loadAsync('/icons/3D/project-model-matcap.png'),
+        texLoader.loadAsync('/icons/3D/iri-32.png'),
+      ])
+      if (cancelled) {
+        noiseTex.dispose()
+        logoMatcap.dispose()
+        logoIri.dispose()
+        renderer.dispose()
+        return
+      }
+      logoMatcap.colorSpace = THREE.SRGBColorSpace
+      logoMatcap.minFilter = THREE.LinearMipmapLinearFilter
+      logoMatcap.magFilter = THREE.LinearFilter
+      logoMatcap.generateMipmaps = true
+      logoIri.colorSpace = THREE.SRGBColorSpace
+      logoIri.minFilter = THREE.LinearFilter
+      logoIri.magFilter = THREE.LinearFilter
+
+      /* Neutral pearl — same shader as header/footer, no tint or
+         scanline overrides. The dark matcap already carries all the
+         colour information (near-black body with pale iridescent
+         highlights), so anything we'd layer on top would fight it.
+         We just keep the rim/fresnel contribution gentle so the
+         model stays an ambient background element. */
+      const pearlMaterial = new THREE.ShaderMaterial({
+        side: THREE.DoubleSide,
+        transparent: true,
+        depthWrite: false,
+        uniforms: {
+          uMatcap: {value: logoMatcap},
+          uIridescence: {value: logoIri},
+          uTint: {value: new THREE.Color(1.0, 1.0, 1.0)},
+          uIriStrength: {value: 1.0},
+          uRimBoost: {value: 0.8},
+          uSpecBoost: {value: 1.2},
+          uBaseLift: {value: 0.02},
+        },
+        vertexShader: /* glsl */ `
+          varying vec3 vNormal;
+          varying vec3 vViewPosition;
+          void main() {
+            vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+            vNormal = normalize(normalMatrix * normal);
+            vViewPosition = -mvPosition.xyz;
+            gl_Position = projectionMatrix * mvPosition;
+          }
+        `,
+        fragmentShader: /* glsl */ `
+          uniform sampler2D uMatcap;
+          uniform sampler2D uIridescence;
+          uniform vec3 uTint;
+          uniform float uIriStrength;
+          uniform float uRimBoost;
+          uniform float uSpecBoost;
+          uniform float uBaseLift;
+          varying vec3 vNormal;
+          varying vec3 vViewPosition;
+
+          float luma(vec3 c) { return dot(c, vec3(0.2126, 0.7152, 0.0722)); }
+
+          void main() {
+            vec3 viewDir = normalize(vViewPosition);
+            vec3 n = normalize(vNormal);
+            if (!gl_FrontFacing) n = -n;
+            vec3 x = normalize(vec3(viewDir.z, 0.0, -viewDir.x));
+            vec3 y = cross(viewDir, x);
+            vec2 uv = vec2(dot(x, n), dot(y, n)) * 0.495 + 0.5;
+            vec3 mat = texture2D(uMatcap, uv).rgb;
+            float fres = 1.0 - clamp(dot(viewDir, n), 0.0, 1.0);
+            vec3 iriA = texture2D(uIridescence, vec2(fres * 0.85 + 0.05, 0.5)).rgb;
+            vec3 iriB = texture2D(uIridescence, vec2(fres * 0.55 + 0.40, 0.5)).rgb;
+            vec3 iri = mix(iriA, iriB, 0.5);
+            vec3 base = mat * uTint + uBaseLift;
+            float sheenWeight = mix(0.35, 1.0, smoothstep(0.0, 1.0, fres));
+            vec3 sheen = iri * sheenWeight * uIriStrength;
+            vec3 col = base + sheen - base * sheen;
+            float spec = smoothstep(0.55, 1.0, luma(mat));
+            col += iri * spec * uSpecBoost;
+            col += iri * pow(fres, 5.0) * uRimBoost;
+
+            /* Rim-only: the centre is fully invisible, only the
+               fresnel-edge has any alpha at all. Reads as light
+               catching a glass surface more than as a model. */
+            float alpha = pow(fres, 1.4) * 0.18;
+            gl_FragColor = vec4(col, clamp(alpha, 0.0, 1.0));
+          }
+        `,
+      })
+
+      const draco = new DRACOLoader()
+      draco.setDecoderPath('/draco/')
+      const gltfLoader = new GLTFLoader()
+      gltfLoader.setDRACOLoader(draco)
+      const gltf = await gltfLoader.loadAsync('/icons/3D/VIENNA_LOGO.glb')
+      if (cancelled) {
+        noiseTex.dispose()
+        logoMatcap.dispose()
+        logoIri.dispose()
+        pearlMaterial.dispose()
+        draco.dispose()
+        renderer.dispose()
+        return
+      }
+
+      const logoScene = new THREE.Scene()
+      const logoModel = gltf.scene
+      const logoMeshes: THREE.Mesh[] = []
+      logoModel.traverse((child) => {
+        const m = child as THREE.Mesh
+        if (m.isMesh) {
+          m.material = pearlMaterial
+          logoMeshes.push(m)
+        }
+      })
+
+      /* Fit model to ~90% of the frustum height so it reads big on
+         screen, matching the footer's presence. */
+      const box = new THREE.Box3().setFromObject(logoModel)
+      const modelSize = new THREE.Vector3()
+      const modelCenter = new THREE.Vector3()
+      box.getSize(modelSize)
+      box.getCenter(modelCenter)
+      logoModel.position.sub(modelCenter)
+      const targetHeight = 0.9
+      const fit = targetHeight / Math.max(modelSize.x, modelSize.y, 0.0001)
+      logoModel.scale.setScalar(fit)
+      logoScene.add(logoModel)
+
+      const logoAspect = width / height
+      const logoFrustum = 1
+      const logoCamera = new THREE.OrthographicCamera(
+        (-logoFrustum * logoAspect) / 2,
+        (logoFrustum * logoAspect) / 2,
+        logoFrustum / 2,
+        -logoFrustum / 2,
+        0.1,
+        10,
+      )
+      logoCamera.position.set(0, 0, 3)
+      logoCamera.lookAt(0, 0, 0)
+
+      const dpr = Math.min(window.devicePixelRatio, 2)
+      /* Logo RT scale. The shader blur kernel is now tight enough
+         (5-tap @ 0.0025 offset) that a near-full resolution RT
+         won't produce the ghost-streaks we saw before — the edges
+         stay crisp at the source and the small shader smooth just
+         masks any aliasing from the downsampled matcap sheen. */
+      const LOGO_RT_SCALE = 1.0
+      const logoRT = new THREE.WebGLRenderTarget(
+        Math.max(Math.floor(width * dpr * LOGO_RT_SCALE), 1),
+        Math.max(Math.floor(height * dpr * LOGO_RT_SCALE), 1),
+      )
+      logoRT.texture.minFilter = THREE.LinearFilter
+      logoRT.texture.magFilter = THREE.LinearFilter
+      logoRT.texture.generateMipmaps = false
+
       const material = new THREE.ShaderMaterial({
         transparent: true,
         vertexShader,
@@ -295,15 +528,6 @@ const MenuOverlay = ({ open, hover = false, onClose }: Props) => {
           /* Elapsed seconds — drives the slow domain-warp drift that
              keeps the ink feeling alive even between tweens. */
           uTime: { value: 0 },
-          /* Navy (#332f29) — the dark core of the ink. */
-          uColorBase: {
-            value: new THREE.Vector3(0x33 / 255, 0x2f / 255, 0x29 / 255),
-          },
-          /* Lifted navy (~#7d7971) — the lighter rim tone so edges
-             and tendril tips glow slightly against the core. */
-          uColorEdge: {
-            value: new THREE.Vector3(0x7d / 255, 0x79 / 255, 0x71 / 255),
-          },
           /* Cream (#faf8f2) — baked-in text colour. Composited over
              the ink inside the fragment shader; never leaks outside
              the mask. */
@@ -311,8 +535,16 @@ const MenuOverlay = ({ open, hover = false, onClose }: Props) => {
             value: new THREE.Vector3(0xfa / 255, 0xf8 / 255, 0xf2 / 255),
           },
           uAspect: { value: new THREE.Vector2(width / height, 1) },
+          /* Cursor position, normalised -1..1, smoothed in the rAF
+             loop. Drives the background parallax. */
+          uMouse: { value: new THREE.Vector2(0, 0) },
           uNoiseTex: { value: noiseTex },
           uTextTex: { value: textTex },
+          uLogoTex: { value: logoRT.texture },
+          /* Shared with the hologram logo material — the ink shader
+             uses it as its ambient background so both layers live in
+             the same lighting world. */
+          uBgMatcap: { value: logoMatcap },
         },
       })
 
@@ -340,14 +572,58 @@ const MenuOverlay = ({ open, hover = false, onClose }: Props) => {
       }
       renderRef.current = render
 
-      /* Continuous rAF loop so the time-drift noise animates on its
-         own between tweens. When the blob is fully dissolved
-         (uReveal ≈ 1) we skip the draw call — the loop keeps
-         updating uTime so it resumes seamlessly on reveal, but the
-         GPU stays idle while the menu is closed. */
+      /* Continuous rAF loop:
+           - Always advance the logo rotation + re-render the logo
+             into its render target so the motion stays smooth even
+             when the ink is mostly dissolved (tiny hover reveal).
+           - Only render the main scene to the screen when the ink
+             mask has anything visible, to keep the GPU idle when
+             the menu is closed. */
       const startT = performance.now()
+      let logoRotY = 0
+      let logoRotX = 0
+
+      /* Mouse parallax target + smoothed value. The listener writes
+         raw normalised coords; the rAF loop lerps toward them with a
+         low-pass filter so sharp pointer moves turn into a gentle
+         drift rather than a snap. */
+      const mouseTarget = {x: 0, y: 0}
+      const mouseSmooth = {x: 0, y: 0}
+      const onMouseMove = (e: MouseEvent) => {
+        mouseTarget.x = (e.clientX / window.innerWidth) * 2 - 1
+        mouseTarget.y = (e.clientY / window.innerHeight) * 2 - 1
+      }
+      window.addEventListener('mousemove', onMouseMove, {passive: true})
+
       renderer.setAnimationLoop(() => {
-        material.uniforms.uTime.value = (performance.now() - startT) * 0.001
+        const now = performance.now()
+        const t = (now - startT) * 0.001
+        material.uniforms.uTime.value = t
+
+        mouseSmooth.x += (mouseTarget.x - mouseSmooth.x) * 0.03
+        mouseSmooth.y += (mouseTarget.y - mouseSmooth.y) * 0.03
+        ;(material.uniforms.uMouse.value as THREE.Vector2).set(
+          mouseSmooth.x,
+          mouseSmooth.y,
+        )
+
+        /* Logo tilts toward the cursor instead of tumbling. Upright
+           at rest (rotation 0); amplitude chosen so the tilt reads
+           clearly through the background blur — otherwise the
+           rotation disappears into the out-of-focus softness. */
+        const targetRotY = mouseSmooth.x * 0.55
+        const targetRotX = mouseSmooth.y * 0.4
+        logoRotY += (targetRotY - logoRotY) * 0.1
+        logoRotX += (targetRotX - logoRotX) * 0.1
+        logoModel.rotation.y = logoRotY
+        logoModel.rotation.x = logoRotX
+
+        renderer.setRenderTarget(logoRT)
+        renderer.setClearColor(0x000000, 0)
+        renderer.clear()
+        renderer.render(logoScene, logoCamera)
+        renderer.setRenderTarget(null)
+
         if ((material.uniforms.uReveal.value as number) < 0.999) {
           renderer.render(scene, camera)
         }
@@ -356,8 +632,19 @@ const MenuOverlay = ({ open, hover = false, onClose }: Props) => {
       const onResize = () => {
         const w = window.innerWidth
         const h = window.innerHeight
+        const newDpr = Math.min(window.devicePixelRatio, 2)
         renderer.setSize(w, h, false)
         ;(material.uniforms.uAspect.value as THREE.Vector2).set(w / h, 1)
+        /* Keep the logo camera + RT aligned with the viewport so the
+           model stays centred and crisp across breakpoints. */
+        const a = w / h
+        logoCamera.left = (-logoFrustum * a) / 2
+        logoCamera.right = (logoFrustum * a) / 2
+        logoCamera.updateProjectionMatrix()
+        logoRT.setSize(
+          Math.max(Math.floor(w * newDpr * LOGO_RT_SCALE), 1),
+          Math.max(Math.floor(h * newDpr * LOGO_RT_SCALE), 1),
+        )
         paintText()
         render()
       }
@@ -365,11 +652,18 @@ const MenuOverlay = ({ open, hover = false, onClose }: Props) => {
 
       cleanup = () => {
         window.removeEventListener('resize', onResize)
+        window.removeEventListener('mousemove', onMouseMove)
         renderer.setAnimationLoop(null)
         material.dispose()
         mesh.geometry.dispose()
         noiseTex.dispose()
         textTex.dispose()
+        pearlMaterial.dispose()
+        logoMatcap.dispose()
+        logoIri.dispose()
+        logoMeshes.forEach((m) => m.geometry?.dispose())
+        logoRT.dispose()
+        draco.dispose()
         renderer.dispose()
         if (canvas.parentNode === container) container.removeChild(canvas)
         materialRef.current = null

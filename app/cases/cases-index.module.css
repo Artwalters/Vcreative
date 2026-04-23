@@ -6,6 +6,8 @@
   flex-direction: column;
 }
 
+/* ── Hero ── */
+
 .hero {
   padding: 12em clamp(1.5em, 8vw, 8em) 4em;
   max-width: 90em;
@@ -13,6 +15,8 @@
   width: 100%;
   display: flex;
   flex-direction: column;
+  align-items: center;
+  text-align: center;
   gap: 2em;
 }
 
@@ -59,111 +63,130 @@
   margin: 0;
 }
 
-.grid {
-  padding: 0 clamp(1.5em, 8vw, 8em) 8em;
-  max-width: 90em;
-  margin-inline: auto;
-  width: 100%;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 4em 3em;
-}
+/* ── Case layout (mirrors home's projecten section) ── */
 
-.card {
-  text-decoration: none;
-  color: inherit;
+.cases {
   display: flex;
   flex-direction: column;
-  gap: 1.5em;
+  gap: 8em;
+  padding: 2em 0 6em;
+  max-width: 68em;
+  width: 100%;
+  margin: 0 auto;
 }
 
-.card:hover .cardImage {
-  transform: scale(1.02);
+.projectItem {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25em;
 }
 
-.cardFigure {
+.projectFull {
+  width: 100%;
+}
+
+.projectenRow {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 4.5em;
+  align-items: start;
+}
+
+.projectSmall,
+.projectLarge {
+  width: 100%;
+}
+
+.projectFigure {
   margin: 0;
-  position: relative;
   overflow: hidden;
-  aspect-ratio: 4 / 3;
-  background: var(--color-navy);
+  position: relative;
+  aspect-ratio: 16 / 10;
 }
 
-.cardImage {
+.projectImage {
   position: absolute;
   inset: 0;
   width: 100%;
-  height: 100%;
-  object-fit: cover;
+  height: 150%;
+  top: -25%;
   display: block;
-  transition: transform 0.6s var(--ease-out);
+  object-fit: cover;
 }
 
-.cardMeta {
+.projectFull .projectFigure {
+  aspect-ratio: 16 / 8;
+}
+
+.projectSmall .projectFigure {
+  aspect-ratio: 4 / 3;
+}
+
+.projectLarge .projectFigure {
+  aspect-ratio: 16 / 10;
+}
+
+.parallaxTarget {
+  position: absolute;
+  inset: 0;
+  will-change: transform;
+}
+
+.projectContent {
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 1em;
+  flex-direction: column;
+  gap: 1.5em;
+  max-width: 30em;
+  color: var(--color-navy);
+  padding-top: 0.5em;
 }
 
-.cardName {
-  font-family: var(--font-secondary);
-  font-size: 0.6875em;
-  font-weight: var(--weight-regular);
-  letter-spacing: var(--tracking-wide);
-  text-transform: uppercase;
-  margin: 0;
-}
-
-.cardYear {
-  font-family: var(--font-secondary);
-  font-size: 0.6875em;
-  font-weight: var(--weight-regular);
-  letter-spacing: var(--tracking-wide);
-  text-transform: uppercase;
-  margin: 0;
-  opacity: 0.5;
-}
-
-.cardTitle {
-  font-family: var(--font-primary);
-  font-style: italic;
-  font-size: var(--text-xl);
-  font-weight: var(--weight-regular);
-  line-height: 1.05;
-  margin: 0;
-}
-
-.cardTitle em {
-  font-family: var(--font-script);
-  font-style: normal;
-  font-weight: 700;
-}
-
-.cardTags {
-  list-style: none;
-  padding: 0;
-  margin: 0.25em 0 0;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5em 1.25em;
+.projectTitle {
   font-family: var(--font-secondary);
   font-size: var(--text-xs);
+  font-weight: 400;
   letter-spacing: var(--tracking-wide);
   text-transform: uppercase;
+  margin: 0;
 }
 
-.cardTag {
-  position: relative;
-  opacity: 0.7;
+.projectDescription {
+  font-family: var(--font-primary);
+  font-size: var(--text-lg);
+  font-weight: var(--weight-regular);
+  margin: 0;
+  line-height: var(--leading-snug);
 }
 
-.cardTag + .cardTag::before {
-  content: '·';
-  position: absolute;
-  left: -0.7em;
+.projectDescription em {
+  font-style: italic;
+}
+
+.projectLink {
+  font-family: var(--font-secondary);
+  font-size: var(--text-xs);
+  font-weight: 400;
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--color-accent);
+  text-decoration: none;
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  transition: opacity var(--duration-fast);
+}
+
+.projectLink::after {
+  content: '→';
+  display: inline-block;
+}
+
+.projectLink:hover {
   opacity: 0.6;
 }
+
+/* ── Responsive ── */
 
 @media (max-width: 991px) {
   .hero {
@@ -174,9 +197,19 @@
     font-size: var(--text-3xl);
   }
 
-  .grid {
-    padding: 0 clamp(1.5em, 6vw, 4em) 6em;
-    gap: 3em 2em;
+  .cases {
+    gap: 6em;
+    padding: 1.5em clamp(1.5em, 6vw, 4em) 5em;
+  }
+
+  .projectenRow {
+    grid-template-columns: 1fr;
+    gap: 3em;
+  }
+
+  .projectSmall .projectFigure,
+  .projectLarge .projectFigure {
+    aspect-ratio: 16 / 10;
   }
 }
 
@@ -194,10 +227,19 @@
     font-size: var(--text-md);
   }
 
-  .grid {
-    padding: 0 1.5em 5em;
-    grid-template-columns: 1fr;
-    gap: 3em;
+  .cases {
+    gap: 5em;
+    padding: 1em 1.5em 4em;
+  }
+
+  .projectFull .projectFigure,
+  .projectSmall .projectFigure,
+  .projectLarge .projectFigure {
+    aspect-ratio: 4 / 3;
+  }
+
+  .projectDescription {
+    font-size: var(--text-md);
   }
 }
 
@@ -210,7 +252,12 @@
     font-size: var(--text-xl);
   }
 
-  .grid {
-    padding: 0 1.25em 4em;
+  .cases {
+    padding: 0.5em 1.25em 3em;
+    gap: 4em;
+  }
+
+  .projectDescription {
+    font-size: var(--text-md);
   }
 }

@@ -27,20 +27,24 @@
   pointer-events: auto;
 }
 
-/* The three.js canvas gets appended here — cover the full root. */
+/* The three.js canvas gets appended here — cover the full root.
+   Both the ink AND the big background logo are rendered into this
+   single canvas (logo drawn into a render target, then sampled by
+   the ink shader as uLogoTex). */
 .canvas {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   pointer-events: none;
+  z-index: 1;
 }
 
 /* ── Menu ── */
 
 .menu {
   position: relative;
-  z-index: 1;
+  z-index: 2;
   display: flex;
   flex-direction: column;
   align-items: center;

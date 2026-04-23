@@ -7,9 +7,17 @@ import styles from '@/app/components/Header.module.css'
 type Props = {
   interaction?: 'scroll' | 'mouseTilt' | 'auto'
   className?: string
+  /* Override the default matcap (pearl tint) — used by the menu
+     background logo to render the model in a darker tone against
+     the navy ink. */
+  matcap?: string
 }
 
-const Logo3D = ({ interaction = 'scroll', className }: Props) => {
+const Logo3D = ({
+  interaction = 'scroll',
+  className,
+  matcap: matcapSrc = '/icons/3D/project-model-matcap.png',
+}: Props) => {
   const containerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -67,7 +75,7 @@ const Logo3D = ({ interaction = 'scroll', className }: Props) => {
 
       const texLoader = new THREE.TextureLoader()
       const [matcap, iridescence] = await Promise.all([
-        texLoader.loadAsync('/icons/3D/project-model-matcap.png'),
+        texLoader.loadAsync(matcapSrc),
         texLoader.loadAsync('/icons/3D/iri-32.png'),
       ])
       matcap.colorSpace = THREE.SRGBColorSpace

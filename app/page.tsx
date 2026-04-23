@@ -110,7 +110,7 @@ const TextDemo = () => {
     }
     el.dispatchEvent(new CustomEvent('webgl-text-replay'))
     reviewPendingReplayRef.current = true
-    const t = setTimeout(() => setDisplayedReviewIndex(reviewIndex), 850)
+    const t = setTimeout(() => setDisplayedReviewIndex(reviewIndex), 320)
     return () => clearTimeout(t)
   }, [reviewIndex, displayedReviewIndex])
 
@@ -123,12 +123,12 @@ const TextDemo = () => {
     const el = reviewQuoteRef.current
     if (!el) return
     el.dispatchEvent(new CustomEvent('webgl-text-remeasured'))
-    /* Cycle finished — re-open the prev/next controls. Delay matches
-       the reveal duration so the next click can't interrupt the
-       incoming tween. */
+    /* Cycle finished — re-open the prev/next controls. Short enough
+       to feel responsive but long enough that a rapid double-click
+       can't stack overlapping tweens on the same material. */
     const t = setTimeout(() => {
       reviewCyclingRef.current = false
-    }, 2200)
+    }, 450)
     return () => clearTimeout(t)
   }, [displayedReviewIndex])
 
@@ -468,7 +468,7 @@ const TextDemo = () => {
               />
             </div>
           </figure>
-          <p className={styles.werkwijzeCtaText} data-animation="webgl-text">
+          <p className={styles.werkwijzeCtaText}>
             <em>Z</em>et mij aan het werk met jouw unieke merk.
           </p>
           <IconButton href="/contact" className={styles.werkwijzeCtaButton}>
@@ -496,7 +496,7 @@ const TextDemo = () => {
               ref={reviewQuoteRef}
               className={styles.reviewQuote}
               data-animation="webgl-text"
-              data-webgl-text-mode="time-trigger"
+              data-webgl-text-mode="carousel"
             >
               &ldquo;{currentReview.quote}&rdquo;
             </blockquote>

@@ -61,7 +61,12 @@ const Header = () => {
           {label}
         </button>
 
-        <Link href="/" className={styles.logo} aria-label="V-Creative">
+        <Link
+          href="/"
+          className={styles.logo}
+          aria-label="V-Creative"
+          data-menu-open={menuOpen}
+        >
           <Logo3D />
         </Link>
 

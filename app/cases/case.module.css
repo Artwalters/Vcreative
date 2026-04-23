@@ -25,7 +25,7 @@
 /* ── Hero ── */
 
 .hero {
-  box-sizing: content-box;
+  width: 100%;
   padding: 14em var(--container-pad) var(--rhythm);
   display: flex;
   flex-direction: column;
@@ -33,7 +33,7 @@
   justify-content: center;
   text-align: center;
   gap: 2em;
-  max-width: var(--container-max);
+  max-width: calc(var(--container-max) + 2 * var(--container-pad));
   margin-inline: auto;
 }
 
@@ -146,9 +146,8 @@
    C) full-width figure + 2-col caption below (5 / 6) — the finale */
 
 .sections {
-  box-sizing: content-box;
   width: 100%;
-  max-width: var(--container-max);
+  max-width: calc(var(--container-max) + 2 * var(--container-pad));
   margin-inline: auto;
   padding: var(--rhythm) var(--container-pad);
   display: flex;

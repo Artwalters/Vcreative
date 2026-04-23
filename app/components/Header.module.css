@@ -73,6 +73,18 @@
   left: 50%;
   transform: translateX(-50%);
   pointer-events: auto;
+  /* Fade out when menu is open — the big background logo inside
+     the overlay takes over as the brand mark. Short scale-down
+     reads as the little logo stepping aside for the big one. */
+  transition:
+    opacity 0.45s ease,
+    transform 0.55s cubic-bezier(0.625, 0.05, 0, 1);
+}
+
+.logo[data-menu-open='true'] {
+  opacity: 0;
+  transform: translateX(-50%) scale(0.6);
+  pointer-events: none;
 }
 
 .logoMark {

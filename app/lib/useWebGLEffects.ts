@@ -399,30 +399,38 @@ export function useWebGLEffects() {
               onUpdate: renderEl,
               onComplete: () => elCanvas.remove(),
             }))
-          } else if (mode === 'time-trigger') {
-            triggers.push(ScrollTrigger.create({
-              trigger: element,
-              start: 'top 85%',
-              once: true,
-              onEnter: () => {
-                /* Remeasure right before the reveal plays. Elements that
-                   live inside a transformed parent (e.g. a scrolling-scaled
-                   card) have different bounds now than they did at init. */
-                remeasureEl()
-                renderEl()
-                tweens.push(gsap.to(elMaterial.uniforms.uReveal, {
-                  value: 1,
-                  duration: 1.4,
-                  ease: 'power2.inOut',
-                  onUpdate: renderEl,
-                }))
-              },
-            }))
+          } else if (mode === 'time-trigger' || mode === 'carousel') {
+            /* carousel mode = time-trigger's cousin: skip the initial
+               scroll-in reveal and start fully revealed, but keep the
+               replay/remeasured listeners so prev/next carousel clicks
+               still mask-swap-reveal. Useful when the first entry is
+               already visible above the fold and an entrance animation
+               would feel gratuitous. */
+            if (mode === 'carousel') {
+              elMaterial.uniforms.uReveal.value = 1
+              renderEl()
+            } else {
+              triggers.push(ScrollTrigger.create({
+                trigger: element,
+                start: 'top 85%',
+                once: true,
+                onEnter: () => {
+                  remeasureEl()
+                  renderEl()
+                  tweens.push(gsap.to(elMaterial.uniforms.uReveal, {
+                    value: 1,
+                    duration: 1.4,
+                    ease: 'power2.inOut',
+                    onUpdate: renderEl,
+                  }))
+                },
+              }))
+            }
             const onReplay = () => {
               gsap.killTweensOf(elMaterial.uniforms.uReveal)
               tweens.push(gsap.to(elMaterial.uniforms.uReveal, {
                 value: 0,
-                duration: 0.8,
+                duration: 0.3,
                 ease: 'power2.in',
                 onUpdate: renderEl,
               }))
@@ -433,8 +441,8 @@ export function useWebGLEffects() {
               gsap.killTweensOf(elMaterial.uniforms.uReveal)
               tweens.push(gsap.to(elMaterial.uniforms.uReveal, {
                 value: 1,
-                duration: 2.2,
-                ease: 'power2.inOut',
+                duration: 0.6,
+                ease: 'power2.out',
                 onUpdate: renderEl,
               }))
             }
@@ -516,29 +524,34 @@ export function useWebGLEffects() {
               ease: 'power2.inOut',
               onUpdate: () => { needsRender = true },
             }))
-          } else if (mode === 'time-trigger') {
-            triggers.push(ScrollTrigger.create({
-              trigger: t.element,
-              start: 'top 85%',
-              once: true,
-              onEnter: () => {
-                /* Remeasure right before the reveal plays. Elements that
-                   live inside a transformed parent (e.g. a scrolling-scaled
-                   card) have different bounds now than they did at init. */
-                remeasure()
-                tweens.push(gsap.to(t.material.uniforms.uReveal, {
-                  value: 1,
-                  duration: 1.4,
-                  ease: 'power2.inOut',
-                  onUpdate: () => { needsRender = true },
-                }))
-              },
-            }))
+          } else if (mode === 'time-trigger' || mode === 'carousel') {
+            /* carousel mode: skip the initial scroll reveal, start
+               already revealed, but keep the replay/remeasured event
+               listeners for carousel swap transitions. */
+            if (mode === 'carousel') {
+              t.material.uniforms.uReveal.value = 1
+              needsRender = true
+            } else {
+              triggers.push(ScrollTrigger.create({
+                trigger: t.element,
+                start: 'top 85%',
+                once: true,
+                onEnter: () => {
+                  remeasure()
+                  tweens.push(gsap.to(t.material.uniforms.uReveal, {
+                    value: 1,
+                    duration: 1.4,
+                    ease: 'power2.inOut',
+                    onUpdate: () => { needsRender = true },
+                  }))
+                },
+              }))
+            }
             const onReplayT = () => {
               gsap.killTweensOf(t.material.uniforms.uReveal)
               tweens.push(gsap.to(t.material.uniforms.uReveal, {
                 value: 0,
-                duration: 0.8,
+                duration: 0.3,
                 ease: 'power2.in',
                 onUpdate: () => { needsRender = true },
               }))
@@ -548,8 +561,8 @@ export function useWebGLEffects() {
               gsap.killTweensOf(t.material.uniforms.uReveal)
               tweens.push(gsap.to(t.material.uniforms.uReveal, {
                 value: 1,
-                duration: 2.2,
-                ease: 'power2.inOut',
+                duration: 0.6,
+                ease: 'power2.out',
                 onUpdate: () => { needsRender = true },
               }))
             }
