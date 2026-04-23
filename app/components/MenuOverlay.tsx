@@ -1,16 +1,16 @@
 'use client'
 
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useEffect, useRef } from 'react'
 import type * as THREE from 'three'
 import styles from '@/app/components/MenuOverlay.module.css'
 
-/* Menu items — keep this short + clean per the brief. */
+/* Primary nav — Contact lives as a simple text link below the list. */
 const ITEMS = [
-  { script: 'H', rest: 'ome', href: '/' },
-  { script: 'P', rest: 'rojecten', href: '/cases' },
-  { script: 'O', rest: 'ver', href: '/over-mij' },
-  { script: 'C', rest: 'ontact', href: '/contact' },
+  { label: 'Home', href: '/' },
+  { label: 'Projecten', href: '/cases' },
+  { label: 'Over', href: '/over-mij' },
 ] as const
 
 /* Same oil-spill noise-mask as the site's text reveals. Scaled coarser
@@ -126,6 +126,32 @@ const MenuOverlay = ({ open, hover = false, onClose }: Props) => {
   const materialRef = useRef<{ uniforms: { uReveal: { value: number } } } | null>(null)
   const renderRef = useRef<(() => void) | null>(null)
   const firstItemRef = useRef<HTMLAnchorElement | null>(null)
+  /* Tracks whether the previous state was fully open, so the close
+     tween can be slow (open → close) without also slowing down the
+     quick retreat that happens when the hover teaser is abandoned. */
+  const wasOpenRef = useRef(false)
+  const router = useRouter()
+
+  const handleNav = (
+    e: React.MouseEvent<HTMLAnchorElement>,
+    href: string,
+  ) => {
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
+    if (e.button !== 0) return
+    /* preventDefault so Next Link's own navigation doesn't fire. We
+       drive router.push ourselves so the ink stays covering while the
+       new page mounts, then trigger the close with a small delay. */
+    e.preventDefault()
+    if (href === window.location.pathname) {
+      onClose()
+      return
+    }
+    router.push(href)
+    /* Hold the ink at full cover briefly so the incoming page has
+       time to mount + PageTransition's scroll/trigger reset runs
+       before the dissolve starts. */
+    window.setTimeout(() => onClose(), 180)
+  }
 
   /* ── Three.js setup (once on mount) ── */
   useEffect(() => {
@@ -295,13 +321,20 @@ const MenuOverlay = ({ open, hover = false, onClose }: Props) => {
           onUpdate: render,
         })
       } else {
+        /* Close/retreat. Two flavours:
+             - open → closed: slow dissolve (~open tempo) so the reveal
+               of the new page feels deliberate, not snapped away.
+             - hover teaser → rest: keep it snappy so the corner ink
+               retreats fast when the cursor leaves the button. */
+        const closingFromOpen = wasOpenRef.current
         gsap.to(material.uniforms.uReveal, {
           value: 1,
-          duration: 0.55,
-          ease: 'power2.inOut',
+          duration: closingFromOpen ? 1.7 : 0.55,
+          ease: closingFromOpen ? 'power3.inOut' : 'power2.inOut',
           onUpdate: render,
         })
       }
+      wasOpenRef.current = open
     }
 
     run()
@@ -358,19 +391,36 @@ const MenuOverlay = ({ open, hover = false, onClose }: Props) => {
       aria-hidden={!open}
     >
       <nav id="main-menu" className={styles.menu} aria-label="Hoofdnavigatie">
-        {ITEMS.map((item, i) => (
-          <Link
-            key={item.href}
-            href={item.href}
-            className={styles.item}
-            onClick={onClose}
-            ref={i === 0 ? firstItemRef : undefined}
-            tabIndex={open ? 0 : -1}
-          >
-            <em>{item.script}</em>
-            {item.rest}
-          </Link>
-        ))}
+        <ul className={styles.list}>
+          {ITEMS.map((item, i) => (
+            <li
+              key={item.href}
+              className={styles.itemWrap}
+              style={{'--menu-stagger': i} as React.CSSProperties}
+            >
+              <Link
+                href={item.href}
+                className={styles.item}
+                onClick={(e) => handleNav(e, item.href)}
+                data-menu-link="true"
+                ref={i === 0 ? firstItemRef : undefined}
+                tabIndex={open ? 0 : -1}
+              >
+                {item.label}
+              </Link>
+            </li>
+          ))}
+        </ul>
+        <Link
+          href="/contact"
+          className={styles.contactText}
+          onClick={(e) => handleNav(e, '/contact')}
+          data-menu-link="true"
+          tabIndex={open ? 0 : -1}
+          style={{'--menu-stagger': ITEMS.length} as React.CSSProperties}
+        >
+          Neem contact op
+        </Link>
       </nav>
     </div>
   )

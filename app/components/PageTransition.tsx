@@ -114,12 +114,16 @@ const PageTransition = () => {
     const onClick = (e: MouseEvent) => {
       if (e.button !== 0) return
       if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
-      if (e.defaultPrevented) return
 
       const anchor = (e.target as HTMLElement | null)?.closest('a')
       if (!anchor) return
       if (anchor.target && anchor.target !== '_self') return
       if (anchor.hasAttribute('download')) return
+      /* Menu items handle their own navigation + timed close in
+         MenuOverlay — they act as the cover themselves, so we skip
+         the cream fade-in. The pathname-change effect still runs
+         (scroll reset + ScrollTrigger.refresh) regardless. */
+      if (anchor.dataset.menuLink === 'true') return
 
       const href = anchor.getAttribute('href')
       if (!href) return
@@ -134,7 +138,12 @@ const PageTransition = () => {
       if (url.origin !== window.location.origin) return
       if (url.pathname === window.location.pathname) return
 
+      /* preventDefault AND stopPropagation so Next.js Link's own click
+         handler (delegated at the React root) doesn't also push the
+         route — otherwise navigation happens immediately and our fade
+         overlay is skipped. Needs capture phase (below) to beat Link. */
       e.preventDefault()
+      e.stopPropagation()
 
       if (navigatingRef.current) return
       navigatingRef.current = true
@@ -170,8 +179,12 @@ const PageTransition = () => {
       })()
     }
 
-    document.addEventListener('click', onClick)
-    return () => document.removeEventListener('click', onClick)
+    /* Capture phase — runs BEFORE any React-delegated onClick on the
+       same <a>, including Next.js Link's navigation handler. Without
+       this, Link intercepts the click first for things like the home
+       logo, which means the transition never fires. */
+    document.addEventListener('click', onClick, true)
+    return () => document.removeEventListener('click', onClick, true)
   }, [router])
 
   return (
