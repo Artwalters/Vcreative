@@ -196,6 +196,13 @@ export function useWebGLEffects() {
     let animationId: number
     let resizeHandler: (() => void) | undefined
     let scrollHandler: (() => void) | undefined
+    let refreshHandler: (() => void) | undefined
+    let scrollTriggerRef:
+      | typeof import('gsap/ScrollTrigger')['ScrollTrigger']
+      | undefined
+    let docResizeObserver: ResizeObserver | undefined
+    let remeasureTimeouts: ReturnType<typeof setTimeout>[] = []
+    let remeasureDebounce: ReturnType<typeof setTimeout> | undefined
     let canvas: HTMLCanvasElement | undefined
     let cancelled = false
     let needsRender = true
@@ -577,6 +584,17 @@ export function useWebGLEffects() {
       const imageGeometry = new THREE.PlaneGeometry(1, 1, 32, 32)
       const textureLoader = new THREE.TextureLoader()
 
+      /* Force lazy-loaded WebGL media to start downloading immediately.
+         Without this, <img loading="lazy"> below the fold never completes
+         until the user scrolls near it, which HANGS the Promise.all below
+         and blocks the entire WebGL pipeline — no canvas appears, no text
+         reveals fire, etc. The symptom was "WebGL only works after I
+         scroll past the studio section" because that's roughly when the
+         last lazy project image enters the viewport and completes. */
+      mediaElements.forEach((img) => {
+        if (img.loading === 'lazy') img.loading = 'eager'
+      })
+
       await Promise.all(
         mediaElements.map(
           (img) =>
@@ -584,8 +602,8 @@ export function useWebGLEffects() {
               if (img.complete && img.naturalWidth > 0) {
                 resolve()
               } else {
-                img.onload = () => resolve()
-                img.onerror = () => resolve()
+                img.addEventListener('load', () => resolve(), {once: true})
+                img.addEventListener('error', () => resolve(), {once: true})
               }
             }),
         ),
@@ -883,15 +901,83 @@ export function useWebGLEffects() {
 
       window.addEventListener('resize', resizeHandler)
 
-      /* NOTE: we deliberately do NOT call ScrollTrigger.refresh() here.
-         This init is async (awaits fonts + all image textures), so it
-         can finish long after the user has started scrolling. A refresh
-         mid-scroll re-measures every pin/scrub in the app at once,
-         which snaps the studio-card pin and can leave Lenis with a
-         stale max-scroll — the "scroll feels stuck at the scale card"
-         symptom. GSAP already measures each trigger on creation and
-         refreshes on the window `load` event, so skipping the manual
-         refresh here removes the race without losing correctness. */
+      /* ── Remeasure text + image entries against current DOM ──
+         Layout can shift AFTER our initial measurements for two
+         reasons:
+           1. Pin spacers (e.g. the studio-card ScrollTrigger) are
+              created in parallel and may land after our forEach loops.
+           2. Images / textures loaded during `await Promise.all(...)`
+              can reflow the document.
+         Without this, text meshes below a late-added pin spacer sit
+         at the wrong Y — the hero + projecten titles read fine but
+         everything below the studio section only aligns once the
+         user has scrolled past the pin (which is when GSAP's own
+         recalc happens to run). */
+      const PAD_X = 0.12
+      const PAD_Y = 0.25
+      const remeasurePositions = () => {
+        texts.forEach((t) => {
+          const b = t.element.getBoundingClientRect()
+          t.bounds = b
+          t.y = b.top + getScrollRaw()
+          const pW = b.width * (1 + PAD_X * 2)
+          const pH = b.height * (1 + PAD_Y * 2)
+          t.mesh.scale.set(pW, pH, 1)
+          ;(t.material.uniforms.uAspect.value as THREE.Vector2).set(pW / pH, 1.0)
+        })
+        images.forEach((img) => {
+          const b = img.element.getBoundingClientRect()
+          img.mesh.scale.set(b.width, b.height, 1)
+          img.width = b.width
+          img.height = b.height
+          img.top = b.top + getScrollRaw()
+          img.left = b.left
+          img.material.uniforms.uQuadSize.value.set(b.width, b.height)
+        })
+        needsRender = true
+      }
+
+      /* Sync once at the end of init so the first paint is correct. */
+      remeasurePositions()
+
+      /* Subscribe to ScrollTrigger refreshes — GSAP fires these on
+         window.load, resize, and on the explicit refresh() calls
+         from the page-transition. We piggyback without triggering
+         our own refresh (which would snap the studio-card pin). */
+      refreshHandler = remeasurePositions
+      scrollTriggerRef = ScrollTrigger
+      ScrollTrigger.addEventListener('refresh', refreshHandler)
+
+      /* ── Catch every layout shift after init ──
+         ScrollTrigger.refresh alone isn't enough: lazy-loaded images,
+         late font swaps, and pin spacers added by other effects all
+         change document height WITHOUT firing a refresh until the
+         user scrolls far enough to tickle GSAP. That's the "only
+         works after passing studio section" bug — the refresh that
+         eventually corrects everything only happens once natural
+         layout churn settles down.
+         A ResizeObserver on <body> catches every height change,
+         debounced so rapid successive shifts collapse into one
+         remeasure. */
+      const scheduleRemeasure = () => {
+        if (remeasureDebounce) clearTimeout(remeasureDebounce)
+        remeasureDebounce = setTimeout(() => {
+          if (cancelled) return
+          remeasurePositions()
+        }, 80)
+      }
+      docResizeObserver = new ResizeObserver(scheduleRemeasure)
+      docResizeObserver.observe(document.body)
+
+      /* Belt + braces: fixed remeasure beats for the first few
+         seconds after mount — covers anything the ResizeObserver
+         misses (e.g. children re-positioning without body-height
+         change, or late WebGL canvases from sibling effects). */
+      remeasureTimeouts.push(
+        setTimeout(() => { if (!cancelled) remeasurePositions() }, 300),
+        setTimeout(() => { if (!cancelled) remeasurePositions() }, 900),
+        setTimeout(() => { if (!cancelled) remeasurePositions() }, 2000),
+      )
     }
 
     init()
@@ -907,6 +993,12 @@ export function useWebGLEffects() {
            scrollHandler attached to Lenis. */
         if (lenisRef) lenisRef.off('scroll', scrollHandler)
       }
+      if (refreshHandler && scrollTriggerRef) {
+        scrollTriggerRef.removeEventListener('refresh', refreshHandler)
+      }
+      if (docResizeObserver) docResizeObserver.disconnect()
+      if (remeasureDebounce) clearTimeout(remeasureDebounce)
+      remeasureTimeouts.forEach((t) => clearTimeout(t))
       /* Remove the webgl-text-replay / remeasured listeners we added so
          they don't fire against stale closures after navigation. */
       domListeners.forEach(({el, type, fn}) => {

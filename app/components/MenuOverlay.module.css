@@ -1,0 +1,99 @@
+/* ──────────────────────────────────────────────────────────────
+   Menu overlay — reuses the same noise-mask reveal shader that
+   drives the site's text reveals. When `open` flips on:
+
+     1. uReveal tweens 0 → 1  (oil-spill blobs fill the viewport
+        with the accent orange)
+     2. After the shader has covered enough of the screen, the
+        four menu items fade in on top of the orange
+
+   Close plays in reverse: items fade out first, then the mask
+   retreats from 1 → 0 and the page behind reappears.
+   ────────────────────────────────────────────────────────────── */
+
+.root {
+  position: fixed;
+  inset: 0;
+  z-index: 45; /* below header (50), above progressive-blur (40) */
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.root[data-open='true'] {
+  pointer-events: auto;
+}
+
+/* The three.js canvas gets appended here — cover the full root. */
+.canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+/* ── Menu ── */
+
+.menu {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35em;
+  padding: 2em;
+  opacity: 0;
+  /* Fast fade when closing (no delay). */
+  transition: opacity 0.3s ease;
+}
+
+.root[data-open='true'] .menu {
+  opacity: 1;
+  /* Slower fade in on open, delayed so the oil-spill has mostly
+     covered the viewport before the links appear. Delay scales with
+     the shader tween duration (2.0s). */
+  transition: opacity 0.55s ease 1.25s;
+}
+
+.item {
+  font-family: var(--font-primary);
+  font-style: italic;
+  font-size: var(--text-4xl);
+  font-weight: var(--weight-regular);
+  /* Navy overlay background now — items are cream for contrast. */
+  color: var(--color-cream);
+  text-decoration: none;
+  line-height: 1;
+  padding: 0.15em 0.5em;
+  letter-spacing: var(--tracking-tight);
+  transition: color var(--duration-fast), transform var(--duration-fast);
+}
+
+.item em {
+  font-family: var(--font-script);
+  font-style: normal;
+  font-weight: 700;
+  text-transform: none;
+  margin-right: -0.05em;
+}
+
+.item:hover {
+  color: var(--color-accent);
+}
+
+/* ── Mobile ── */
+
+@media (max-width: 767px) {
+  .item {
+    font-size: var(--text-3xl);
+  }
+}
+
+@media (max-width: 479px) {
+  .item {
+    font-size: var(--text-2xl);
+  }
+}

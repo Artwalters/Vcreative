@@ -22,22 +22,6 @@
   --container-pad: 8vw;
 }
 
-/* Shared container: caps content width, adds side padding.
-   Everything that isn't full-bleed should sit inside `.container`. */
-.container {
-  width: 100%;
-  max-width: var(--container-max);
-  margin-inline: auto;
-  padding-inline: var(--container-pad);
-}
-
-/* Shared 12-col grid applied inside containers. */
-.grid {
-  display: grid;
-  grid-template-columns: repeat(12, 1fr);
-  column-gap: var(--gutter);
-}
-
 /* ── Hero ── */
 
 .hero {
@@ -96,16 +80,6 @@
   display: inline-block;
   transform: translateY(-0.22em);
   margin-right: -0.15em;
-}
-
-.heroSubtitle {
-  font-family: var(--font-primary);
-  font-size: var(--text-lg);
-  font-weight: var(--weight-regular);
-  color: var(--color-navy);
-  line-height: var(--leading-snug);
-  margin: 0 auto;
-  max-width: 30em;
 }
 
 .heroTags {
@@ -541,7 +515,6 @@
   }
 
   .heroTitle { font-size: var(--text-2xl); }
-  .heroSubtitle { font-size: var(--text-md); }
 
   /* Mobile: stack all variants — image on top, text below */
   .sectionA .sectionText,
@@ -582,7 +555,6 @@
 
   .hero { padding: 6em var(--container-pad) var(--rhythm); }
   .heroTitle { font-size: var(--text-xl); }
-  .heroSubtitle { font-size: var(--text-sm); }
   .sectionTitle { font-size: var(--text-lg); }
   .quoteText { font-size: var(--text-md); }
   .nextCaseTitle { font-size: var(--text-xl); }

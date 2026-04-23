@@ -252,11 +252,12 @@ const TextDemo = () => {
       <section className={styles.imageGrid}>
         <section className={styles.projectenSection}>
           <header className={styles.projectenHeader}>
+            <p className={styles.projectenLabel}>
+              <span className={styles.projectenLabelDot} aria-hidden="true" />
+              2008 / 2026
+            </p>
             <h2 className={styles.projectenTitle} data-animation="webgl-text">
-              <span className={styles.projectenTitleLine}>
-                <em>Z</em>akelijke projecten
-              </span>
-              <span className={styles.projectenYears}>2008 / 2026</span>
+              <em>C</em>reative projecten
             </h2>
             <ul className={styles.projectenCategories}>
               <li className={styles.projectenCategory}>Beauty</li>
@@ -377,11 +378,7 @@ const TextDemo = () => {
               className={styles.studioLogo}
             />
             <div className={styles.studioBottomGroup}>
-              <h2
-                className={styles.studioTagline}
-                data-animation="webgl-text"
-                data-webgl-text-mode="time-trigger"
-              >
+              <h2 className={styles.studioTagline}>
                 <em>M</em>ijn missie is om jouw merk écht zichtbaar te maken.
               </h2>
               <p className={styles.studioScroll}>Blijf scrollen</p>

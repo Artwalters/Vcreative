@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next"
 import "./globals.css"
 import LenisScroll from "@/app/components/LenisScroll"
 import Header from "@/app/components/Header"
+import PageTransition from "@/app/components/PageTransition"
 
 export const metadata: Metadata = {
   title: {
@@ -57,6 +58,7 @@ const RootLayout = ({
           <LenisScroll />
           <Header />
           {children}
+          <PageTransition />
         </body>
     </html>
   )

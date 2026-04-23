@@ -25,7 +25,6 @@ export type CaseData = {
   year: string
   name: string
   heroTitle: CaseTitle
-  heroSubtitle: string
   heroTags: string[]
   heroImageSeed: string
   sections: [CaseSection, CaseSection, CaseSection]
@@ -48,8 +47,6 @@ export const CASES: Record<CaseSlug, CaseData> = {
       script: 'S',
       rest: 'ocial media beheer\nvoor Hair by Kim',
     },
-    heroSubtitle:
-      'Van een salon die alleen offline schitterde naar een online verschijning die dezelfde warmte, vakmanschap en rust uitstraalt als de studio zelf.',
     heroTags: ['Strategie', 'Contentcreatie', 'Fotografie', 'Maandelijks beheer'],
     heroImageSeed: 'hair-by-kim-hero',
     sections: [
@@ -109,8 +106,6 @@ export const CASES: Record<CaseSlug, CaseData> = {
       script: 'C',
       rest: 'ontent creatie\nvoor Falcon Ink',
     },
-    heroSubtitle:
-      'Een tattoostudio met een eigen taal. De opdracht: beeld maken dat dezelfde ruwheid, stilte en energie uitstraalt als de studio zelf — zonder het te verpakken.',
     heroTags: ['Contentdag', 'Fotografie', 'Reels', 'Creative direction'],
     heroImageSeed: 'falcon-ink-hero',
     sections: [
@@ -170,8 +165,6 @@ export const CASES: Record<CaseSlug, CaseData> = {
       script: 'M',
       rest: 'aandelijks beheer\nvoor Hal XIII',
     },
-    heroSubtitle:
-      'Een merk met ambitie en een groeiend publiek, maar een online aanwezigheid die achterliep op het verhaal erachter. De opdracht: een vast contentritme dat net zo hard werkt als de mensen achter het merk.',
     heroTags: ['Strategie', 'Maandelijks beheer', 'Fotografie', 'Video'],
     heroImageSeed: 'hal-xiii-hero',
     sections: [
@@ -231,8 +224,6 @@ export const CASES: Record<CaseSlug, CaseData> = {
       script: 'E',
       rest: 'enmalige contentdag\nvoor Beautysalon Glow',
     },
-    heroSubtitle:
-      'Geen maandcontract, geen vaste uren — één goed voorbereide dag in de salon, waarna het team zelfstandig vooruit kan met beeld dat bij het merk past.',
     heroTags: ['Contentdag', 'Fotografie', 'Styling', 'Planning'],
     heroImageSeed: 'beautysalon-glow-hero',
     sections: [

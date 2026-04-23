@@ -30,12 +30,32 @@
   text-decoration: none;
   letter-spacing: var(--tracking-wide);
   text-transform: uppercase;
-  transition: opacity var(--duration-fast);
+  transition: color 0.4s ease;
   pointer-events: auto;
+  /* Button-specific resets (button replaces the old <a>). */
+  background: transparent;
+  border: none;
+  cursor: pointer;
 }
 
-.menuLink:hover {
-  opacity: 0.6;
+/* Extended hitbox that covers the whole top-left corner region — the
+   same area the ink blob occupies at hover state. Hovering anywhere in
+   this zone triggers the WebGL hover reveal and flips the label to
+   "open", so the button reacts as the cursor drifts toward the corner
+   rather than only when it lands on the text. pointer-events auto is
+   inherited from the button, so clicks on this zone also trigger the
+   toggle — turning the corner into one large interactive surface. */
+.menuLink::before {
+  content: '';
+  position: absolute;
+  inset: -3em -12em -10em -3em;
+}
+
+/* Hover (ink teaser) OR fully open — the button sits on top of dark
+   ink in both cases, so flip the label to cream for contrast. */
+.menuLink[data-open='true'],
+.menuLink[data-hover='true'] {
+  color: var(--color-cream);
 }
 
 .menuDot {
