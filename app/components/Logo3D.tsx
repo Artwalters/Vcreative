@@ -328,6 +328,7 @@ const Logo3D = ({
         iridescence.dispose()
         draco.dispose()
         renderer.dispose()
+        try { renderer.forceContextLoss() } catch {}
         if (renderer.domElement.parentNode === container) {
           container.removeChild(renderer.domElement)
         }

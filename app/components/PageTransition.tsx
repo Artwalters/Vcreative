@@ -102,10 +102,6 @@ const PageTransition = () => {
          drops pointer-events:auto immediately — the new page is
          already mounted, nothing on the outgoing side to shield. */
       setPhase('out')
-      /* Unlock the click handler now too, so a user who taps a new
-         link during the fade-out gets a fresh nav instead of a
-         silently swallowed click. */
-      navigatingRef.current = false
 
       /* 5. Smooth reveal. Longer duration + gentler ease so it reads
             as a deliberate transition rather than a quick swap. */
@@ -115,6 +111,16 @@ const PageTransition = () => {
         ease: 'power2.inOut',
         onComplete: () => {
           setPhase('idle')
+          /* Unlock clicks only once the full transition is done.
+             Previously we unlocked at the start of fade-out so users
+             could queue the next nav during the cream retreat — but
+             that let them out-run useWebGLEffects' async dispose
+             (renderer.dispose() + forceContextLoss happen on unmount
+             of the outgoing page's effect, which only fires after
+             React commits the new page). Rapid chained clicks piled
+             up WebGL contexts faster than they could be released and
+             eventually force-lost the persistent menu renderer. */
+          navigatingRef.current = false
         },
       })
     })()

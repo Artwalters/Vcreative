@@ -221,6 +221,33 @@ export function useWebGLEffects() {
     const domListeners: Array<{el: HTMLElement, type: string, fn: EventListener}> = []
     let lenisRef: LenisLike | null = null
 
+    /* Every GPU-backed resource this hook creates goes in here. Without
+       this, unmount only removed the canvas from the DOM — the WebGL
+       renderer, materials, geometries, textures and post-processing
+       composer all stayed alive. After ~15 client-side navigations the
+       browser hits its WebGL context cap, force-loses the oldest
+       context, and the menu's ink (which lives on a persistent canvas
+       in the root layout) goes blank or throws "Context Lost". */
+    const disposables: Array<{dispose?: () => void}> = []
+    /* Composer needs special handling in cleanup: its passes don't get
+       disposed by composer.dispose(), only its render targets do. */
+    let composerRef: {dispose?: () => void; passes?: Array<{dispose?: () => void}>} | null = null
+    /* Flipped by the cleanup fn. Any disposable registered AFTER the
+       cleanup has already run (i.e. an in-flight async init that hasn't
+       bailed on `cancelled` yet) gets disposed on the spot so it
+       doesn't leak. This is the difference between "normal" and "rapid
+       navigation" — normal unmount runs cleanup AFTER init finished,
+       rapid nav cancels init mid-promise and the tail of init would
+       otherwise keep pushing renderers/materials into a dead array. */
+    let cleanupDone = false
+    const registerDisposable = (d: {dispose?: () => void}) => {
+      if (cleanupDone) {
+        try { d.dispose?.() } catch {}
+      } else {
+        disposables.push(d)
+      }
+    }
+
     const restoreElements: Array<{el: HTMLElement, prop: string, val: string}> = []
 
     const init = async () => {
@@ -288,6 +315,7 @@ export function useWebGLEffects() {
       renderer.setSize(screen.width, screen.height)
       renderer.setPixelRatio(dpr)
       renderer.outputColorSpace = THREE.LinearSRGBColorSpace
+      registerDisposable(renderer)
 
       canvas = renderer.domElement
       canvas.style.cssText =
@@ -298,6 +326,7 @@ export function useWebGLEffects() {
 
       const scene = new THREE.Scene()
       const textGeometry = new THREE.PlaneGeometry(1, 1)
+      registerDisposable(textGeometry)
 
       /* Mask color = background it dissolves from. Defaults to cream; elements
          on dark sections can override via data-webgl-text-bg="#332f29". */
@@ -342,6 +371,7 @@ export function useWebGLEffects() {
           elRenderer.setSize(paddedW, paddedH)
           elRenderer.setPixelRatio(elDpr)
           elRenderer.outputColorSpace = THREE.LinearSRGBColorSpace
+          registerDisposable(elRenderer)
 
           const elCanvas = elRenderer.domElement
           elCanvas.style.cssText = `position:absolute;top:${-offsetY}px;left:${-offsetX}px;z-index:1;pointer-events:none;width:${paddedW}px;height:${paddedH}px;`
@@ -365,8 +395,11 @@ export function useWebGLEffects() {
               uAspect: {value: new THREE.Vector2(aspect, 1.0)},
             },
           })
+          registerDisposable(elMaterial)
 
-          const elMesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), elMaterial)
+          const elGeometry = new THREE.PlaneGeometry(1, 1)
+          registerDisposable(elGeometry)
+          const elMesh = new THREE.Mesh(elGeometry, elMaterial)
           elScene.add(elMesh)
           elRenderer.render(elScene, elCamera)
 
@@ -493,6 +526,7 @@ export function useWebGLEffects() {
               uAspect: {value: new THREE.Vector2(aspect, 1.0)},
             },
           })
+          registerDisposable(material)
 
           const mesh = new THREE.Mesh(textGeometry, material)
           mesh.scale.set(paddedW, paddedH, 1)
@@ -595,6 +629,7 @@ export function useWebGLEffects() {
         : Array.from(document.querySelectorAll<HTMLImageElement>('[data-webgl-media]'))
       const images: ImageEntry[] = []
       const imageGeometry = new THREE.PlaneGeometry(1, 1, 32, 32)
+      registerDisposable(imageGeometry)
       const textureLoader = new THREE.TextureLoader()
 
       /* Force lazy-loaded WebGL media to start downloading immediately.
@@ -626,6 +661,15 @@ export function useWebGLEffects() {
 
       for (const img of mediaElements) {
         const texture = await textureLoader.loadAsync(img.src)
+        /* Bail the loop if the user already navigated away while this
+           texture was in flight. registerDisposable still handles the
+           texture's own disposal — we just stop creating new materials
+           / meshes that would otherwise orphan. */
+        if (cancelled) {
+          registerDisposable(texture)
+          return
+        }
+        registerDisposable(texture)
         const maskEl =
           (img.closest('[data-parallax="trigger"]') as HTMLElement | null) || img
         const bounds = maskEl.getBoundingClientRect()
@@ -658,6 +702,7 @@ export function useWebGLEffects() {
             u_edgeFade: {value: hasDistort ? 1.0 : 0.0},
           },
         })
+        registerDisposable(imgMaterial)
 
         const imgMesh = new THREE.Mesh(imageGeometry, imgMaterial)
         imgMesh.scale.set(bounds.width, bounds.height, 1)
@@ -761,6 +806,9 @@ export function useWebGLEffects() {
         const barrelPass = new ShaderPass(barrelShader)
         barrelPass.renderToScreen = true
         composer.addPass(barrelPass)
+        /* Stash so cleanup can dispose the composer's render targets +
+           walk the passes (composer.dispose() doesn't cascade to them). */
+        composerRef = composer as unknown as typeof composerRef
       }
 
       let fpsCheckCount = 0
@@ -1035,6 +1083,36 @@ export function useWebGLEffects() {
           el.style.setProperty(prop, val)
         }
       })
+      /* Release GPU memory + the WebGL contexts themselves. Without
+         this step each client-side nav leaks a full renderer: after
+         ~15 navs Chrome hits its context cap and force-loses the
+         oldest (which is usually the MenuOverlay's ink shader sitting
+         in the root layout — the menu then renders blank or throws
+         "Context Lost" the next time it's opened).
+         NOTE: renderer.dispose() alone does NOT release the WebGL
+         context — it just frees the resources the renderer allocated.
+         The context survives until GC reclaims the renderer instance,
+         which under rapid navigation never catches up. forceContextLoss()
+         explicitly drops the context back to the browser's pool so the
+         next page's renderer can reuse it. */
+      if (composerRef) {
+        composerRef.passes?.forEach((pass) => {
+          try { pass.dispose?.() } catch {}
+        })
+        try { composerRef.dispose?.() } catch {}
+      }
+      disposables.forEach((d) => {
+        try { d.dispose?.() } catch {}
+        /* forceContextLoss is only on WebGLRenderer — guard with
+           duck-type check so we don't crash on materials / textures. */
+        try {
+          const maybeRenderer = d as {forceContextLoss?: () => void}
+          maybeRenderer.forceContextLoss?.()
+        } catch {}
+      })
+      /* Flip the flag AFTER draining so any in-flight init that
+         resumes past this point disposes on push instead of leaking. */
+      cleanupDone = true
     }
   }, [])
 }

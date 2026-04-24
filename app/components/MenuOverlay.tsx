@@ -665,6 +665,7 @@ const MenuOverlay = ({ open, hover = false, onClose }: Props) => {
         logoRT.dispose()
         draco.dispose()
         renderer.dispose()
+        try { renderer.forceContextLoss() } catch {}
         if (canvas.parentNode === container) container.removeChild(canvas)
         materialRef.current = null
         renderRef.current = null
@@ -786,11 +787,16 @@ const MenuOverlay = ({ open, hover = false, onClose }: Props) => {
   }, [open, onClose])
 
   return (
+    /* `inert` instead of `aria-hidden` so Chrome doesn't warn when the
+       close tween leaves a focused menu anchor inside the (now-hidden)
+       root for a beat. `inert` simultaneously hides from assistive
+       tech AND removes everything inside from the focus order, which
+       is what we actually want. */
     <div
       ref={containerRef}
       className={styles.root}
       data-open={open}
-      aria-hidden={!open}
+      inert={!open}
     >
       <nav id="main-menu" className={styles.menu} aria-label="Hoofdnavigatie">
         <ul className={styles.list}>

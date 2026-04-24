@@ -322,6 +322,12 @@ const EmbossedLogo = ({
         material.dispose()
         texture.dispose()
         renderer.dispose()
+        /* renderer.dispose() alone doesn't release the WebGL context —
+           the context hangs around until GC. forceContextLoss drops it
+           back to the browser's pool immediately so rapid navigation
+           between pages that each mount an EmbossedLogo doesn't pile
+           up contexts and trigger "Too many active WebGL contexts". */
+        try { renderer.forceContextLoss() } catch {}
         if (renderer.domElement.parentNode === container) {
           container.removeChild(renderer.domElement)
         }

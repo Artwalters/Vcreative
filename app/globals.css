@@ -442,6 +442,22 @@ textarea:focus-visible {
   }
 }
 
+/* On dark-themed sections the default navy pill blends into the bg —
+   invert so the pill reads as cream and the inner circle as navy. */
+[data-theme='dark'] .btn-icon-link {
+  color: var(--color-navy);
+}
+[data-theme='dark'] .btn-icon-content {
+  background: var(--color-cream);
+  color: var(--color-navy);
+}
+[data-theme='dark'] .btn-icon-icon__bg {
+  background-color: var(--color-navy);
+}
+[data-theme='dark'] .btn-icon-icon__wrap {
+  color: var(--color-cream);
+}
+
 @media (max-width: 767px) {
   .btn-icon-link {
     font-size: var(--text-xs);
