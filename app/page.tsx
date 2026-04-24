@@ -374,7 +374,7 @@ const TextDemo = () => {
           <div className={styles.studioCard}>
             <p className={styles.studioLabel}>Over V-Creative</p>
             <EmbossedLogo
-              src="/icons/SVG/embossing.png"
+              src="/icons/SVG/vienna_bigloog-nomrla.png"
               className={styles.studioLogo}
             />
             <div className={styles.studioBottomGroup}>

@@ -380,12 +380,12 @@
 
 .studioLogo {
   display: block;
-  width: 15.84em;
-  aspect-ratio: 1792 / 2400;
+  width: 31.68em;
+  aspect-ratio: 1 / 1;
   margin: auto 0;
   /* Contents are rendered by <EmbossedLogo> — a WebGL shader samples
-     the PNG as a height map, computes normals, and lights them to paint
-     an embossed impression in the cream paper colour. */
+     a baked normal map and lights it to paint an embossed impression
+     in the cream paper colour. */
 }
 
 .studioTagline {
@@ -903,7 +903,7 @@
   }
 
   .studioLogo {
-    width: 11.55em;
+    width: 23.1em;
   }
 
   .studioTagline {
@@ -1029,7 +1029,7 @@
   }
 
   .studioLogo {
-    width: 9.08em;
+    width: 18.16em;
   }
 
   .studioTagline {

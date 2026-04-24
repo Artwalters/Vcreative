@@ -2,24 +2,31 @@
 
 import { useEffect, useRef } from 'react'
 
-/* WebGL-embossed logo. The PNG is treated as a height map (via its
-   luminance) — in the fragment shader we Sobel the neighbouring texels
-   to get a surface normal per pixel, then light that normal with a
-   directional light + Phong-style specular. We output the DELTA from
-   what flat paper would render, so uniform areas collapse to the exact
-   cream colour (invisible against the card) and only the embossed rims
-   produce visible highlights/shadows. */
+/* WebGL-embossed logo lit through a baked normal map. The PNG stores a
+   per-pixel surface normal encoded as RGB (XYZ in [0,1]), which we
+   decode in the shader and light with a single directional light +
+   Phong-ish specular. We output the DELTA from what a flat pixel
+   would render, so unlit areas collapse to the exact paper colour
+   (invisible against the card) and only the embossed relief produces
+   highlights/shadows.
+
+   The light direction is driven by cursor position: at rest it sits at
+   the configured azimuth/elevation; while the cursor is over the logo,
+   the vector tilts gently toward it. A small rAF loop lerps the
+   smoothed mouse value so the shift feels natural rather than snappy. */
 
 type Props = {
   src: string
   className?: string
   ariaHidden?: boolean
   paperColor?: string        // cream by default
-  strength?: number          // height-gradient multiplier, default 8
-  azimuth?: number           // light horizontal angle in degrees (0 = right, 90 = top, 180 = left, 270 = bottom)
-  elevation?: number         // light vertical angle in degrees (0 = grazing, 90 = top-down)
+  strength?: number          // scales the normal map's XY (>1 = more relief, <1 = softer)
+  azimuth?: number           // rest light horizontal angle in degrees (0 = right, 90 = top, 180 = left, 270 = bottom)
+  elevation?: number         // rest light vertical angle in degrees (0 = grazing, 90 = top-down)
+  mouseInfluence?: number    // how far the cursor pulls the light (0 = off, ~0.35 subtle, 1 = strong)
   specIntensity?: number     // specular brightness, default 0.8
   diffIntensity?: number     // diffuse contribution to the emboss delta, default 0.5
+  shininess?: number         // Phong exponent, higher = tighter highlights
 }
 
 const vertexShader = /* glsl */ `
@@ -33,33 +40,23 @@ const vertexShader = /* glsl */ `
 const fragmentShader = /* glsl */ `
   precision highp float;
 
-  uniform sampler2D uTexture;
-  uniform vec2 uResolution;
+  uniform sampler2D uNormalMap;
   uniform vec3 uPaperColor;
-  uniform float uStrength;
   uniform vec3 uLightDir;
+  uniform float uStrength;
   uniform float uSpecIntensity;
   uniform float uDiffIntensity;
+  uniform float uShininess;
 
   varying vec2 vUv;
 
-  float lum(vec3 c) {
-    return dot(c, vec3(0.299, 0.587, 0.114));
-  }
-
   void main() {
-    vec2 texel = 1.0 / uResolution;
+    /* Decode normal: RGB [0,1] → XYZ [-1,1]. uStrength rescales the
+       lateral components so the relief can be toned up/down without
+       re-baking the map. Re-normalise to keep the vector unit length. */
+    vec3 rawN = texture2D(uNormalMap, vUv).xyz * 2.0 - 1.0;
+    vec3 N = normalize(vec3(rawN.xy * uStrength, max(rawN.z, 0.001)));
 
-    /* 4-tap height sample → central-difference gradient */
-    float hL = lum(texture2D(uTexture, vUv + vec2(-texel.x, 0.0)).rgb);
-    float hR = lum(texture2D(uTexture, vUv + vec2( texel.x, 0.0)).rgb);
-    float hU = lum(texture2D(uTexture, vUv + vec2(0.0,  texel.y)).rgb);
-    float hD = lum(texture2D(uTexture, vUv + vec2(0.0, -texel.y)).rgb);
-
-    float dx = (hR - hL) * uStrength;
-    float dy = (hU - hD) * uStrength;
-
-    vec3 N = normalize(vec3(-dx, -dy, 1.0));
     vec3 L = normalize(uLightDir);
     vec3 V = vec3(0.0, 0.0, 1.0);
     vec3 H = normalize(L + V);
@@ -67,19 +64,22 @@ const fragmentShader = /* glsl */ `
     /* Reference: what a perfectly flat pixel (N = +Z) would return. */
     vec3 flatN = vec3(0.0, 0.0, 1.0);
     float flatDiff = max(dot(flatN, L), 0.0);
-    float flatSpec = pow(max(dot(flatN, H), 0.0), 48.0);
+    float flatSpec = pow(max(dot(flatN, H), 0.0), uShininess);
 
     float curDiff = max(dot(N, L), 0.0);
-    float curSpec = pow(max(dot(N, H), 0.0), 48.0);
+    float curSpec = pow(max(dot(N, H), 0.0), uShininess);
 
     float diffDelta = curDiff - flatDiff;
     float specDelta = curSpec - flatSpec;
 
     /* Modulate cream by how much more/less light this pixel catches.
-       Zero-gradient areas (flat paper) → delta = 0 → color == cream. */
+       Both diffuse and specular are tinted with the paper colour so
+       highlights read as a brighter cream instead of popping to pure
+       white — embossed paper catches light in its own tone, not in a
+       different hue. Zero-delta areas (flat paper) → color == cream. */
     vec3 color = uPaperColor
                + uPaperColor * diffDelta * uDiffIntensity
-               + vec3(1.0)   * specDelta * uSpecIntensity;
+               + uPaperColor * specDelta * uSpecIntensity;
 
     color = clamp(color, 0.0, 1.0);
     gl_FragColor = vec4(color, 1.0);
@@ -100,11 +100,13 @@ const EmbossedLogo = ({
   className,
   ariaHidden = true,
   paperColor = '#faf8f2',
-  strength = 8,
+  strength = 1,
   azimuth = 135,
   elevation = 45,
-  specIntensity = 0.8,
-  diffIntensity = 0.5,
+  mouseInfluence = 0.2,
+  specIntensity = 0.4,
+  diffIntensity = 0.25,
+  shininess = 48,
 }: Props) => {
   const containerRef = useRef<HTMLDivElement>(null)
 
@@ -120,9 +122,9 @@ const EmbossedLogo = ({
       if (cancelled) return
 
       const dpr = Math.min(window.devicePixelRatio, 2)
-      /* Use offsetWidth/Height (unaffected by CSS transforms) so that
-         a parent-scaled container still renders at the natural
-         resolution and stays crisp when the scale grows. */
+      /* offsetWidth/Height are unaffected by CSS transforms, so a
+         parent-scaled container still renders at the natural resolution
+         and stays crisp when the scale grows. */
       const naturalW = Math.max(container.offsetWidth, 1)
       const naturalH = Math.max(container.offsetHeight, 1)
 
@@ -148,14 +150,23 @@ const EmbossedLogo = ({
         renderer.dispose()
         return
       }
-      texture.minFilter = THREE.LinearFilter
+      /* 4K normal map downsampled to a ~500px render target looks like
+         jagged noise without mipmaps — each fragment picks a single
+         texel out of ~64 and misses every edge in between. Trilinear
+         filtering (LinearMipmapLinear) averages across mip levels, and
+         max anisotropy keeps glancing-angle regions crisp without the
+         typical trilinear blur. */
+      texture.generateMipmaps = true
+      texture.minFilter = THREE.LinearMipmapLinearFilter
       texture.magFilter = THREE.LinearFilter
-      texture.generateMipmaps = false
-      texture.colorSpace = THREE.SRGBColorSpace
+      texture.anisotropy = renderer.capabilities.getMaxAnisotropy()
+      /* Normal maps are data, not colour — NoColorSpace keeps the
+         stored XYZ from being gamma-decoded. */
+      texture.colorSpace = THREE.NoColorSpace
 
       const azRad = (azimuth * Math.PI) / 180
       const elRad = (elevation * Math.PI) / 180
-      const lightDir = new THREE.Vector3(
+      const baseLight = new THREE.Vector3(
         Math.cos(azRad) * Math.cos(elRad),
         Math.sin(azRad) * Math.cos(elRad),
         Math.sin(elRad),
@@ -165,15 +176,13 @@ const EmbossedLogo = ({
 
       const material = new THREE.ShaderMaterial({
         uniforms: {
-          uTexture: { value: texture },
-          uResolution: {
-            value: new THREE.Vector2(texture.image.width, texture.image.height),
-          },
+          uNormalMap: { value: texture },
           uPaperColor: { value: new THREE.Color(pr, pg, pb) },
           uStrength: { value: strength },
-          uLightDir: { value: lightDir },
+          uLightDir: { value: baseLight.clone() },
           uSpecIntensity: { value: specIntensity },
           uDiffIntensity: { value: diffIntensity },
+          uShininess: { value: shininess },
         },
         vertexShader,
         fragmentShader,
@@ -185,6 +194,63 @@ const EmbossedLogo = ({
 
       const render = () => renderer.render(scene, camera)
       render()
+
+      /* ── Mouse-driven light tilt ──
+         target = latest cursor position, -1..1 relative to the logo
+         center. current = smoothed value the shader actually reads.
+         The rAF loop lerps current → target and stops itself once the
+         delta is small enough to be invisible, so we're not burning a
+         frame every 16ms when nothing is happening. */
+      const mouseTarget = { x: 0, y: 0 }
+      const mouseCurrent = { x: 0, y: 0 }
+      const tiltVec = new THREE.Vector3()
+      let rafId: number | null = null
+
+      const tick = () => {
+        const dx = mouseTarget.x - mouseCurrent.x
+        const dy = mouseTarget.y - mouseCurrent.y
+        mouseCurrent.x += dx * 0.08
+        mouseCurrent.y += dy * 0.08
+
+        tiltVec
+          .set(
+            baseLight.x + mouseCurrent.x * mouseInfluence,
+            baseLight.y + mouseCurrent.y * mouseInfluence,
+            baseLight.z,
+          )
+          .normalize()
+        ;(material.uniforms.uLightDir.value as THREE.Vector3).copy(tiltVec)
+        render()
+
+        /* Below ~1/1000 the shift is visually nil; stop looping so the
+           GPU can idle. Any mousemove restarts the loop instantly. */
+        const settled = Math.abs(dx) < 0.001 && Math.abs(dy) < 0.001
+        rafId = settled ? null : requestAnimationFrame(tick)
+      }
+
+      const startTick = () => {
+        if (rafId == null) rafId = requestAnimationFrame(tick)
+      }
+
+      const onPointerMove = (e: PointerEvent) => {
+        const rect = container.getBoundingClientRect()
+        /* Clamp just in case the event fires on a child outside rect
+           due to rapid motion. Y is inverted so cursor-up raises light. */
+        const nx = ((e.clientX - rect.left) / rect.width) * 2 - 1
+        const ny = ((e.clientY - rect.top) / rect.height) * 2 - 1
+        mouseTarget.x = Math.max(-1, Math.min(1, nx))
+        mouseTarget.y = Math.max(-1, Math.min(1, -ny))
+        startTick()
+      }
+
+      const onPointerLeave = () => {
+        mouseTarget.x = 0
+        mouseTarget.y = 0
+        startTick()
+      }
+
+      container.addEventListener('pointermove', onPointerMove)
+      container.addEventListener('pointerleave', onPointerLeave)
 
       let resizeTimeout: ReturnType<typeof setTimeout>
       const onResize = () => {
@@ -199,6 +265,9 @@ const EmbossedLogo = ({
       window.addEventListener('resize', onResize)
 
       cleanup = () => {
+        if (rafId != null) cancelAnimationFrame(rafId)
+        container.removeEventListener('pointermove', onPointerMove)
+        container.removeEventListener('pointerleave', onPointerLeave)
         window.removeEventListener('resize', onResize)
         clearTimeout(resizeTimeout)
         geometry.dispose()
@@ -223,8 +292,10 @@ const EmbossedLogo = ({
     strength,
     azimuth,
     elevation,
+    mouseInfluence,
     specIntensity,
     diffIntensity,
+    shininess,
   ])
 
   return (
