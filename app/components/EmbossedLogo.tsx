@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
+import type * as THREE from 'three'
 
 /* WebGL-embossed logo lit through a baked normal map. The PNG stores a
    per-pixel surface normal encoded as RGB (XYZ in [0,1]), which we
