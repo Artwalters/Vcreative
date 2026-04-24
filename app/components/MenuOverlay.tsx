@@ -699,10 +699,14 @@ const MenuOverlay = ({ open, hover = false, onClose }: Props) => {
            0    = fully covered (menu open)
          Durations match the visual weight of each transition. */
       if (open) {
+        /* power2.out so the ink keeps spreading the moment the click
+           lands — picks up where the hover teaser settled instead of
+           re-easing-in from rest, which used to read as a tiny pause
+           between hover and open. Decelerates into full cover. */
         gsap.to(material.uniforms.uReveal, {
           value: 0,
-          duration: 2.0,
-          ease: 'power3.inOut',
+          duration: 2.6,
+          ease: 'power2.out',
           onUpdate: render,
         })
       } else if (hover) {
@@ -714,7 +718,7 @@ const MenuOverlay = ({ open, hover = false, onClose }: Props) => {
           /* power2.out + short duration so the trails appear quickly
              as the cursor enters the hover zone instead of creeping
              up over a long invisible run. */
-          duration: 0.75,
+          duration: 0.9,
           ease: 'power2.out',
           onUpdate: render,
         })
@@ -727,8 +731,8 @@ const MenuOverlay = ({ open, hover = false, onClose }: Props) => {
         const closingFromOpen = wasOpenRef.current
         gsap.to(material.uniforms.uReveal, {
           value: 1,
-          duration: closingFromOpen ? 1.7 : 0.55,
-          ease: closingFromOpen ? 'power3.inOut' : 'power2.inOut',
+          duration: closingFromOpen ? 2.4 : 0.7,
+          ease: closingFromOpen ? 'power2.inOut' : 'power2.inOut',
           onUpdate: render,
         })
       }
