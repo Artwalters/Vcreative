@@ -39,18 +39,26 @@ const CasesIndex = () => (
 
       <section className={styles.cases}>
         <article className={`${styles.projectItem} ${styles.projectFull}`}>
-          <figure className={styles.projectFigure} data-parallax="trigger">
-            <div className={styles.parallaxTarget} data-parallax="target">
-              <img
-                data-webgl-media
-                data-webgl-effect="bend"
-                src="https://picsum.photos/seed/hair-by-kim/1400/700"
-                alt="Hair by Kim"
-                className={styles.projectImage}
-                loading="lazy"
-              />
-            </div>
-          </figure>
+          <a
+            href="/cases/hair-by-kim"
+            className={styles.projectMediaLink}
+            data-cursor-hover
+            data-cursor-text="Bekijk case"
+            aria-label="Bekijk case Hair by Kim"
+          >
+            <figure className={styles.projectFigure} data-parallax="trigger">
+              <div className={styles.parallaxTarget} data-parallax="target">
+                <img
+                  data-webgl-media
+                  data-webgl-effect="bend"
+                  src="https://picsum.photos/seed/hair-by-kim/1400/700"
+                  alt="Hair by Kim"
+                  className={styles.projectImage}
+                  loading="lazy"
+                />
+              </div>
+            </figure>
+          </a>
           <div className={styles.projectContent}>
             <h2 className={styles.projectTitle}>Hair by Kim</h2>
             <p className={styles.projectDescription}>
@@ -65,18 +73,26 @@ const CasesIndex = () => (
 
         <div className={styles.projectenRow}>
           <article className={`${styles.projectItem} ${styles.projectSmall}`}>
-            <figure className={styles.projectFigure} data-parallax="trigger">
-              <div className={styles.parallaxTarget} data-parallax="target">
-                <img
-                  data-webgl-media
-                  data-webgl-effect="bend"
-                  src="https://picsum.photos/seed/falcon-ink/800/600"
-                  alt="Falcon Ink"
-                  className={styles.projectImage}
-                  loading="lazy"
-                />
-              </div>
-            </figure>
+            <a
+              href="/cases/falcon-ink"
+              className={styles.projectMediaLink}
+              data-cursor-hover
+              data-cursor-text="Bekijk case"
+              aria-label="Bekijk case Falcon Ink"
+            >
+              <figure className={styles.projectFigure} data-parallax="trigger">
+                <div className={styles.parallaxTarget} data-parallax="target">
+                  <img
+                    data-webgl-media
+                    data-webgl-effect="bend"
+                    src="https://picsum.photos/seed/falcon-ink/800/600"
+                    alt="Falcon Ink"
+                    className={styles.projectImage}
+                    loading="lazy"
+                  />
+                </div>
+              </figure>
+            </a>
             <div className={styles.projectContent}>
               <h2 className={styles.projectTitle}>Falcon Ink</h2>
               <p className={styles.projectDescription}>
@@ -90,18 +106,26 @@ const CasesIndex = () => (
           </article>
 
           <article className={`${styles.projectItem} ${styles.projectLarge}`}>
-            <figure className={styles.projectFigure} data-parallax="trigger">
-              <div className={styles.parallaxTarget} data-parallax="target">
-                <img
-                  data-webgl-media
-                  data-webgl-effect="bend"
-                  src="https://picsum.photos/seed/hal-xiii/1280/800"
-                  alt="Hal XIII"
-                  className={styles.projectImage}
-                  loading="lazy"
-                />
-              </div>
-            </figure>
+            <a
+              href="/cases/hal-xiii"
+              className={styles.projectMediaLink}
+              data-cursor-hover
+              data-cursor-text="Bekijk case"
+              aria-label="Bekijk case Hal XIII"
+            >
+              <figure className={styles.projectFigure} data-parallax="trigger">
+                <div className={styles.parallaxTarget} data-parallax="target">
+                  <img
+                    data-webgl-media
+                    data-webgl-effect="bend"
+                    src="https://picsum.photos/seed/hal-xiii/1280/800"
+                    alt="Hal XIII"
+                    className={styles.projectImage}
+                    loading="lazy"
+                  />
+                </div>
+              </figure>
+            </a>
             <div className={styles.projectContent}>
               <h2 className={styles.projectTitle}>Hal XIII</h2>
               <p className={styles.projectDescription}>
@@ -116,18 +140,26 @@ const CasesIndex = () => (
         </div>
 
         <article className={`${styles.projectItem} ${styles.projectFull}`}>
-          <figure className={styles.projectFigure} data-parallax="trigger">
-            <div className={styles.parallaxTarget} data-parallax="target">
-              <img
-                data-webgl-media
-                data-webgl-effect="bend"
-                src="https://picsum.photos/seed/beautysalon-glow/1400/700"
-                alt="Beautysalon Glow"
-                className={styles.projectImage}
-                loading="lazy"
-              />
-            </div>
-          </figure>
+          <a
+            href="/cases/beautysalon-glow"
+            className={styles.projectMediaLink}
+            data-cursor-hover
+            data-cursor-text="Bekijk case"
+            aria-label="Bekijk case Beautysalon Glow"
+          >
+            <figure className={styles.projectFigure} data-parallax="trigger">
+              <div className={styles.parallaxTarget} data-parallax="target">
+                <img
+                  data-webgl-media
+                  data-webgl-effect="bend"
+                  src="https://picsum.photos/seed/beautysalon-glow/1400/700"
+                  alt="Beautysalon Glow"
+                  className={styles.projectImage}
+                  loading="lazy"
+                />
+              </div>
+            </figure>
+          </a>
           <div className={styles.projectContent}>
             <h2 className={styles.projectTitle}>Beautysalon Glow</h2>
             <p className={styles.projectDescription}>

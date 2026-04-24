@@ -20,7 +20,7 @@ type Props = {
   src: string
   className?: string
   ariaHidden?: boolean
-  paperColor?: string        // cream by default
+  paperColor?: string        // slightly darker cream by default
   strength?: number          // scales the normal map's XY (>1 = more relief, <1 = softer)
   azimuth?: number           // rest light horizontal angle in degrees (0 = right, 90 = top, 180 = left, 270 = bottom)
   elevation?: number         // rest light vertical angle in degrees (0 = grazing, 90 = top-down)
@@ -28,6 +28,9 @@ type Props = {
   specIntensity?: number     // specular brightness, default 0.8
   diffIntensity?: number     // diffuse contribution to the emboss delta, default 0.5
   shininess?: number         // Phong exponent, higher = tighter highlights
+  framePadding?: number      // flat "paper plane" frame around the logo, ratio of the canvas (0..0.25)
+  frameShadow?: number       // cast-shadow strength in the flat frame (0 = off)
+  frameShadowDist?: number   // how far the cast shadow reaches into the frame (UV units)
 }
 
 const vertexShader = /* glsl */ `
@@ -48,30 +51,68 @@ const fragmentShader = /* glsl */ `
   uniform float uSpecIntensity;
   uniform float uDiffIntensity;
   uniform float uShininess;
+  uniform float uFramePadding;
+  uniform float uFrameShadow;
+  uniform float uFrameShadowDist;
 
   varying vec2 vUv;
 
   void main() {
-    /* Decode normal: RGB [0,1] → XYZ [-1,1]. uStrength rescales the
-       lateral components so the relief can be toned up/down without
-       re-baking the map. Re-normalise to keep the vector unit length. */
-    vec3 rawN = texture2D(uNormalMap, vUv).xyz * 2.0 - 1.0;
-    vec3 N = normalize(vec3(rawN.xy * uStrength, max(rawN.z, 0.001)));
+    /* Remap the canvas UV into the logo's inner UV: the central
+       (1 - 2*padding) block of the canvas maps to [0,1]² on the normal
+       map. Anything outside that block is the flat "paper plane" —
+       same cream, no relief, catches the cast shadow. */
+    float pad = clamp(uFramePadding, 0.0, 0.49);
+    vec2 innerUV = (vUv - pad) / max(1.0 - 2.0 * pad, 0.0001);
+    bool inside =
+      innerUV.x >= 0.0 && innerUV.x <= 1.0 &&
+      innerUV.y >= 0.0 && innerUV.y <= 1.0;
 
     vec3 L = normalize(uLightDir);
     vec3 V = vec3(0.0, 0.0, 1.0);
     vec3 H = normalize(L + V);
 
-    /* Reference: what a perfectly flat pixel (N = +Z) would return. */
-    vec3 flatN = vec3(0.0, 0.0, 1.0);
-    float flatDiff = max(dot(flatN, L), 0.0);
-    float flatSpec = pow(max(dot(flatN, H), 0.0), uShininess);
+    float diffDelta = 0.0;
+    float specDelta = 0.0;
 
-    float curDiff = max(dot(N, L), 0.0);
-    float curSpec = pow(max(dot(N, H), 0.0), uShininess);
+    if (inside) {
+      /* Decode normal: RGB [0,1] → XYZ [-1,1]. uStrength rescales the
+         lateral components so the relief can be toned up/down without
+         re-baking the map. Re-normalise to keep the vector unit length. */
+      vec3 rawN = texture2D(uNormalMap, innerUV).xyz * 2.0 - 1.0;
+      vec3 N = normalize(vec3(rawN.xy * uStrength, max(rawN.z, 0.001)));
 
-    float diffDelta = curDiff - flatDiff;
-    float specDelta = curSpec - flatSpec;
+      /* Reference: what a perfectly flat pixel (N = +Z) would return. */
+      vec3 flatN = vec3(0.0, 0.0, 1.0);
+      float flatDiff = max(dot(flatN, L), 0.0);
+      float flatSpec = pow(max(dot(flatN, H), 0.0), uShininess);
+
+      float curDiff = max(dot(N, L), 0.0);
+      float curSpec = pow(max(dot(N, H), 0.0), uShininess);
+
+      diffDelta = curDiff - flatDiff;
+      specDelta = curSpec - flatSpec;
+    } else if (uFrameShadow > 0.0 && uFrameShadowDist > 0.0) {
+      /* Cast-shadow approximation on the flat frame: step once from
+         the current pixel toward the light source and sample the
+         normal map. If that sample has a sidewall pointing toward the
+         light, it's an occluder — darken the current flat pixel in
+         proportion to how much of its face catches the light, faded
+         with distance from the logo edge so the shadow softens as it
+         reaches into the frame. */
+      vec2 shadowUV = innerUV + L.xy * uFrameShadowDist;
+      if (
+        shadowUV.x >= 0.0 && shadowUV.x <= 1.0 &&
+        shadowUV.y >= 0.0 && shadowUV.y <= 1.0
+      ) {
+        vec3 rawN = texture2D(uNormalMap, shadowUV).xyz * 2.0 - 1.0;
+        float wallFacingLight = max(dot(normalize(rawN), L), 0.0);
+        vec2 edgeDelta = max(-innerUV, innerUV - vec2(1.0));
+        float distToEdge = max(edgeDelta.x, edgeDelta.y);
+        float falloff = 1.0 - smoothstep(0.0, uFrameShadowDist, distToEdge);
+        diffDelta = -wallFacingLight * uFrameShadow * falloff;
+      }
+    }
 
     /* Modulate cream by how much more/less light this pixel catches.
        Both diffuse and specular are tinted with the paper colour so
@@ -108,6 +149,9 @@ const EmbossedLogo = ({
   specIntensity = 0.4,
   diffIntensity = 0.25,
   shininess = 48,
+  framePadding = 0,
+  frameShadow = 0.25,
+  frameShadowDist = 0.08,
 }: Props) => {
   const containerRef = useRef<HTMLDivElement>(null)
 
@@ -184,6 +228,9 @@ const EmbossedLogo = ({
           uSpecIntensity: { value: specIntensity },
           uDiffIntensity: { value: diffIntensity },
           uShininess: { value: shininess },
+          uFramePadding: { value: framePadding },
+          uFrameShadow: { value: frameShadow },
+          uFrameShadowDist: { value: frameShadowDist },
         },
         vertexShader,
         fragmentShader,
@@ -297,6 +344,9 @@ const EmbossedLogo = ({
     specIntensity,
     diffIntensity,
     shininess,
+    framePadding,
+    frameShadow,
+    frameShadowDist,
   ])
 
   return (

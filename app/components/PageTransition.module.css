@@ -8,6 +8,10 @@
   pointer-events: none;
 }
 
-.overlay[data-active='true'] {
+/* Only the fade-in phase needs to swallow clicks — that's when we're
+   preventing the user from accidentally clicking on the outgoing
+   page while it's still visible. During fade-out the new page is
+   already mounted, so let clicks through (menu button, etc.). */
+.overlay[data-phase='in'] {
   pointer-events: auto;
 }

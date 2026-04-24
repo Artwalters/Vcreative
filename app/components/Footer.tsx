@@ -72,7 +72,7 @@ const Footer = () => {
   }, [])
 
   return (
-    <footer className={styles.footer}>
+    <footer className={styles.footer} data-theme="dark">
       <div className={styles.topRow}>
         <div className={styles.newsletter}>
           <p className={styles.colHead}>Nieuwsbrief</p>

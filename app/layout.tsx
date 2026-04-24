@@ -3,6 +3,10 @@ import "./globals.css"
 import LenisScroll from "@/app/components/LenisScroll"
 import Header from "@/app/components/Header"
 import PageTransition from "@/app/components/PageTransition"
+import ScrollProgress from "@/app/components/ScrollProgress"
+import YearStamp from "@/app/components/YearStamp"
+import AdaptiveChrome from "@/app/components/AdaptiveChrome"
+import DynamicCursor from "@/app/components/DynamicCursor"
 
 export const metadata: Metadata = {
   title: {
@@ -58,6 +62,10 @@ const RootLayout = ({
           <LenisScroll />
           <Header />
           {children}
+          <YearStamp />
+          <ScrollProgress />
+          <AdaptiveChrome />
+          <DynamicCursor />
           <PageTransition />
         </body>
     </html>

@@ -56,6 +56,7 @@ const Header = () => {
           aria-controls="main-menu"
           data-open={menuOpen}
           data-hover={effectiveHover && !menuOpen}
+          data-chrome="tl"
         >
           <span className={styles.menuDot} />
           {label}
@@ -70,7 +71,12 @@ const Header = () => {
           <Logo3D />
         </Link>
 
-        <Link href="/contact" className={styles.contactLink}>
+        <Link
+          href="/contact"
+          className={styles.contactLink}
+          data-menu-open={menuOpen}
+          data-chrome="tr"
+        >
           contact
         </Link>
       </header>

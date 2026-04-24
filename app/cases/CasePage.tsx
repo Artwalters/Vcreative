@@ -186,7 +186,7 @@ const CasePage = ({ slug }: { slug: CaseSlug }) => {
         </div>
       </figure>
 
-      <section className={styles.nextCase}>
+      <section className={styles.nextCase} data-theme="dark">
         <p className={styles.nextCaseLabel}>
           <span className={styles.nextCaseLabelDot} aria-hidden="true" />
           Volgende case
@@ -199,7 +199,12 @@ const CasePage = ({ slug }: { slug: CaseSlug }) => {
           <em>{next.name.charAt(0)}</em>{next.name.slice(1)}
         </h2>
         <a href={`/cases/${next.slug}`} className={styles.nextCaseLink}>
-          <figure className={styles.nextCaseFigure} data-parallax="trigger">
+          <figure
+            className={styles.nextCaseFigure}
+            data-parallax="trigger"
+            data-cursor-hover
+            data-cursor-text="Volgende case"
+          >
             <div className={styles.parallaxTarget} data-parallax="target">
               <img
                 src={`https://picsum.photos/seed/${next.heroImageSeed}/1600/900`}

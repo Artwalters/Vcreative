@@ -1,0 +1,56 @@
+.cursor {
+  z-index: 60;
+  pointer-events: none;
+  padding-top: 0.5em;
+  padding-left: 0.375em;
+  padding-right: 0.5em;
+  position: fixed;
+  top: 0;
+  left: 0;
+  will-change: transform;
+}
+
+.bubble {
+  opacity: 0;
+  color: var(--color-navy);
+  background-color: var(--color-cream);
+  border-radius: 50em;
+  justify-content: center;
+  align-items: center;
+  height: 2.5em;
+  padding-left: 1.125em;
+  padding-right: 1.125em;
+  display: flex;
+  position: relative;
+  box-shadow: 0 0.25em 1em rgba(51, 47, 41, 0.18);
+  transform: translateX(0%) scale(0.85) rotate(0.001deg);
+  transition:
+    transform 0.4s cubic-bezier(0.625, 0.05, 0, 1),
+    opacity 0.4s cubic-bezier(0.625, 0.05, 0, 1);
+}
+
+.text {
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+  font-size: 0.8125em;
+  font-weight: 500;
+  font-family: 'PP Mori', sans-serif;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .cursor[data-cursor='active'] .bubble {
+    opacity: 1;
+    transform: translateX(0%) scale(1) rotate(0.001deg);
+  }
+
+  .cursor[data-cursor='active-edge'] .bubble {
+    opacity: 1;
+    transform: translateX(-100%) scale(1) rotate(0.001deg);
+  }
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .cursor {
+    display: none;
+  }
+}

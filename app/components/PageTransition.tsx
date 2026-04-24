@@ -18,12 +18,19 @@ type LenisLike = {
   resize?: () => void
 }
 
+type Phase = 'idle' | 'in' | 'out'
+
 const PageTransition = () => {
   const overlayRef = useRef<HTMLDivElement>(null)
   const pathname = usePathname()
   const router = useRouter()
   const firstPathRef = useRef(pathname)
-  const [active, setActive] = useState(false)
+  /* Three-phase state so we can distinguish "swallowing clicks to
+     cover the outgoing page" (in) from "letting clicks through to
+     the incoming page" (out). Without the split, the overlay kept
+     pointer-events:auto for its full ~2.5s lifecycle and blocked
+     the header's menu button for a second or so after every nav. */
+  const [phase, setPhase] = useState<Phase>('idle')
   const navigatingRef = useRef(false)
 
   /* Fade OUT after pathname change — also does the scroll/trigger
@@ -87,9 +94,18 @@ const PageTransition = () => {
       const overlay = overlayRef.current
       if (!overlay) {
         navigatingRef.current = false
-        setActive(false)
+        setPhase('idle')
         return
       }
+
+      /* Enter the 'out' phase BEFORE the tween starts so the overlay
+         drops pointer-events:auto immediately — the new page is
+         already mounted, nothing on the outgoing side to shield. */
+      setPhase('out')
+      /* Unlock the click handler now too, so a user who taps a new
+         link during the fade-out gets a fresh nav instead of a
+         silently swallowed click. */
+      navigatingRef.current = false
 
       /* 5. Smooth reveal. Longer duration + gentler ease so it reads
             as a deliberate transition rather than a quick swap. */
@@ -98,8 +114,7 @@ const PageTransition = () => {
         duration: 0.95,
         ease: 'power2.inOut',
         onComplete: () => {
-          navigatingRef.current = false
-          setActive(false)
+          setPhase('idle')
         },
       })
     })()
@@ -147,7 +162,7 @@ const PageTransition = () => {
 
       if (navigatingRef.current) return
       navigatingRef.current = true
-      setActive(true)
+      setPhase('in')
 
       const dest = url.pathname + url.search + url.hash
 
@@ -191,7 +206,7 @@ const PageTransition = () => {
     <div
       ref={overlayRef}
       className={styles.overlay}
-      data-active={active}
+      data-phase={phase}
       aria-hidden="true"
     />
   )

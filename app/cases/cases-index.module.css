@@ -97,6 +97,13 @@
   width: 100%;
 }
 
+.projectMediaLink {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+}
+
 .projectFigure {
   margin: 0;
   overflow: hidden;

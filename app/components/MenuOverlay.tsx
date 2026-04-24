@@ -6,11 +6,11 @@ import { useEffect, useRef } from 'react'
 import type * as THREE from 'three'
 import styles from '@/app/components/MenuOverlay.module.css'
 
-/* Primary nav — Contact lives as a simple text link below the list. */
 const ITEMS = [
   { label: 'Home', href: '/' },
   { label: 'Projecten', href: '/cases' },
   { label: 'Over', href: '/over-mij' },
+  { label: 'Start project', href: '/contact' },
 ] as const
 
 /* Same oil-spill noise-mask as the site's text reveals. Scaled coarser
@@ -810,16 +810,6 @@ const MenuOverlay = ({ open, hover = false, onClose }: Props) => {
             </li>
           ))}
         </ul>
-        <Link
-          href="/contact"
-          className={styles.contactText}
-          onClick={(e) => handleNav(e, '/contact')}
-          data-menu-link="true"
-          data-menu-text=""
-          tabIndex={open ? 0 : -1}
-        >
-          Neem contact op
-        </Link>
       </nav>
     </div>
   )

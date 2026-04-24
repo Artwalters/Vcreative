@@ -1,0 +1,61 @@
+.root {
+  position: fixed;
+  bottom: 2.75em;
+  right: 2.75em;
+  z-index: 44; /* below header (50) + menu overlay (45) so menu covers it */
+  pointer-events: none;
+  width: 2.5em;
+  height: 2.5em;
+  padding: 0.5em;
+  margin: -0.5em;
+}
+
+.svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  /* Rotate -90deg so the dash starts at 12 o'clock and sweeps clockwise. */
+  transform: rotate(-90deg);
+  transition: opacity 0.4s ease;
+}
+
+.track {
+  stroke: var(--color-navy);
+  stroke-width: 1.25;
+  opacity: 0.18;
+  transition: stroke 0.4s ease;
+}
+
+.progress {
+  stroke: var(--color-navy);
+  stroke-width: 1.25;
+  stroke-linecap: round;
+  transition: stroke 0.4s ease;
+  /* The dashoffset is set imperatively from JS — no CSS transition so
+     the ring tracks the scroll position exactly without lag. */
+}
+
+/* Adaptive chrome: flip to cream when the ring is over a dark section. */
+:global(body[data-chrome-br='dark']) .track,
+:global(body[data-chrome-br='dark']) .progress {
+  stroke: var(--color-cream);
+}
+
+/* Mobile: match header inset distances. */
+@media (max-width: 767px) {
+  .root {
+    bottom: 1.25em;
+    right: 1.25em;
+    width: 2em;
+    height: 2em;
+  }
+}
+
+@media (max-width: 479px) {
+  .root {
+    bottom: 1em;
+    right: 1.25em;
+    width: 1.85em;
+    height: 1.85em;
+  }
+}

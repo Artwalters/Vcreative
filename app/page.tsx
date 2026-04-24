@@ -269,18 +269,26 @@ const TextDemo = () => {
           </header>
 
           <article className={`${styles.projectItem} ${styles.projectFull}`}>
-            <figure className={styles.projectFigure} data-parallax="trigger">
-              <div className={styles.parallaxTarget} data-parallax="target">
-                <img
-                  data-webgl-media
-                  data-webgl-effect="bend"
-                  src="https://picsum.photos/seed/hair-by-kim/1400/700"
-                  alt="Hair by Kim"
-                  className={styles.projectImage}
-                  loading="lazy"
-                />
-              </div>
-            </figure>
+            <a
+              href="/cases/hair-by-kim"
+              className={styles.projectMediaLink}
+              data-cursor-hover
+              data-cursor-text="Bekijk case"
+              aria-label="Bekijk case Hair by Kim"
+            >
+              <figure className={styles.projectFigure} data-parallax="trigger">
+                <div className={styles.parallaxTarget} data-parallax="target">
+                  <img
+                    data-webgl-media
+                    data-webgl-effect="bend"
+                    src="https://picsum.photos/seed/hair-by-kim/1400/700"
+                    alt="Hair by Kim"
+                    className={styles.projectImage}
+                    loading="lazy"
+                  />
+                </div>
+              </figure>
+            </a>
             <div className={styles.projectContent}>
               <h3 className={styles.projectTitle}>Hair by Kim</h3>
               <p className={styles.projectDescription}>
@@ -292,18 +300,26 @@ const TextDemo = () => {
 
           <div className={styles.projectenRow}>
             <article className={`${styles.projectItem} ${styles.projectSmall}`}>
-              <figure className={styles.projectFigure} data-parallax="trigger">
-                <div className={styles.parallaxTarget} data-parallax="target">
-                  <img
-                    data-webgl-media
-                    data-webgl-effect="bend"
-                    src="https://picsum.photos/seed/falcon-ink/800/600"
-                    alt="Falcon Ink"
-                    className={styles.projectImage}
-                    loading="lazy"
-                  />
-                </div>
-              </figure>
+              <a
+                href="/cases/falcon-ink"
+                className={styles.projectMediaLink}
+                data-cursor-hover
+                data-cursor-text="Bekijk case"
+                aria-label="Bekijk case Falcon Ink"
+              >
+                <figure className={styles.projectFigure} data-parallax="trigger">
+                  <div className={styles.parallaxTarget} data-parallax="target">
+                    <img
+                      data-webgl-media
+                      data-webgl-effect="bend"
+                      src="https://picsum.photos/seed/falcon-ink/800/600"
+                      alt="Falcon Ink"
+                      className={styles.projectImage}
+                      loading="lazy"
+                    />
+                  </div>
+                </figure>
+              </a>
               <div className={styles.projectContent}>
                 <h3 className={styles.projectTitle}>Falcon Ink</h3>
                 <p className={styles.projectDescription}>
@@ -314,18 +330,26 @@ const TextDemo = () => {
             </article>
 
             <article className={`${styles.projectItem} ${styles.projectLarge}`}>
-              <figure className={styles.projectFigure} data-parallax="trigger">
-                <div className={styles.parallaxTarget} data-parallax="target">
-                  <img
-                    data-webgl-media
-                    data-webgl-effect="bend"
-                    src="https://picsum.photos/seed/hal-xiii/1280/800"
-                    alt="Hal XIII"
-                    className={styles.projectImage}
-                    loading="lazy"
-                  />
-                </div>
-              </figure>
+              <a
+                href="/cases/hal-xiii"
+                className={styles.projectMediaLink}
+                data-cursor-hover
+                data-cursor-text="Bekijk case"
+                aria-label="Bekijk case Hal XIII"
+              >
+                <figure className={styles.projectFigure} data-parallax="trigger">
+                  <div className={styles.parallaxTarget} data-parallax="target">
+                    <img
+                      data-webgl-media
+                      data-webgl-effect="bend"
+                      src="https://picsum.photos/seed/hal-xiii/1280/800"
+                      alt="Hal XIII"
+                      className={styles.projectImage}
+                      loading="lazy"
+                    />
+                  </div>
+                </figure>
+              </a>
               <div className={styles.projectContent}>
                 <h3 className={styles.projectTitle}>Hal XIII</h3>
                 <p className={styles.projectDescription}>
@@ -337,18 +361,26 @@ const TextDemo = () => {
           </div>
 
           <article className={`${styles.projectItem} ${styles.projectFull}`}>
-            <figure className={styles.projectFigure} data-parallax="trigger">
-              <div className={styles.parallaxTarget} data-parallax="target">
-                <img
-                  data-webgl-media
-                  data-webgl-effect="bend"
-                  src="https://picsum.photos/seed/beautysalon-glow/1400/700"
-                  alt="Beautysalon Glow"
-                  className={styles.projectImage}
-                  loading="lazy"
-                />
-              </div>
-            </figure>
+            <a
+              href="/cases/beautysalon-glow"
+              className={styles.projectMediaLink}
+              data-cursor-hover
+              data-cursor-text="Bekijk case"
+              aria-label="Bekijk case Beautysalon Glow"
+            >
+              <figure className={styles.projectFigure} data-parallax="trigger">
+                <div className={styles.parallaxTarget} data-parallax="target">
+                  <img
+                    data-webgl-media
+                    data-webgl-effect="bend"
+                    src="https://picsum.photos/seed/beautysalon-glow/1400/700"
+                    alt="Beautysalon Glow"
+                    className={styles.projectImage}
+                    loading="lazy"
+                  />
+                </div>
+              </figure>
+            </a>
             <div className={styles.projectContent}>
               <h3 className={styles.projectTitle}>Beautysalon Glow</h3>
               <p className={styles.projectDescription}>
@@ -359,12 +391,12 @@ const TextDemo = () => {
           </article>
 
           <IconButton href="/contact" className={styles.projectenCta}>
-            Zet mij aan het werk met jouw merk
+            Word de volgende case
           </IconButton>
         </section>
       </section>
 
-      <section className={styles.studioSection}>
+      <section className={styles.studioSection} data-theme="dark">
         <div className={styles.studioHero}>
           <div className={styles.studioBg}>
             <div className={styles.parallaxTarget}>
@@ -388,23 +420,41 @@ const TextDemo = () => {
         <div className={styles.studioContent}>
           <div className={styles.studioContentInner}>
             <blockquote className={styles.studioQuote} data-animation="webgl-text">
-              &ldquo;Mijn studio richt zich op het creëren van content die jouw merk écht zichtbaar maakt en de verbinding met je doelgroep versterkt.&rdquo;
-            </blockquote>
-            <p className={styles.studioBody}>
-              Jouw content draagt jouw merk, jouw verhaal, jouw karakter. Precies hoe je wilt dat mensen je zien en voelen. Een strategie met als resultaat beeld en video waar je trots op bent, en waarmee je met vertrouwen en energie je merk naar buiten brengt.
-            </p>
-            <blockquote className={styles.studioQuote} data-animation="webgl-text">
               &ldquo;Content is meer dan een mooie foto. Het bepaalt hoe jouw merk ervaren, herinnerd en vertrouwd wordt.&rdquo;
             </blockquote>
             <p className={styles.studioBody}>
-              Concept, fotografie, video, editing. Iedere stap vraagt om aandacht. Kleur, licht, compositie en timing bepalen samen hoe jouw merk online voelt. Alles wordt doordacht en op de juiste manier ingezet, zodat elk beeld een verlengstuk is van wie jij bent.
+              Ik werk met ondernemers die hun verhaal serieus willen nemen. Geen losse posts, maar content die past bij wie je bent en hoe je gezien wilt worden.
             </p>
             <p className={styles.studioBody}>
-              Ieder project krijgt een eigen aanpak, zowel in strategie als in uitvoering. Ik werk vanuit een hecht netwerk aan creatieve partners en kan je adviseren over welke aanpak bij jouw merk past. Jij houdt de regie, ik zorg dat alles op het juiste moment klopt, van eerste idee tot laatste post.
+              Van strategie en concept tot fotografie, video en editing. Iedere stap krijgt aandacht, want kleur, licht, compositie en timing bepalen samen hoe jouw merk online voelt en blijft hangen.
             </p>
-            <IconButton href="/over-mij" className={styles.studioCta}>
-              Het gezicht achter de studio
-            </IconButton>
+            <div className={styles.studioActions}>
+              <IconButton href="/over-mij" className={styles.studioCta}>
+                Ontmoet Vienna
+              </IconButton>
+              <a
+                className={styles.studioDownload}
+                href="/v-creative-brochure.pdf"
+                download
+              >
+                <svg
+                  className={styles.studioDownloadIcon}
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M8 2.5V11.5M8 11.5L4 7.5M8 11.5L12 7.5M2.5 13.5H13.5"
+                    stroke="currentColor"
+                    strokeWidth="1.25"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+                Alle diensten in de brochure
+              </a>
+            </div>
           </div>
         </div>
       </section>
