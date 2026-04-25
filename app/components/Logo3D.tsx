@@ -5,7 +5,7 @@ import type * as THREE from 'three'
 import styles from '@/app/components/Header.module.css'
 
 type Props = {
-  interaction?: 'scroll' | 'mouseTilt' | 'auto'
+  interaction?: 'idle' | 'mouseTilt' | 'auto'
   className?: string
   /* Override the default matcap (pearl tint) — used by the menu
      background logo to render the model in a darker tone against
@@ -14,7 +14,7 @@ type Props = {
 }
 
 const Logo3D = ({
-  interaction = 'scroll',
+  interaction = 'idle',
   className,
   matcap: matcapSrc = '/icons/3D/project-model-matcap.png',
 }: Props) => {
@@ -206,41 +206,31 @@ const Logo3D = ({
       let raf = 0
       let detachInteraction: (() => void) | undefined
 
-      if (interaction === 'scroll') {
-        const { getLenisInstance } = await import('@/app/lib/lenis')
-        let lenis = getLenisInstance()
-        if (!lenis) {
-          for (let i = 0; i < 40; i++) {
-            await new Promise((r) => setTimeout(r, 50))
-            if (cancelled) return
-            lenis = getLenisInstance()
-            if (lenis) break
-          }
-        }
+      /* Hover spin: a single 360° turn on Y, eased in/out, that lands
+         back at the resting orientation. spinStart < 0 means idle;
+         set to performance.now() to kick off a turn. The animate loop
+         layers the spin on top of the tilt lerp so the cursor follow
+         keeps working underneath. */
+      let spinStart = -1
+      const SPIN_DURATION_MS = 1400
+      const easeInOutCubic = (t: number) =>
+        t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2
 
-        const ROTATION_PER_PIXEL = 0.003
-        const updateScrollTarget = () => {
-          const s = lenis ? lenis.animatedScroll : window.scrollY
-          const dh = Math.max(
-            document.documentElement.scrollHeight - window.innerHeight,
-            1,
-          )
-          const progress = Math.min(Math.max(s / dh, 0), 1)
-          const envelope = Math.sin(progress * Math.PI)
-          targetRotY = s * ROTATION_PER_PIXEL * envelope
+      if (interaction === 'idle') {
+        /* Mega-subtle idle wobble — barely perceptible drift on both
+           axes with non-harmonic periods so the motion never repeats
+           visibly. Amplitudes (~1.4° / ~0.9°) are tuned so the navbar
+           logo looks "alive" without ever pulling the eye. */
+        const start = performance.now()
+        let idleRaf = 0
+        const idle = () => {
+          const t = (performance.now() - start) / 1000
+          targetRotY = Math.sin(t * 0.35) * 0.025
+          targetRotX = Math.sin(t * 0.25 + 1.0) * 0.015
+          idleRaf = requestAnimationFrame(idle)
         }
-        updateScrollTarget()
-        model.rotation.y = targetRotY
-
-        const onScroll = () => updateScrollTarget()
-        if (lenis) {
-          lenis.on('scroll', onScroll)
-          detachInteraction = () => lenis!.off('scroll', onScroll)
-        } else {
-          window.addEventListener('scroll', onScroll, { passive: true })
-          detachInteraction = () =>
-            window.removeEventListener('scroll', onScroll)
-        }
+        idle()
+        detachInteraction = () => cancelAnimationFrame(idleRaf)
       } else if (interaction === 'auto') {
         /* Dual-axis rotation with non-harmonic frequencies so the motion
            never repeats identically — reads like a coin tumbling in
@@ -272,10 +262,13 @@ const Logo3D = ({
         wobble()
         detachInteraction = () => cancelAnimationFrame(wobbleRaf)
       } else {
-        // mouseTilt: bind to nearest <footer>, fall back to window
+        /* mouseTilt: subtle viewport-wide cursor follow. The whole
+           window is the tilt zone so the logo reacts no matter where
+           the cursor is — small TILT keeps it very gentle, just enough
+           to roll the matcap highlights and read as "alive metal". */
         const tiltZone =
           (container.closest('footer') as HTMLElement | null) ?? null
-        const TILT = 0.22
+        const TILT = tiltZone ? 0.22 : 0.08
         const onMove = (e: MouseEvent) => {
           const rect = (tiltZone ?? document.documentElement).getBoundingClientRect()
           const cx = rect.left + rect.width / 2
@@ -292,15 +285,51 @@ const Logo3D = ({
         const zone = tiltZone ?? window
         zone.addEventListener('mousemove', onMove as EventListener)
         zone.addEventListener('mouseleave', onLeave as EventListener)
+
+        /* Hover-triggered 360° spin. Ignored if a turn is already in
+           flight so rapid re-enters don't queue up or stutter. */
+        const onHoverEnter = () => {
+          if (spinStart < 0) spinStart = performance.now()
+        }
+        container.addEventListener('pointerenter', onHoverEnter)
+
         detachInteraction = () => {
           zone.removeEventListener('mousemove', onMove as EventListener)
           zone.removeEventListener('mouseleave', onLeave as EventListener)
+          container.removeEventListener('pointerenter', onHoverEnter)
         }
       }
 
+      /* Tilt is lerped in its own state so the hover spin can be added
+         on top without polluting the tilt's accumulator. After the spin
+         completes (lands at 2π = same orientation), we reset spinStart
+         and the next frame falls back to the bare tilt — no jump. */
+      let tiltY = 0
+      let tiltX = 0
+      /* Tiny scale dip during the spin: sin(πt) eases out → in around
+         the midpoint, so the logo gently pulls back and returns to its
+         original size as the turn lands. SCALE_DIP is the peak shrink
+         (4% — visible only as a hint of depth). */
+      const SCALE_DIP = 0.04
       const animate = () => {
-        model.rotation.y += (targetRotY - model.rotation.y) * 0.12
-        model.rotation.x += (targetRotX - model.rotation.x) * 0.12
+        tiltY += (targetRotY - tiltY) * 0.12
+        tiltX += (targetRotX - tiltX) * 0.12
+
+        let spin = 0
+        let scaleMul = 1
+        if (spinStart >= 0) {
+          const t = Math.min(
+            (performance.now() - spinStart) / SPIN_DURATION_MS,
+            1,
+          )
+          spin = easeInOutCubic(t) * Math.PI * 2
+          scaleMul = 1 - Math.sin(t * Math.PI) * SCALE_DIP
+          if (t >= 1) spinStart = -1
+        }
+
+        model.rotation.y = tiltY + spin
+        model.rotation.x = tiltX
+        model.scale.setScalar(fit * scaleMul)
         renderer.render(scene, camera)
         raf = requestAnimationFrame(animate)
       }

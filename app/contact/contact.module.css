@@ -19,7 +19,7 @@
 .label {
   font-family: var(--font-secondary);
   font-size: var(--text-xs);
-  font-weight: 400;
+  font-weight: var(--weight-regular);
   letter-spacing: var(--tracking-wide);
   text-transform: uppercase;
   display: inline-flex;
@@ -48,7 +48,7 @@
 .title em {
   font-family: var(--font-script);
   font-style: normal;
-  font-weight: 700;
+  font-weight: var(--weight-bold);
 }
 
 .subtitle {

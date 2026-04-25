@@ -9,8 +9,8 @@ const NotFound = () => (
         <em>D</em>eze pagina is er niet
       </h1>
       <p className={styles.subtitle}>
-        Misschien is hij verhuisd, weggehaald, of nooit bestaan. Geen zorgen
-        — terug naar de basis.
+        Misschien is hij verhuisd, weggehaald, of nooit bestaan. Geen zorgen,
+        we gaan terug naar de basis.
       </p>
       <IconButton href="/" ariaLabel="Terug naar de homepage">
         Terug naar home

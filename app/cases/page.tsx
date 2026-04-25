@@ -6,7 +6,7 @@ import styles from '@/app/cases/cases-index.module.css'
 export const metadata: Metadata = {
   title: 'Cases',
   description:
-    'Werk dat ik trots op deelt — een selectie van merken die ik mocht helpen met content en social media.',
+    'Werk dat ik trots op deelt. Een selectie van merken die ik mocht helpen met content en social media.',
 }
 
 /* Mirrors the home's "Creative projecten" block: one full-bleed card,
@@ -31,7 +31,7 @@ const CasesIndex = () => (
           op deelt
         </h1>
         <p className={styles.subtitle}>
-          Een selectie van merken die ik mocht helpen — van strategie tot
+          Een selectie van merken die ik mocht helpen, van strategie tot
           wekelijkse contentstroom. Elke case laat zien hoe een eigen ritme
           het verschil maakt.
         </p>

@@ -116,7 +116,7 @@ export const CASES: Record<CaseSlug, CaseData> = {
           rest: 'en studio met een\nduidelijk handschrift.',
         },
         body: [
-          "Falcon Ink is geen standaard tattooshop — het is een plek waar klanten komen voor werk dat ergens over gaat. Op social was dat gevoel nog niet terug te zien: losse foto's van tattoos zonder context, zonder sfeer, zonder verhaal.",
+          "Falcon Ink is geen standaard tattooshop. Het is een plek waar klanten komen voor werk dat ergens over gaat. Op social was dat gevoel nog niet terug te zien: losse foto's van tattoos zonder context, zonder sfeer, zonder verhaal.",
           'We begonnen met een middag in de studio, gewoon om te praten over wat Falcon Ink bijzonder maakt. Niet de tattoos zelf, maar de aanloop ernaartoe: de gesprekken, de rituelen, de rust vlak voor de naald.',
         ],
         imageSeed: 'falcon-ink-01',
@@ -128,7 +128,7 @@ export const CASES: Record<CaseSlug, CaseData> = {
           rest: 'én dag in de studio,\nalle zintuigen open.',
         },
         body: [
-          "Geen geposeerde shots. We filmden en fotografeerden een volledige werkdag — van de eerste koffie tot het laatste afscheid. Close-ups van inkt, handen, gezichten die veranderen tijdens een sessie. Geluid, ruwheid, focus.",
+          "Geen geposeerde shots. We filmden en fotografeerden een volledige werkdag, van de eerste koffie tot het laatste afscheid. Close-ups van inkt, handen, gezichten die veranderen tijdens een sessie. Geluid, ruwheid, focus.",
           'Alles in één sfeer, één kleurruimte, één toon. Zodat elke post herkenbaar Falcon Ink is, ook als er niet direct een tattoo in beeld komt.',
         ],
         imageSeed: 'falcon-ink-02',
@@ -141,7 +141,7 @@ export const CASES: Record<CaseSlug, CaseData> = {
         },
         body: [
           'De eerste reel haalde in een week meer views dan alle posts van het halfjaar daarvoor samen. Belangrijker: nieuwe klanten noemden uit zichzelf "de sfeer van de video\'s" als reden dat ze voor Falcon Ink kozen.',
-          'Het handschrift van de studio kwam eindelijk ook online binnen — en bleef daar consistent.',
+          'Het handschrift van de studio kwam eindelijk ook online binnen, en bleef daar consistent.',
         ],
         imageSeed: 'falcon-ink-03',
       },
@@ -149,7 +149,7 @@ export const CASES: Record<CaseSlug, CaseData> = {
     quote: {
       logoText: 'falcon+ink',
       text:
-        'Één contentdag met Viënna leverde meer op dan maandenlang losse posts. De sfeer, de ruwheid, de energie — alles klopt met wie we zijn als studio.',
+        'Één contentdag met Viënna leverde meer op dan maandenlang losse posts. De sfeer, de ruwheid, de energie: alles klopt met wie we zijn als studio.',
       author: 'Mark Jansen',
       role: 'Founder Falcon Ink',
     },
@@ -175,7 +175,7 @@ export const CASES: Record<CaseSlug, CaseData> = {
           rest: 'en merk met kracht,\nmaar zonder ritme.',
         },
         body: [
-          'Hal XIII had de basis goed staan: sterke merkwaarden, loyale volgers, duidelijke richting. Wat ontbrak was regie — posts verschenen onregelmatig, zonder lijn, en de energie die in het merk zit kwam niet mee.',
+          'Hal XIII had de basis goed staan: sterke merkwaarden, loyale volgers, duidelijke richting. Wat ontbrak was regie. Posts verschenen onregelmatig, zonder lijn, en de energie die in het merk zit kwam niet mee.',
           'We spraken uitgebreid met het team over waar ze over een jaar willen staan, en vooral: wie ze onderweg willen raken.',
         ],
         imageSeed: 'hal-xiii-01',
@@ -188,7 +188,7 @@ export const CASES: Record<CaseSlug, CaseData> = {
         },
         body: [
           'We zetten een contentkalender op met vaste momenten: één grote shoot per maand, twee contentdagen op locatie en reactieve content rondom lanceringen en events.',
-          'Elke maand verschuift het accent — portretten, productdetails, klantverhalen. Het merk houdt dezelfde toon, maar voelt nooit statisch.',
+          'Elke maand verschuift het accent: portretten, productdetails, klantverhalen. Het merk houdt dezelfde toon, maar voelt nooit statisch.',
         ],
         imageSeed: 'hal-xiii-02',
       },
@@ -199,7 +199,7 @@ export const CASES: Record<CaseSlug, CaseData> = {
           rest: 'ichtbaar, herkenbaar\nen in beweging.',
         },
         body: [
-          'Na zes maanden een groeiend publiek op alle kanalen, en — belangrijker — een community-respons die veel verder gaat dan likes. Berichten, samenwerkingen, nieuwe klanten die zich aangesproken voelen door het totaalbeeld.',
+          'Na zes maanden een groeiend publiek op alle kanalen, en belangrijker nog: een community-respons die veel verder gaat dan likes. Berichten, samenwerkingen, nieuwe klanten die zich aangesproken voelen door het totaalbeeld.',
           'Hal XIII is online net zo aanwezig geworden als in de fysieke ruimte.',
         ],
         imageSeed: 'hal-xiii-03',
@@ -234,7 +234,7 @@ export const CASES: Record<CaseSlug, CaseData> = {
           rest: 'en salon die klaar was\nvoor beeld dat klopt.',
         },
         body: [
-          'Beautysalon Glow had geen vast contentplan nodig — het team post graag zelf. Wat ze nodig hadden was een voorraad sterk beeld zodat ze maanden vooruit zelfstandig content kunnen samenstellen, zonder steeds opnieuw te hoeven schieten.',
+          'Beautysalon Glow had geen vast contentplan nodig: het team post graag zelf. Wat ze nodig hadden was een voorraad sterk beeld zodat ze maanden vooruit zelfstandig content kunnen samenstellen, zonder steeds opnieuw te hoeven schieten.',
           'We begonnen met een uitgebreide briefing en een moodboard op maat: welke sfeer, welke kleurwereld, welke behandelingen centraal.',
         ],
         imageSeed: 'beautysalon-glow-01',
@@ -247,7 +247,7 @@ export const CASES: Record<CaseSlug, CaseData> = {
         },
         body: [
           "Van zeven uur 's ochtends tot zes uur 's avonds. Elk moment was vooraf besproken: welke behandelingen, welke hoeken, welke sfeerbeelden, welke portretten van het team.",
-          'Daardoor konden we op de dag zelf volledig vrij werken — geen logistiek, alleen maken. Licht, styling, details. Een heel jaar aan beeld in elf uur tijd.',
+          'Daardoor konden we op de dag zelf volledig vrij werken. Geen logistiek, alleen maken. Licht, styling, details. Een heel jaar aan beeld in elf uur tijd.',
         ],
         imageSeed: 'beautysalon-glow-02',
       },

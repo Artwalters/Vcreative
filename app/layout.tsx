@@ -10,7 +10,7 @@ import DynamicCursor from "@/app/components/DynamicCursor"
 
 export const metadata: Metadata = {
   title: {
-    default: "V-Creative — Social media partner voor merken met karakter",
+    default: "V-Creative · Social media partner voor merken met karakter",
     template: "%s · V-Creative",
   },
   description:
@@ -26,7 +26,7 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: "Vienna Wachelder" }],
   openGraph: {
-    title: "V-Creative — Social media partner voor merken met karakter",
+    title: "V-Creative · Social media partner voor merken met karakter",
     description:
       "Strategie, fotografie en maandelijks contentbeheer voor merken die hun verhaal serieus nemen.",
     locale: "nl_NL",

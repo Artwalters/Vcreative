@@ -59,7 +59,7 @@ const CasePage = ({ slug }: { slug: CaseSlug }) => {
         <div className={styles.parallaxTarget} data-parallax="target">
           <img
             src={`https://picsum.photos/seed/${data.heroImageSeed}/1920/823`}
-            alt={`${data.name} — hero`}
+            alt={`${data.name} hero`}
             className={styles.heroImage}
           />
         </div>
@@ -86,7 +86,7 @@ const CasePage = ({ slug }: { slug: CaseSlug }) => {
                 data-webgl-media
                 data-webgl-effect="bend"
                 src={`https://picsum.photos/seed/${data.sections[0].imageSeed}/900/1125`}
-                alt={`${data.name} — ${data.sections[0].label}`}
+                alt={`${data.name}, ${data.sections[0].label}`}
                 className={styles.sectionImage}
                 loading="lazy"
               />
@@ -102,7 +102,7 @@ const CasePage = ({ slug }: { slug: CaseSlug }) => {
                 data-webgl-media
                 data-webgl-effect="bend"
                 src={`https://picsum.photos/seed/${data.sections[1].imageSeed}/1200/900`}
-                alt={`${data.name} — ${data.sections[1].label}`}
+                alt={`${data.name}, ${data.sections[1].label}`}
                 className={styles.sectionImage}
                 loading="lazy"
               />
@@ -130,7 +130,7 @@ const CasePage = ({ slug }: { slug: CaseSlug }) => {
                 data-webgl-media
                 data-webgl-effect="bend"
                 src={`https://picsum.photos/seed/${data.sections[2].imageSeed}/1920/840`}
-                alt={`${data.name} — ${data.sections[2].label}`}
+                alt={`${data.name}, ${data.sections[2].label}`}
                 className={styles.sectionImage}
                 loading="lazy"
               />
@@ -179,7 +179,7 @@ const CasePage = ({ slug }: { slug: CaseSlug }) => {
         <div className={styles.parallaxTarget} data-parallax="target">
           <img
             src={`https://picsum.photos/seed/${data.fullBleedSeed}/1920/1080`}
-            alt={`${data.name} — full bleed`}
+            alt={`${data.name} full bleed`}
             className={styles.fullBleedImage}
             loading="lazy"
           />

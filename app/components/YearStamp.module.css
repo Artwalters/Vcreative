@@ -6,7 +6,7 @@
   pointer-events: none;
   font-family: var(--font-secondary);
   font-size: var(--text-xs);
-  font-weight: 400;
+  font-weight: var(--weight-regular);
   color: var(--color-navy);
   letter-spacing: var(--tracking-wide);
   text-transform: uppercase;

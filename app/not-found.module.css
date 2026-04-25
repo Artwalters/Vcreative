@@ -38,7 +38,7 @@
 .title em {
   font-family: var(--font-script);
   font-style: normal;
-  font-weight: 700;
+  font-weight: var(--weight-bold);
 }
 
 .subtitle {

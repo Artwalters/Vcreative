@@ -1,28 +1,19 @@
-/* ------------------------- Fonts -------------------------  */
-
-@font-face {
-  font-family: 'HW Cigars';
-  src: url('/fonts/HW Cigars Trial/HW Cigars Trial Light.woff2') format('woff2'),
-       url('/fonts/HW Cigars Trial/HW Cigars Trial Light.woff') format('woff');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
+/* ------------------------- Fonts -------------------------
+   Only the weights we actually use are loaded:
+   - HW Cigars: 400 (Regular) for body/display serif, 700 (Bold) as
+     fallback for the script `nautica` layer. Italics are synthesised
+     by the browser from the upright cuts (we never shipped italic
+     files for HW Cigars anyway).
+   - PP Mori: 400 + 500 via the Regular file, which covers that range.
+     Other PP Mori weights (Extralight/Semibold/Black/Italic) were
+     declared but never requested by any rule, so their files don't
+     ship. */
 
 @font-face {
   font-family: 'HW Cigars';
   src: url('/fonts/HW Cigars Trial/HW Cigars Trial Regular.woff2') format('woff2'),
        url('/fonts/HW Cigars Trial/HW Cigars Trial Regular.woff') format('woff');
   font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'HW Cigars';
-  src: url('/fonts/HW Cigars Trial/HW Cigars Trial Medium.woff2') format('woff2'),
-       url('/fonts/HW Cigars Trial/HW Cigars Trial Medium.woff') format('woff');
-  font-weight: 500;
   font-style: normal;
   font-display: swap;
 }
@@ -36,70 +27,11 @@
   font-display: swap;
 }
 
-/* PP Mori — replaces Helvetica as the secondary sans.
-   Each real file is mapped to a range so weight 300/500/700 resolve too. */
-
-@font-face {
-  font-family: 'PP Mori';
-  src: url('/fonts/PP_Mori/otf/PPMori-Extralight.otf') format('opentype');
-  font-weight: 200 300;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'PP Mori';
-  src: url('/fonts/PP_Mori/otf/PPMori-ExtralightItalic.otf') format('opentype');
-  font-weight: 200 300;
-  font-style: italic;
-  font-display: swap;
-}
-
 @font-face {
   font-family: 'PP Mori';
   src: url('/fonts/PP_Mori/otf/PPMori-Regular.otf') format('opentype');
   font-weight: 400 500;
   font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'PP Mori';
-  src: url('/fonts/PP_Mori/otf/PPMori-Italic.otf') format('opentype');
-  font-weight: 400 500;
-  font-style: italic;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'PP Mori';
-  src: url('/fonts/PP_Mori/otf/PPMori-Semibold.otf') format('opentype');
-  font-weight: 600 700;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'PP Mori';
-  src: url('/fonts/PP_Mori/otf/PPMori-SemiboldItalic.otf') format('opentype');
-  font-weight: 600 700;
-  font-style: italic;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'PP Mori';
-  src: url('/fonts/PP_Mori/otf/PPMori-Black.otf') format('opentype');
-  font-weight: 800 900;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'PP Mori';
-  src: url('/fonts/PP_Mori/otf/PPMori-BlackItalic.otf') format('opentype');
-  font-weight: 800 900;
-  font-style: italic;
   font-display: swap;
 }
 
@@ -137,15 +69,14 @@
 
   --weight-regular: 400;
   --weight-medium: 500;
+  --weight-bold: 700;
 
   --tracking-tight: 0.01em;
   --tracking-normal: 0.05em;
   --tracking-wide: 0.08em;
-  --tracking-wider: 0.1em;
   --tracking-widest: 0.12em;
 
   --leading-snug: 1.3;
-  --leading-normal: 1.4;
   --leading-relaxed: 1.6;
   --leading-loose: 1.7;
 

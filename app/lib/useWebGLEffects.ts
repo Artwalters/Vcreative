@@ -1146,10 +1146,10 @@ export function useGlobalParallax() {
             const scrub = scrubAttr ? parseFloat(scrubAttr) : true
 
             const startAttr = trigger.getAttribute('data-parallax-start')
-            const startVal = startAttr !== null ? parseFloat(startAttr) : 15
+            const startVal = startAttr !== null ? parseFloat(startAttr) : 3
 
             const endAttr = trigger.getAttribute('data-parallax-end')
-            const endVal = endAttr !== null ? parseFloat(endAttr) : -15
+            const endVal = endAttr !== null ? parseFloat(endAttr) : -3
 
             const scrollStartRaw =
               trigger.getAttribute('data-parallax-scroll-start') || 'top bottom'

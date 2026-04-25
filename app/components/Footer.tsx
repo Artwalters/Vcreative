@@ -77,7 +77,7 @@ const Footer = () => {
         <div className={styles.newsletter}>
           <p className={styles.colHead}>Nieuwsbrief</p>
           <p className={styles.newsletterBody}>
-            Af en toe een korte update uit de studio — nieuwe cases, werk in
+            Af en toe een korte update uit de studio. Nieuwe cases, werk in
             uitvoering, gedachten over content.
           </p>
           <form className={styles.subscribe} onSubmit={onSubmit}>

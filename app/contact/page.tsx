@@ -12,7 +12,7 @@ const Contact = () => {
   const [message, setMessage] = useState('')
 
   const submit = () => {
-    const body = `${message}\n\n— ${name}\n${email}`
+    const body = `${message}\n\nGroet,\n${name}\n${email}`
     const subject = `Nieuw bericht van ${name || 'website'}`
     window.location.href = `mailto:hallo@v-creative.nl?subject=${encodeURIComponent(
       subject,
@@ -37,7 +37,7 @@ const Contact = () => {
           jij mee bezig bent
         </h1>
         <p className={styles.subtitle}>
-          Een idee, een lopend project of zin om eens te sparren — laat een
+          Een idee, een lopend project of zin om eens te sparren? Laat een
           bericht achter en je hoort binnen één werkdag van mij terug.
         </p>
       </header>

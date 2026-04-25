@@ -7,7 +7,7 @@ import styles from '@/app/over-mij/over-mij.module.css'
 export const metadata: Metadata = {
   title: 'Over mij',
   description:
-    'Vienna Wachelder — verhalen vertalen naar beeld dat blijft. Vanuit Heerlen, voor ondernemers door heel Nederland.',
+    'Vienna Wachelder. Verhalen vertalen naar beeld dat blijft. Vanuit Heerlen, voor ondernemers door heel Nederland.',
 }
 
 const HERO_TAGS = ['Sinds 2019', 'Vanuit Heerlen', 'Voor heel Nederland']
@@ -114,7 +114,7 @@ const OverMij = () => (
               hebben.
             </p>
             <p className={styles.sectionBody}>
-              Vanuit Heerlen werk ik met ondernemers door heel Nederland — van
+              Vanuit Heerlen werk ik met ondernemers door heel Nederland, van
               beauty tot horeca tot tattoo studio&rsquo;s. Wat ze gemeen
               hebben: ze willen hun verhaal serieus nemen, niet alleen vaker
               posten.
@@ -159,7 +159,7 @@ const OverMij = () => (
               tot maandelijks ritme
             </h2>
             <p className={styles.sectionBody}>
-              Ik neem het hele creatieve traject over — van fotografie en video
+              Ik neem het hele creatieve traject over, van fotografie en video
               tot editing, captions, planning en analyse. Op locatie als het
               kan, in de studio als het moet.
             </p>
