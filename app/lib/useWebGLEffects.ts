@@ -728,20 +728,30 @@ export function useWebGLEffects() {
       images.forEach((img) => {
         const {effect} = img
 
-        tweens.push(gsap.fromTo(
-          img.material.uniforms.u_innerY,
-          {value: -0.1},
-          {
-            value: 0.1,
-            ease: 'none',
-            scrollTrigger: {
-              trigger: img.element,
-              scrub: true,
-              start: 'top bottom',
-              end: 'bottom top',
+        /* Shader-internal parallax — pin u_innerY to neutral when the
+           wrapper opts out, otherwise drift it from -0.1 → 0.1 on scroll. */
+        const parallaxDisabled =
+          img.element instanceof HTMLElement &&
+          img.element.hasAttribute('data-parallax-disabled')
+
+        if (parallaxDisabled) {
+          img.material.uniforms.u_innerY.value = 0
+        } else {
+          tweens.push(gsap.fromTo(
+            img.material.uniforms.u_innerY,
+            {value: -0.1},
+            {
+              value: 0.1,
+              ease: 'none',
+              scrollTrigger: {
+                trigger: img.element,
+                scrub: true,
+                start: 'top bottom',
+                end: 'bottom top',
+              },
             },
-          },
-        ))
+          ))
+        }
 
         if (effect === 'bend' || effect === 'distort') {
           tweens.push(gsap.to(img.material.uniforms.u_progress, {
@@ -1134,6 +1144,12 @@ export function useGlobalParallax() {
         document
           .querySelectorAll<HTMLElement>('[data-parallax="trigger"]')
           .forEach((trigger) => {
+            /* Opt-out: keep [data-parallax="trigger"] on the wrapper so the
+               WebGL mask still uses it for bounds, but skip the scroll
+               animation. Used on smaller in-flow images where the parallax
+               drift looks busy next to text. */
+            if (trigger.hasAttribute('data-parallax-disabled')) return
+
             const target =
               trigger.querySelector<HTMLElement>('[data-parallax="target"]') ||
               trigger

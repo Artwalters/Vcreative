@@ -58,7 +58,7 @@ const CasePage = ({ slug }: { slug: CaseSlug }) => {
       <figure className={styles.heroFigure} data-parallax="trigger">
         <div className={styles.parallaxTarget} data-parallax="target">
           <img
-            src={`https://picsum.photos/seed/${data.heroImageSeed}/1920/823`}
+            src={data.heroImage}
             alt={`${data.name} hero`}
             className={styles.heroImage}
           />
@@ -80,12 +80,16 @@ const CasePage = ({ slug }: { slug: CaseSlug }) => {
               <p key={i} className={styles.sectionBody}>{p}</p>
             ))}
           </div>
-          <figure className={styles.sectionFigure} data-parallax="trigger">
+          <figure
+            className={styles.sectionFigure}
+            data-parallax="trigger"
+            data-parallax-disabled
+          >
             <div className={styles.parallaxTarget} data-parallax="target">
               <img
                 data-webgl-media
                 data-webgl-effect="bend"
-                src={`https://picsum.photos/seed/${data.sections[0].imageSeed}/900/1125`}
+                src={data.sections[0].image}
                 alt={`${data.name}, ${data.sections[0].label}`}
                 className={styles.sectionImage}
                 loading="lazy"
@@ -96,12 +100,16 @@ const CasePage = ({ slug }: { slug: CaseSlug }) => {
 
         {/* Section 02 — landscape image left, text right */}
         <section className={`${styles.section} ${styles.sectionB}`}>
-          <figure className={styles.sectionFigure} data-parallax="trigger">
+          <figure
+            className={styles.sectionFigure}
+            data-parallax="trigger"
+            data-parallax-disabled
+          >
             <div className={styles.parallaxTarget} data-parallax="target">
               <img
                 data-webgl-media
                 data-webgl-effect="bend"
-                src={`https://picsum.photos/seed/${data.sections[1].imageSeed}/1200/900`}
+                src={data.sections[1].image}
                 alt={`${data.name}, ${data.sections[1].label}`}
                 className={styles.sectionImage}
                 loading="lazy"
@@ -124,12 +132,16 @@ const CasePage = ({ slug }: { slug: CaseSlug }) => {
 
         {/* Section 03 — full-width image + 2-col caption below */}
         <section className={`${styles.section} ${styles.sectionC}`}>
-          <figure className={styles.sectionFigure} data-parallax="trigger">
+          <figure
+            className={styles.sectionFigure}
+            data-parallax="trigger"
+            data-parallax-disabled
+          >
             <div className={styles.parallaxTarget} data-parallax="target">
               <img
                 data-webgl-media
                 data-webgl-effect="bend"
-                src={`https://picsum.photos/seed/${data.sections[2].imageSeed}/1920/840`}
+                src={data.sections[2].image}
                 alt={`${data.name}, ${data.sections[2].label}`}
                 className={styles.sectionImage}
                 loading="lazy"
@@ -155,10 +167,46 @@ const CasePage = ({ slug }: { slug: CaseSlug }) => {
         </section>
       </div>
 
+      {data.socialItems && data.socialItems.length > 0 && (
+        <section className={styles.socialSection}>
+          <p className={styles.socialLabel}>
+            <span className={styles.socialLabelDot} aria-hidden="true" />
+            Op de socials
+          </p>
+          <div className={styles.socialGrid}>
+            {data.socialItems.map((item, i) =>
+              item.type === 'video' ? (
+                <figure key={i} className={styles.socialItem}>
+                  <video
+                    src={item.src}
+                    poster={item.poster}
+                    className={styles.socialMedia}
+                    autoPlay
+                    muted
+                    loop
+                    playsInline
+                    preload="metadata"
+                  />
+                </figure>
+              ) : (
+                <figure key={i} className={styles.socialItem}>
+                  <img
+                    src={item.src}
+                    alt={item.alt ?? ''}
+                    className={styles.socialMedia}
+                    loading="lazy"
+                  />
+                </figure>
+              ),
+            )}
+          </div>
+        </section>
+      )}
+
       <section className={styles.quoteSection}>
         <div className={styles.quoteCard}>
           <img
-            src={`https://placehold.co/240x80/faf8f2/332f29/png?text=${data.quote.logoText}&font=playfair`}
+            src={data.quote.logo}
             alt=""
             aria-hidden="true"
             className={styles.quoteLogo}
@@ -178,7 +226,7 @@ const CasePage = ({ slug }: { slug: CaseSlug }) => {
       <figure className={styles.fullBleed} data-parallax="trigger">
         <div className={styles.parallaxTarget} data-parallax="target">
           <img
-            src={`https://picsum.photos/seed/${data.fullBleedSeed}/1920/1080`}
+            src={data.fullBleedImage}
             alt={`${data.name} full bleed`}
             className={styles.fullBleedImage}
             loading="lazy"
@@ -202,12 +250,13 @@ const CasePage = ({ slug }: { slug: CaseSlug }) => {
           <figure
             className={styles.nextCaseFigure}
             data-parallax="trigger"
+            data-parallax-disabled
             data-cursor-hover
             data-cursor-text="Volgende case"
           >
             <div className={styles.parallaxTarget} data-parallax="target">
               <img
-                src={`https://picsum.photos/seed/${next.heroImageSeed}/1600/900`}
+                src={next.heroImage}
                 alt={next.name}
                 className={styles.nextCaseImage}
                 loading="lazy"

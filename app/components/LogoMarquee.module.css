@@ -1,5 +1,4 @@
 .section {
-  background: var(--color-cream);
   padding: 1em 0;
   overflow: hidden;
 }
@@ -33,6 +32,7 @@
   color: var(--color-navy);
 }
 
+.item img,
 .item svg {
   display: block;
   height: 2.25em;
@@ -42,6 +42,14 @@
   transition: opacity var(--duration-fast);
 }
 
+/* Logo's worden als zwart silhouet getoond.
+   Most logos are white-on-transparent PNGs, so brightness(0) flattens
+   every non-transparent pixel to black while keeping the alpha channel. */
+.item img {
+  filter: brightness(0);
+}
+
+.item:hover img,
 .item:hover svg {
   opacity: 1;
 }
@@ -55,6 +63,7 @@
     padding: 0 1.75em;
   }
 
+  .item img,
   .item svg {
     height: 1.75em;
   }

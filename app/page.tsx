@@ -10,26 +10,27 @@ import EmbossedLogo from '@/app/components/EmbossedLogo'
 
 const REVIEWS = [
   {
-    logo: 'https://placehold.co/240x80/faf8f2/332f29/png?text=hair+by+kim&font=playfair',
+    logo: '/logos/hair-by-kim.png',
     quote:
       'Wat Viënna voor ons heeft neergezet is zoveel meer dan foto\u2019s en reels. Ze heeft ons merk echt op de kaart gezet. Onze salon voelt nu ook online als onze salon.',
     author: 'Kim van Dijk',
     role: 'Eigenaar Hair by Kim',
     caseHref: '/cases/hair-by-kim',
   },
+  /* TODO copy klant — quote, auteur en rol voor FGS aanvullen */
   {
-    logo: 'https://placehold.co/240x80/faf8f2/332f29/png?text=falcon+ink&font=playfair',
+    logo: '/logos/fgs.png',
     quote:
-      'Één contentdag met Viënna leverde meer op dan maandenlang losse posts. De sfeer, de ruwheid, de energie, alles klopt met wie we zijn als studio.',
-    author: 'Mark Jansen',
-    role: 'Founder Falcon Ink',
-    caseHref: '/cases/falcon-ink',
+      'TODO copy klant — quote van FGS over de samenwerking met Viënna.',
+    author: 'TODO naam',
+    role: 'TODO rol bij FGS',
+    caseHref: '/cases/fgs',
   },
   {
-    logo: 'https://placehold.co/240x80/faf8f2/332f29/png?text=hal+xiii&font=playfair',
+    logo: '/logos/hal-xiii.png',
     quote:
       'Viënna begrijpt wat een merk nodig heeft om écht zichtbaar te worden. Geen standaard content, maar beeld dat kracht uitstraalt en ons publiek raakt.',
-    author: 'Daan Vermeer',
+    author: 'Rim Pinckers',
     role: 'Owner Hal XIII',
     caseHref: '/cases/hal-xiii',
   },
@@ -241,7 +242,7 @@ const TextDemo = () => {
       <figure className={styles.heroFigure} data-parallax="trigger">
         <div className={styles.parallaxTarget} data-parallax="target">
           <img
-            src="https://picsum.photos/seed/vienna-hero/1920/823"
+            src="/images/vienna-photographer-portrait.webp"
             alt="V-Creative hero"
             className={styles.heroImage}
           />
@@ -276,12 +277,16 @@ const TextDemo = () => {
               data-cursor-text="Bekijk case"
               aria-label="Bekijk case Hair by Kim"
             >
-              <figure className={styles.projectFigure} data-parallax="trigger">
+              <figure
+                className={styles.projectFigure}
+                data-parallax="trigger"
+                data-parallax-disabled
+              >
                 <div className={styles.parallaxTarget} data-parallax="target">
                   <img
                     data-webgl-media
                     data-webgl-effect="bend"
-                    src="https://picsum.photos/seed/hair-by-kim/1400/700"
+                    src="/cases/hair-by-kim/hero.jpg"
                     alt="Hair by Kim"
                     className={styles.projectImage}
                     loading="lazy"
@@ -301,19 +306,23 @@ const TextDemo = () => {
           <div className={styles.projectenRow}>
             <article className={`${styles.projectItem} ${styles.projectSmall}`}>
               <a
-                href="/cases/falcon-ink"
+                href="/cases/fgs"
                 className={styles.projectMediaLink}
                 data-cursor-hover
                 data-cursor-text="Bekijk case"
-                aria-label="Bekijk case Falcon Ink"
+                aria-label="Bekijk case FGS"
               >
-                <figure className={styles.projectFigure} data-parallax="trigger">
+                <figure
+                  className={styles.projectFigure}
+                  data-parallax="trigger"
+                  data-parallax-disabled
+                >
                   <div className={styles.parallaxTarget} data-parallax="target">
                     <img
                       data-webgl-media
                       data-webgl-effect="bend"
-                      src="https://picsum.photos/seed/falcon-ink/800/600"
-                      alt="Falcon Ink"
+                      src="/cases/fgs/hero.jpg"
+                      alt="FGS"
                       className={styles.projectImage}
                       loading="lazy"
                     />
@@ -321,11 +330,12 @@ const TextDemo = () => {
                 </figure>
               </a>
               <div className={styles.projectContent}>
-                <h3 className={styles.projectTitle}>Falcon Ink</h3>
+                <h3 className={styles.projectTitle}>FGS</h3>
                 <p className={styles.projectDescription}>
-                  Content creatie voor Falcon Ink. Van concept tot publicatie, altijd in de juiste sfeer.
+                  {/* TODO copy klant — korte beschrijving van de FGS case */}
+                  Content creatie voor FGS. Industrieel vakmanschap met 125 jaar geschiedenis vertaald naar beeld en video.
                 </p>
-                <a href="/cases/falcon-ink" className={styles.projectLink}>Bekijk case</a>
+                <a href="/cases/fgs" className={styles.projectLink}>Bekijk case</a>
               </div>
             </article>
 
@@ -337,12 +347,16 @@ const TextDemo = () => {
                 data-cursor-text="Bekijk case"
                 aria-label="Bekijk case Hal XIII"
               >
-                <figure className={styles.projectFigure} data-parallax="trigger">
+                <figure
+                  className={styles.projectFigure}
+                  data-parallax="trigger"
+                  data-parallax-disabled
+                >
                   <div className={styles.parallaxTarget} data-parallax="target">
                     <img
                       data-webgl-media
                       data-webgl-effect="bend"
-                      src="https://picsum.photos/seed/hal-xiii/1280/800"
+                      src="/cases/hal-xiii/hero.jpg"
                       alt="Hal XIII"
                       className={styles.projectImage}
                       loading="lazy"
@@ -362,19 +376,23 @@ const TextDemo = () => {
 
           <article className={`${styles.projectItem} ${styles.projectFull}`}>
             <a
-              href="/cases/beautysalon-glow"
+              href="/cases/vloerverwarming-limburg"
               className={styles.projectMediaLink}
               data-cursor-hover
               data-cursor-text="Bekijk case"
-              aria-label="Bekijk case Beautysalon Glow"
+              aria-label="Bekijk case Vloerverwarming Limburg"
             >
-              <figure className={styles.projectFigure} data-parallax="trigger">
+              <figure
+                className={styles.projectFigure}
+                data-parallax="trigger"
+                data-parallax-disabled
+              >
                 <div className={styles.parallaxTarget} data-parallax="target">
                   <img
                     data-webgl-media
                     data-webgl-effect="bend"
-                    src="https://picsum.photos/seed/beautysalon-glow/1400/700"
-                    alt="Beautysalon Glow"
+                    src="/cases/vloerverwarming-limburg/hero.png"
+                    alt="Vloerverwarming Limburg"
                     className={styles.projectImage}
                     loading="lazy"
                   />
@@ -382,11 +400,12 @@ const TextDemo = () => {
               </figure>
             </a>
             <div className={styles.projectContent}>
-              <h3 className={styles.projectTitle}>Beautysalon Glow</h3>
+              <h3 className={styles.projectTitle}>Vloerverwarming Limburg</h3>
               <p className={styles.projectDescription}>
-                Eenmalige contentdag voor Beautysalon Glow. Een dag shooten, een maand aan content.
+                {/* TODO copy klant — korte beschrijving van de VVL case */}
+                Content creatie voor Vloerverwarming Limburg. Vakmanschap op locatie vertaald naar foto en video.
               </p>
-              <a href="/cases/beautysalon-glow" className={styles.projectLink}>Bekijk case</a>
+              <a href="/cases/vloerverwarming-limburg" className={styles.projectLink}>Bekijk case</a>
             </div>
           </article>
 
@@ -506,17 +525,17 @@ const TextDemo = () => {
         </ul>
 
         <div className={styles.werkwijzeCta}>
-          <figure className={styles.werkwijzeCtaFigure} data-parallax="trigger">
-            <div className={styles.parallaxTarget} data-parallax="target">
-              <img
-                data-webgl-media
-                data-webgl-effect="bend"
-                src="https://picsum.photos/seed/vienna-portrait/900/900"
-                alt="Viënna"
-                className={styles.werkwijzeCtaImage}
-                loading="lazy"
-              />
-            </div>
+          <figure className={styles.werkwijzeCtaFigure}>
+            <video
+              src="/videos/vienna-introductie.mp4"
+              className={styles.werkwijzeCtaImage}
+              autoPlay
+              muted
+              loop
+              playsInline
+              preload="metadata"
+              aria-label="Viënna introductie"
+            />
           </figure>
           <p className={styles.werkwijzeCtaText}>
             <em>Z</em>et mij aan het werk met jouw unieke merk.

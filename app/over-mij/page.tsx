@@ -120,7 +120,11 @@ const OverMij = () => (
               posten.
             </p>
           </div>
-          <figure className={styles.sectionFigure} data-parallax="trigger">
+          <figure
+            className={styles.sectionFigure}
+            data-parallax="trigger"
+            data-parallax-disabled
+          >
             <div className={styles.parallaxTarget} data-parallax="target">
               <img
                 data-webgl-media
@@ -136,7 +140,11 @@ const OverMij = () => (
 
         {/* Section B — landscape image left, text right */}
         <section className={`${styles.section} ${styles.sectionB}`}>
-          <figure className={styles.sectionFigure} data-parallax="trigger">
+          <figure
+            className={styles.sectionFigure}
+            data-parallax="trigger"
+            data-parallax-disabled
+          >
             <div className={styles.parallaxTarget} data-parallax="target">
               <img
                 data-webgl-media
@@ -175,7 +183,11 @@ const OverMij = () => (
 
         {/* Section C — full-width image + 2-col caption below */}
         <section className={`${styles.section} ${styles.sectionC}`}>
-          <figure className={styles.sectionFigure} data-parallax="trigger">
+          <figure
+            className={styles.sectionFigure}
+            data-parallax="trigger"
+            data-parallax-disabled
+          >
             <div className={styles.parallaxTarget} data-parallax="target">
               <img
                 data-webgl-media

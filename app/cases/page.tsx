@@ -46,12 +46,16 @@ const CasesIndex = () => (
             data-cursor-text="Bekijk case"
             aria-label="Bekijk case Hair by Kim"
           >
-            <figure className={styles.projectFigure} data-parallax="trigger">
+            <figure
+              className={styles.projectFigure}
+              data-parallax="trigger"
+              data-parallax-disabled
+            >
               <div className={styles.parallaxTarget} data-parallax="target">
                 <img
                   data-webgl-media
                   data-webgl-effect="bend"
-                  src="https://picsum.photos/seed/hair-by-kim/1400/700"
+                  src="/cases/hair-by-kim/hero.jpg"
                   alt="Hair by Kim"
                   className={styles.projectImage}
                   loading="lazy"
@@ -74,19 +78,23 @@ const CasesIndex = () => (
         <div className={styles.projectenRow}>
           <article className={`${styles.projectItem} ${styles.projectSmall}`}>
             <a
-              href="/cases/falcon-ink"
+              href="/cases/fgs"
               className={styles.projectMediaLink}
               data-cursor-hover
               data-cursor-text="Bekijk case"
-              aria-label="Bekijk case Falcon Ink"
+              aria-label="Bekijk case FGS"
             >
-              <figure className={styles.projectFigure} data-parallax="trigger">
+              <figure
+                className={styles.projectFigure}
+                data-parallax="trigger"
+                data-parallax-disabled
+              >
                 <div className={styles.parallaxTarget} data-parallax="target">
                   <img
                     data-webgl-media
                     data-webgl-effect="bend"
-                    src="https://picsum.photos/seed/falcon-ink/800/600"
-                    alt="Falcon Ink"
+                    src="/cases/fgs/hero.jpg"
+                    alt="FGS"
                     className={styles.projectImage}
                     loading="lazy"
                   />
@@ -94,12 +102,13 @@ const CasesIndex = () => (
               </figure>
             </a>
             <div className={styles.projectContent}>
-              <h2 className={styles.projectTitle}>Falcon Ink</h2>
+              <h2 className={styles.projectTitle}>FGS</h2>
               <p className={styles.projectDescription}>
-                Content creatie voor Falcon Ink. Van concept tot publicatie,
-                altijd in de juiste sfeer.
+                {/* TODO copy klant — korte beschrijving van de FGS case */}
+                Content creatie voor FGS. Industrieel vakmanschap met 125 jaar
+                geschiedenis vertaald naar beeld en video.
               </p>
-              <a href="/cases/falcon-ink" className={styles.projectLink}>
+              <a href="/cases/fgs" className={styles.projectLink}>
                 Bekijk case
               </a>
             </div>
@@ -113,12 +122,16 @@ const CasesIndex = () => (
               data-cursor-text="Bekijk case"
               aria-label="Bekijk case Hal XIII"
             >
-              <figure className={styles.projectFigure} data-parallax="trigger">
+              <figure
+                className={styles.projectFigure}
+                data-parallax="trigger"
+                data-parallax-disabled
+              >
                 <div className={styles.parallaxTarget} data-parallax="target">
                   <img
                     data-webgl-media
                     data-webgl-effect="bend"
-                    src="https://picsum.photos/seed/hal-xiii/1280/800"
+                    src="/cases/hal-xiii/hero.jpg"
                     alt="Hal XIII"
                     className={styles.projectImage}
                     loading="lazy"
@@ -141,19 +154,23 @@ const CasesIndex = () => (
 
         <article className={`${styles.projectItem} ${styles.projectFull}`}>
           <a
-            href="/cases/beautysalon-glow"
+            href="/cases/vloerverwarming-limburg"
             className={styles.projectMediaLink}
             data-cursor-hover
             data-cursor-text="Bekijk case"
-            aria-label="Bekijk case Beautysalon Glow"
+            aria-label="Bekijk case Vloerverwarming Limburg"
           >
-            <figure className={styles.projectFigure} data-parallax="trigger">
+            <figure
+              className={styles.projectFigure}
+              data-parallax="trigger"
+              data-parallax-disabled
+            >
               <div className={styles.parallaxTarget} data-parallax="target">
                 <img
                   data-webgl-media
                   data-webgl-effect="bend"
-                  src="https://picsum.photos/seed/beautysalon-glow/1400/700"
-                  alt="Beautysalon Glow"
+                  src="/cases/vloerverwarming-limburg/hero.png"
+                  alt="Vloerverwarming Limburg"
                   className={styles.projectImage}
                   loading="lazy"
                 />
@@ -161,12 +178,13 @@ const CasesIndex = () => (
             </figure>
           </a>
           <div className={styles.projectContent}>
-            <h2 className={styles.projectTitle}>Beautysalon Glow</h2>
+            <h2 className={styles.projectTitle}>Vloerverwarming Limburg</h2>
             <p className={styles.projectDescription}>
-              Eenmalige contentdag voor Beautysalon Glow. Een dag shooten,
-              een maand aan content.
+              {/* TODO copy klant — korte beschrijving van de VVL case */}
+              Content creatie voor Vloerverwarming Limburg. Vakmanschap op
+              locatie vertaald naar foto en video.
             </p>
-            <a href="/cases/beautysalon-glow" className={styles.projectLink}>
+            <a href="/cases/vloerverwarming-limburg" className={styles.projectLink}>
               Bekijk case
             </a>
           </div>
