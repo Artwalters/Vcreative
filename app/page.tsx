@@ -322,7 +322,7 @@ const TextDemo = () => {
                     <img
                       data-webgl-media
                       data-webgl-effect="bend"
-                      src="/cases/hair-by-kim/hero.jpg"
+                      src="/cases/hair-by-kim/01.jpg"
                       alt="Hair by Kim"
                       className={`${styles.projectImage} ${styles.projectImageTop}`}
                       loading="lazy"

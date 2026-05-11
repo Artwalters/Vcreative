@@ -61,6 +61,7 @@ const CasePage = ({ slug }: { slug: CaseSlug }) => {
             src={data.heroImage}
             alt={`${data.name} hero`}
             className={styles.heroImage}
+            style={data.heroImagePosition ? { objectPosition: data.heroImagePosition } : undefined}
           />
         </div>
       </figure>

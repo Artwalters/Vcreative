@@ -37,6 +37,9 @@ export type CaseData = {
   heroTitle: CaseTitle
   heroTags: string[]
   heroImage: string
+  /* `object-position` voor `heroImage` — handig om de crop te
+     verschuiven wanneer de standaard center het onderwerp afsnijdt. */
+  heroImagePosition?: string
   sections: [CaseSection, CaseSection] | [CaseSection, CaseSection, CaseSection]
   quote: {
     logo: string
@@ -59,7 +62,8 @@ export const CASES: Record<CaseSlug, CaseData> = {
       rest: 'ocial media beheer\nvoor Hair by Kim',
     },
     heroTags: ['Strategie', 'Contentcreatie', 'Fotografie', 'Maandelijks beheer'],
-    heroImage: '/cases/hair-by-kim/hero.jpg',
+    heroImage: '/cases/hair-by-kim/01.jpg',
+    heroImagePosition: '50% 15%',
     sections: [
       {
         label: 'Het startpunt',
