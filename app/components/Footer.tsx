@@ -151,7 +151,7 @@ const Footer = () => {
 
       <div className={styles.brandRow} ref={brandRowRef}>
         <Link href="/" className={styles.brandLogo} aria-label="V-Creative">
-          <Logo3D interaction="auto" className={styles.logoMark} />
+          <Logo3D interaction="mouseTilt" className={styles.logoMark} />
         </Link>
         <p className={styles.brand} aria-hidden="true" ref={brandRef}>
           <em>V</em>ienna <em>C</em>reative

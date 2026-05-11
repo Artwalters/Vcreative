@@ -81,7 +81,7 @@ const CasePage = ({ slug }: { slug: CaseSlug }) => {
             ))}
           </div>
           <figure
-            className={styles.sectionFigure}
+            className={`${styles.sectionFigure} ${data.sections[0].imageRatio === 'portrait' ? styles.sectionFigurePortrait : ''}`}
             data-parallax="trigger"
             data-parallax-disabled
           >
@@ -101,7 +101,7 @@ const CasePage = ({ slug }: { slug: CaseSlug }) => {
         {/* Section 02 — landscape image left, text right */}
         <section className={`${styles.section} ${styles.sectionB}`}>
           <figure
-            className={styles.sectionFigure}
+            className={`${styles.sectionFigure} ${data.sections[1].imageRatio === 'portrait' ? styles.sectionFigurePortrait : ''}`}
             data-parallax="trigger"
             data-parallax-disabled
           >
@@ -130,41 +130,43 @@ const CasePage = ({ slug }: { slug: CaseSlug }) => {
           </div>
         </section>
 
-        {/* Section 03 — full-width image + 2-col caption below */}
-        <section className={`${styles.section} ${styles.sectionC}`}>
-          <figure
-            className={styles.sectionFigure}
-            data-parallax="trigger"
-            data-parallax-disabled
-          >
-            <div className={styles.parallaxTarget} data-parallax="target">
-              <img
-                data-webgl-media
-                data-webgl-effect="bend"
-                src={data.sections[2].image}
-                alt={`${data.name}, ${data.sections[2].label}`}
-                className={styles.sectionImage}
-                loading="lazy"
-              />
+        {/* Section 03 — full-width image + 2-col caption below (optioneel) */}
+        {data.sections[2] && (
+          <section className={`${styles.section} ${styles.sectionC}`}>
+            <figure
+              className={styles.sectionFigure}
+              data-parallax="trigger"
+              data-parallax-disabled
+            >
+              <div className={styles.parallaxTarget} data-parallax="target">
+                <img
+                  data-webgl-media
+                  data-webgl-effect="bend"
+                  src={data.sections[2].image}
+                  alt={`${data.name}, ${data.sections[2].label}`}
+                  className={styles.sectionImage}
+                  loading="lazy"
+                />
+              </div>
+            </figure>
+            <div className={styles.sectionCText}>
+              <div className={styles.sectionCTextLead}>
+                <p className={styles.sectionLabel}>
+                  <span className={styles.sectionLabelNumber}>03</span>
+                  {data.sections[2].label}
+                </p>
+                <h2 data-animation="webgl-text" className={styles.sectionTitle}>
+                  {renderTitle(data.sections[2].title)}
+                </h2>
+              </div>
+              <div className={styles.sectionCTextBody}>
+                {data.sections[2].body.map((p, i) => (
+                  <p key={i} className={styles.sectionBody}>{p}</p>
+                ))}
+              </div>
             </div>
-          </figure>
-          <div className={styles.sectionCText}>
-            <div className={styles.sectionCTextLead}>
-              <p className={styles.sectionLabel}>
-                <span className={styles.sectionLabelNumber}>03</span>
-                {data.sections[2].label}
-              </p>
-              <h2 data-animation="webgl-text" className={styles.sectionTitle}>
-                {renderTitle(data.sections[2].title)}
-              </h2>
-            </div>
-            <div className={styles.sectionCTextBody}>
-              {data.sections[2].body.map((p, i) => (
-                <p key={i} className={styles.sectionBody}>{p}</p>
-              ))}
-            </div>
-          </div>
-        </section>
+          </section>
+        )}
       </div>
 
       {data.socialItems && data.socialItems.length > 0 && (

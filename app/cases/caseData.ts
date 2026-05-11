@@ -18,6 +18,9 @@ export type CaseSection = {
   title: CaseTitle
   body: string[]
   image: string
+  /* Override default sectie aspect-ratio — handig wanneer het beeld
+     verticaal (social) is en de standaard landscape het zou croppen. */
+  imageRatio?: 'portrait'
 }
 
 /* Items rendered in the "Op de socials" grid. Mirrors what the client
@@ -34,7 +37,7 @@ export type CaseData = {
   heroTitle: CaseTitle
   heroTags: string[]
   heroImage: string
-  sections: [CaseSection, CaseSection, CaseSection]
+  sections: [CaseSection, CaseSection] | [CaseSection, CaseSection, CaseSection]
   quote: {
     logo: string
     text: string
@@ -108,7 +111,6 @@ export const CASES: Record<CaseSlug, CaseData> = {
       {type: 'image', src: '/cases/hair-by-kim/04.jpg', alt: 'Hair by Kim post'},
       {type: 'video', src: '/cases/hair-by-kim/videos/merel-balayage.mp4'},
       {type: 'image', src: '/cases/hair-by-kim/05.jpg', alt: 'Hair by Kim post'},
-      {type: 'image', src: '/cases/hair-by-kim/06.jpg', alt: 'Hair by Kim post'},
     ],
     nextSlug: 'fgs',
   },
@@ -148,18 +150,7 @@ export const CASES: Record<CaseSlug, CaseData> = {
           'TODO copy klant — vertel over de keuzes in licht, sfeer en compositie.',
         ],
         image: '/cases/fgs/02.png',
-      },
-      {
-        label: 'Het resultaat',
-        title: {
-          script: 'D',
-          rest: 'e standaard die FGS uitstraalt,\nnu ook online voelbaar.',
-        },
-        body: [
-          'TODO copy klant — beschrijf de impact: bereik, response, type klanten dat reageert.',
-          'TODO copy klant — sluit af met hoe het merk zich nu online presenteert.',
-        ],
-        image: '/cases/fgs/03.jpg',
+        imageRatio: 'portrait',
       },
     ],
     quote: {
@@ -169,7 +160,7 @@ export const CASES: Record<CaseSlug, CaseData> = {
       author: 'TODO naam',
       role: 'TODO rol bij FGS',
     },
-    fullBleedImage: '/cases/fgs/full.jpg',
+    fullBleedImage: '/cases/fgs/hero.jpg',
     socialItems: [
       {
         type: 'video',

@@ -242,7 +242,7 @@ const TextDemo = () => {
       <figure className={styles.heroFigure} data-parallax="trigger">
         <div className={styles.parallaxTarget} data-parallax="target">
           <img
-            src="/images/vienna-photographer-portrait.webp"
+            src="/images/hero.png"
             alt="V-Creative hero"
             className={styles.heroImage}
           />
@@ -271,11 +271,11 @@ const TextDemo = () => {
 
           <article className={`${styles.projectItem} ${styles.projectFull}`}>
             <a
-              href="/cases/hair-by-kim"
+              href="/cases/fgs"
               className={styles.projectMediaLink}
               data-cursor-hover
               data-cursor-text="Bekijk case"
-              aria-label="Bekijk case Hair by Kim"
+              aria-label="Bekijk case FGS"
             >
               <figure
                 className={styles.projectFigure}
@@ -286,8 +286,8 @@ const TextDemo = () => {
                   <img
                     data-webgl-media
                     data-webgl-effect="bend"
-                    src="/cases/hair-by-kim/hero.jpg"
-                    alt="Hair by Kim"
+                    src="/cases/fgs/hero.jpg"
+                    alt="FGS"
                     className={styles.projectImage}
                     loading="lazy"
                   />
@@ -295,22 +295,23 @@ const TextDemo = () => {
               </figure>
             </a>
             <div className={styles.projectContent}>
-              <h3 className={styles.projectTitle}>Hair by Kim</h3>
+              <h3 className={styles.projectTitle}>FGS</h3>
               <p className={styles.projectDescription}>
-                Social media beheer voor Hair by Kim. Strategie, fotografie en contentcreatie die het merk laat groeien.
+                {/* TODO copy klant — korte beschrijving van de FGS case */}
+                Content creatie voor FGS. Industrieel vakmanschap met 125 jaar geschiedenis vertaald naar beeld en video.
               </p>
-              <a href="/cases/hair-by-kim" className={styles.projectLink}>Bekijk case</a>
+              <a href="/cases/fgs" className={styles.projectLink}>Bekijk case</a>
             </div>
           </article>
 
           <div className={styles.projectenRow}>
             <article className={`${styles.projectItem} ${styles.projectSmall}`}>
               <a
-                href="/cases/fgs"
+                href="/cases/hair-by-kim"
                 className={styles.projectMediaLink}
                 data-cursor-hover
                 data-cursor-text="Bekijk case"
-                aria-label="Bekijk case FGS"
+                aria-label="Bekijk case Hair by Kim"
               >
                 <figure
                   className={styles.projectFigure}
@@ -321,21 +322,20 @@ const TextDemo = () => {
                     <img
                       data-webgl-media
                       data-webgl-effect="bend"
-                      src="/cases/fgs/hero.jpg"
-                      alt="FGS"
-                      className={styles.projectImage}
+                      src="/cases/hair-by-kim/hero.jpg"
+                      alt="Hair by Kim"
+                      className={`${styles.projectImage} ${styles.projectImageTop}`}
                       loading="lazy"
                     />
                   </div>
                 </figure>
               </a>
               <div className={styles.projectContent}>
-                <h3 className={styles.projectTitle}>FGS</h3>
+                <h3 className={styles.projectTitle}>Hair by Kim</h3>
                 <p className={styles.projectDescription}>
-                  {/* TODO copy klant — korte beschrijving van de FGS case */}
-                  Content creatie voor FGS. Industrieel vakmanschap met 125 jaar geschiedenis vertaald naar beeld en video.
+                  Social media beheer voor Hair by Kim. Strategie, fotografie en contentcreatie die het merk laat groeien.
                 </p>
-                <a href="/cases/fgs" className={styles.projectLink}>Bekijk case</a>
+                <a href="/cases/hair-by-kim" className={styles.projectLink}>Bekijk case</a>
               </div>
             </article>
 
@@ -356,7 +356,7 @@ const TextDemo = () => {
                     <img
                       data-webgl-media
                       data-webgl-effect="bend"
-                      src="/cases/hal-xiii/hero.jpg"
+                      src="/cases/hal-xiii/03.jpg"
                       alt="Hal XIII"
                       className={styles.projectImage}
                       loading="lazy"
@@ -391,7 +391,7 @@ const TextDemo = () => {
                   <img
                     data-webgl-media
                     data-webgl-effect="bend"
-                    src="/cases/vloerverwarming-limburg/hero.png"
+                    src="/cases/vloerverwarming-limburg/full.jpg"
                     alt="Vloerverwarming Limburg"
                     className={styles.projectImage}
                     loading="lazy"
@@ -419,7 +419,7 @@ const TextDemo = () => {
         <div className={styles.studioHero}>
           <div className={styles.studioBg}>
             <div className={styles.parallaxTarget}>
-              <img src="https://picsum.photos/seed/studio-bg/1920/1080" alt="" className={styles.studioBgImage} loading="lazy" />
+              <img src="/images/studio-bg.png" alt="" className={styles.studioBgImage} loading="lazy" />
             </div>
           </div>
           <div className={styles.studioCard}>

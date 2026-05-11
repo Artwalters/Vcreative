@@ -75,11 +75,6 @@
   font-style: normal;
   font-weight: var(--weight-bold);
   text-transform: none;
-  font-size: 1.1em;
-  line-height: 0.8;
-  display: inline-block;
-  transform: translateY(-0.22em);
-  margin-right: -0.15em;
 }
 
 .heroTags {
@@ -176,6 +171,15 @@
   aspect-ratio: 4 / 3;
 }
 .sectionB .sectionText { grid-column: 8 / span 5; }
+
+/* Portrait override — voor secties waar het beeld verticaal (social)
+   is en de standaard landscape het zou croppen. Past de aspect-ratio
+   aan naar dezelfde portrait verhouding als de standaard A. Specifiteit
+   moet matchen met `.sectionB .sectionFigure` (0,2,0) om die te winnen. */
+.sectionB .sectionFigurePortrait,
+.sectionC .sectionFigurePortrait {
+  aspect-ratio: 4 / 5;
+}
 
 /* C — full-width landscape figure + 2-col caption below (same ratios as A/B) */
 .sectionC .sectionFigure {
@@ -473,6 +477,8 @@
   font-style: normal;
   font-weight: var(--weight-bold);
   text-transform: none;
+  display: inline-block;
+  transform: translateY(-0.1em);
 }
 
 .nextCaseLink {
