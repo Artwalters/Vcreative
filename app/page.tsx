@@ -10,7 +10,7 @@ import EmbossedLogo from '@/app/components/EmbossedLogo'
 
 const REVIEWS = [
   {
-    logo: '/logos/hair-by-kim.png',
+    logo: '/logos/hair-by-kim.webp',
     quote:
       'Wat Viënna voor ons heeft neergezet is zoveel meer dan foto\u2019s en reels. Ze heeft ons merk echt op de kaart gezet. Onze salon voelt nu ook online als onze salon.',
     author: 'Kim van Dijk',
@@ -19,7 +19,7 @@ const REVIEWS = [
   },
   /* TODO copy klant — quote, auteur en rol voor FGS aanvullen */
   {
-    logo: '/logos/fgs.png',
+    logo: '/logos/fgs.webp',
     quote:
       'TODO copy klant — quote van FGS over de samenwerking met Viënna.',
     author: 'TODO naam',
@@ -27,7 +27,7 @@ const REVIEWS = [
     caseHref: '/cases/fgs',
   },
   {
-    logo: '/logos/hal-xiii.png',
+    logo: '/logos/hal-xiii.webp',
     quote:
       'Viënna begrijpt wat een merk nodig heeft om écht zichtbaar te worden. Geen standaard content, maar beeld dat kracht uitstraalt en ons publiek raakt.',
     author: 'Rim Pinckers',
@@ -242,7 +242,7 @@ const TextDemo = () => {
       <figure className={styles.heroFigure} data-parallax="trigger">
         <div className={styles.parallaxTarget} data-parallax="target">
           <img
-            src="/images/hero.png"
+            src="/images/hero.webp"
             alt="V-Creative hero"
             className={styles.heroImage}
           />
@@ -286,7 +286,7 @@ const TextDemo = () => {
                   <img
                     data-webgl-media
                     data-webgl-effect="bend"
-                    src="/cases/fgs/hero.jpg"
+                    src="/cases/fgs/hero.webp"
                     alt="FGS"
                     className={styles.projectImage}
                     loading="lazy"
@@ -322,7 +322,7 @@ const TextDemo = () => {
                     <img
                       data-webgl-media
                       data-webgl-effect="bend"
-                      src="/cases/hair-by-kim/01.jpg"
+                      src="/cases/hair-by-kim/01.webp"
                       alt="Hair by Kim"
                       className={`${styles.projectImage} ${styles.projectImageTop}`}
                       loading="lazy"
@@ -356,7 +356,7 @@ const TextDemo = () => {
                     <img
                       data-webgl-media
                       data-webgl-effect="bend"
-                      src="/cases/hal-xiii/03.jpg"
+                      src="/cases/hal-xiii/03.webp"
                       alt="Hal XIII"
                       className={styles.projectImage}
                       loading="lazy"
@@ -391,7 +391,7 @@ const TextDemo = () => {
                   <img
                     data-webgl-media
                     data-webgl-effect="bend"
-                    src="/cases/vloerverwarming-limburg/full.jpg"
+                    src="/cases/vloerverwarming-limburg/full.webp"
                     alt="Vloerverwarming Limburg"
                     className={styles.projectImage}
                     loading="lazy"
@@ -419,7 +419,7 @@ const TextDemo = () => {
         <div className={styles.studioHero}>
           <div className={styles.studioBg}>
             <div className={styles.parallaxTarget}>
-              <img src="/images/studio-bg.png" alt="" className={styles.studioBgImage} loading="lazy" />
+              <img src="/images/studio-bg.webp" alt="" className={styles.studioBgImage} loading="lazy" />
             </div>
           </div>
           <div className={styles.studioCard}>

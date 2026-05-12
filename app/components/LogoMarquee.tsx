@@ -4,14 +4,14 @@ import {useEffect, useRef} from 'react'
 import styles from '@/app/components/LogoMarquee.module.css'
 
 const LOGOS = [
-  {src: '/logos/hair-by-kim.png', alt: 'Hair by Kim'},
-  {src: '/logos/falcon-ink.png', alt: 'Falcon Ink'},
-  {src: '/logos/gymleco.png', alt: 'Gymleco'},
-  {src: '/logos/boutique-hotel-venlo.png', alt: 'Boutique Hotel Venlo'},
-  {src: '/logos/adventure-paradise.png', alt: 'Adventure Paradise'},
-  {src: '/logos/mocca.png', alt: 'Mocca'},
-  {src: '/logos/trento.png', alt: 'Trento'},
-  {src: '/logos/mmm.png', alt: 'MMM'},
+  {src: '/logos/hair-by-kim.webp', alt: 'Hair by Kim'},
+  {src: '/logos/falcon-ink.webp', alt: 'Falcon Ink'},
+  {src: '/logos/gymleco.webp', alt: 'Gymleco'},
+  {src: '/logos/boutique-hotel-venlo.webp', alt: 'Boutique Hotel Venlo'},
+  {src: '/logos/adventure-paradise.webp', alt: 'Adventure Paradise'},
+  {src: '/logos/mocca.webp', alt: 'Mocca'},
+  {src: '/logos/trento.webp', alt: 'Trento'},
+  {src: '/logos/mmm.webp', alt: 'MMM'},
 ]
 
 type Props = {

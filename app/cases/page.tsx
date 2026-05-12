@@ -55,7 +55,7 @@ const CasesIndex = () => (
                 <img
                   data-webgl-media
                   data-webgl-effect="bend"
-                  src="/cases/hair-by-kim/01.jpg"
+                  src="/cases/hair-by-kim/01.webp"
                   alt="Hair by Kim"
                   className={styles.projectImage}
                   loading="lazy"
@@ -93,7 +93,7 @@ const CasesIndex = () => (
                   <img
                     data-webgl-media
                     data-webgl-effect="bend"
-                    src="/cases/fgs/hero.jpg"
+                    src="/cases/fgs/hero.webp"
                     alt="FGS"
                     className={styles.projectImage}
                     loading="lazy"
@@ -131,7 +131,7 @@ const CasesIndex = () => (
                   <img
                     data-webgl-media
                     data-webgl-effect="bend"
-                    src="/cases/hal-xiii/hero.jpg"
+                    src="/cases/hal-xiii/hero.webp"
                     alt="Hal XIII"
                     className={styles.projectImage}
                     loading="lazy"
@@ -169,7 +169,7 @@ const CasesIndex = () => (
                 <img
                   data-webgl-media
                   data-webgl-effect="bend"
-                  src="/cases/vloerverwarming-limburg/hero.png"
+                  src="/cases/vloerverwarming-limburg/hero.webp"
                   alt="Vloerverwarming Limburg"
                   className={styles.projectImage}
                   loading="lazy"
