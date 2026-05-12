@@ -11,12 +11,16 @@ type Props = {
      background logo to render the model in a darker tone against
      the navy ink. */
   matcap?: string
+  /* mouseTilt only: trigger a 360° spin on pointer enter. Footer
+     opts out so the logo only follows the cursor subtly. */
+  hoverSpin?: boolean
 }
 
 const Logo3D = ({
   interaction = 'idle',
   className,
   matcap: matcapSrc = '/icons/3D/project-model-matcap.png',
+  hoverSpin = true,
 }: Props) => {
   const containerRef = useRef<HTMLDivElement>(null)
 
@@ -287,16 +291,17 @@ const Logo3D = ({
         zone.addEventListener('mouseleave', onLeave as EventListener)
 
         /* Hover-triggered 360° spin. Ignored if a turn is already in
-           flight so rapid re-enters don't queue up or stutter. */
+           flight so rapid re-enters don't queue up or stutter. Opt-out
+           via hoverSpin={false} (footer uses this for a calmer feel). */
         const onHoverEnter = () => {
           if (spinStart < 0) spinStart = performance.now()
         }
-        container.addEventListener('pointerenter', onHoverEnter)
+        if (hoverSpin) container.addEventListener('pointerenter', onHoverEnter)
 
         detachInteraction = () => {
           zone.removeEventListener('mousemove', onMove as EventListener)
           zone.removeEventListener('mouseleave', onLeave as EventListener)
-          container.removeEventListener('pointerenter', onHoverEnter)
+          if (hoverSpin) container.removeEventListener('pointerenter', onHoverEnter)
         }
       }
 
